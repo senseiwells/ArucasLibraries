@@ -1,0 +1,78 @@
+/**
+ * Builder class for strings, allowing for
+ * mutable strings that can be appended to
+ */
+class StringBuilder {
+    /**
+     * The actual string value
+     */
+    var string;
+
+    /**
+     * This creates a default StringBuilder
+     * with a blank string to start
+     */
+    StringBuilder() {
+        this.string = "";
+    }
+
+    /**
+     * This creates a StringBuilder
+     * with an initialString
+     * Parameter - Value (initialValue): the inital value to use as a string
+     */
+    StringBuilder(initialValue) {
+        // Ensure it's a string
+        this.string = initialValue.toString();
+    }
+
+    /**
+     * This allows to to append something 
+     * to the front of the string
+     * Parameter - Value (value): the value to append
+     * Returns - StringBuilder: this StringBuilder
+     */
+    fun appendPrefix(value) {
+        this.string = value.toString() + this.string;
+        return this;
+    }
+
+    /**
+     * This allows to to append something
+     * to the end of the string
+     * Parameter - Value (value): the value to append
+     * Returns - StringBuilder: this StringBuilder
+     */
+    fun append(value) {
+        this.string = this.string + value.toString();
+        return this;
+    }
+
+    /**
+     * Using the + operator does the same as the .append
+     * method but allows for more consise syntax
+     * Parameter - Value (value): the value to append
+     * Returns - StringBuilder: this StringBuilder
+     */
+    operator + (value) {
+        return this.append(value);
+    }
+
+    /**
+     * This returns the length
+     * of the current StringBuilder
+     * Returns - Number: the length of the builder
+     */
+    fun length() {
+        return len(this.string);
+    }
+
+    /**
+     * Gets the immutable string created
+     * by the StringBuilder
+     * Returns - String: the immutable string
+     */
+    fun toString() {
+        return this.string;
+    }
+}

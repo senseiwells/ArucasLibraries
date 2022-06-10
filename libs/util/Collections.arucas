@@ -1,3 +1,5 @@
+import StringBuilder from util.StringUtils;
+
 // Function that creates a new node
 // cannot be accessed outside this file
 newNode = null;
@@ -9,6 +11,10 @@ newNode = null;
         Node(value) {
             this.value = value;
             this.next = null;
+        }
+
+        fun toString() {
+            return this.value.toString();
         }
     }
 
@@ -89,6 +95,24 @@ class LinkedStack {
         }
         return list;
     }
+
+    /**
+     * Creates a string representation
+     * of the stack
+     * Returns - String: the string representation
+     */
+    fun toString() {
+        builder = new StringBuilder("Stack{");
+        current = this.current;
+        while (current != null) {
+            builder + current;
+            current = current.next;
+            if (current != null) {
+                builder + ", ";
+            }
+        }
+        return (builder + "}").toString();
+    }
 }
 
 /**
@@ -131,7 +155,7 @@ class LinkedQueue {
         if (this.isEmpty()) {
             this.head = this.tail = nextNode;
         } else {
-            this.tail = this.tail.next = newNode;
+            this.tail = this.tail.next = nextNode;
         }
     }
 
@@ -180,11 +204,29 @@ class LinkedQueue {
      */
     fun toList() {
         list = [];
-        current = this.head;
-        while (current != null) {
-            list.append(current);
-            current = current.next;
+        head = this.head;
+        while (head != null) {
+            list.append(head);
+            head = head.next;
         }
         return list;
+    }
+
+    /**
+     * Creates a string representation
+     * of the queue
+     * Returns - String: the string representation
+     */
+    fun toString() {
+        builder = new StringBuilder("Queue{");
+        head = this.head;
+        while (head != null) {
+            builder + head;
+            head = head.next;
+            if (head != null) {
+                builder + ", ";
+            }
+        }
+        return (builder + "}").toString();
     }
 }
