@@ -1,0 +1,190 @@
+// Function that creates a new node
+// cannot be accessed outside this file
+newNode = null;
+/* private */ {
+    class Node {
+        var value;
+        var next;
+    
+        Node(value) {
+            this.value = value;
+            this.next = null;
+        }
+    }
+
+    newNode = fun(value) {
+        return new Node(value);
+    };
+}
+
+/**
+ * Stack data strucutre using linked nodes
+ * FIFO with basic methods
+ */
+class LinkedStack {
+    var current;
+
+    /**
+     * Constructs a new LinkedStack
+     */
+    LinkedStack() {
+        this.current = null;
+    }
+
+    /**
+     * Checks if the stack is empty
+     * Returns - Boolean: whether the stack is empty
+     */
+    fun isEmpty() {
+        return this.current == null;
+    }
+
+    /**
+     * This pushes a new value to the top of the stack
+     * Parameter - Value (value): the value to add to the stack
+     */
+    fun push(value) {
+        nextNode = newNode(value);
+        nextNode.next = this.current;
+        this.current = nextNode;
+    }
+
+    /**
+     * This removes the value at the top of the stack
+     * Returns - Value: the value that was at the top
+     * Throws - Error: Stack is empty
+     */
+    fun pop() {
+        if (this.isEmpty()) {
+            throw new Error("Stack is empty");
+        }
+        currentNode = this.current;
+        this.current = this.current.next;
+        return currentNode.value;
+    }
+
+    /**
+     * This peeks at the value at the top of the stack
+     * Returns - Value: the value at the top of stack
+     * Throws - Error: Stack is empty
+     */
+    fun peek() {
+        if (this.isEmpty()) {
+            throw new Error("Stack is empty");
+        }
+        return this.current.value;
+    }
+
+    /**
+     * Converts the stack to a list,
+     * with the top of the stack being first
+     * Returns - List: the stack as a list
+     */
+    fun toList() {
+        list = [];
+        current = this.current;
+        while (current != null) {
+            list.append(current);
+            current = current.next;
+        }
+        return list;
+    }
+}
+
+/**
+ * Queue data strucutre using linked nodes
+ * FILO with basic methods
+ */
+class LinkedQueue {
+    /**
+     * The node that is at the
+     * front of the queue
+     */
+    var head;
+    /**
+     * The node that is at the
+     * end of the queue
+     */
+    var tail;
+
+    /**
+     * Constructs a new LinkedQueue
+     */
+    LinkedQueue() {
+        this.head = this.tail = null;
+    }
+
+    /**
+     * Checks whether the queue is empty
+     * Returns - Boolean: whether the queue is empty
+     */
+    fun isEmpty() {
+        return this.head == null;
+    }
+
+    /**
+     * Adds a value to the end of the queue
+     * Parameter - Value (value): the value to add to the queue
+     */
+    fun enqueue(value) {
+        nextNode = newNode(value);
+        if (this.isEmpty()) {
+            this.head = this.tail = nextNode;
+        } else {
+            this.tail = this.tail.next = newNode;
+        }
+    }
+
+    /**
+     * Removes the value at the start of the queue
+     * Returns - Value: the value at the start of the queue
+     * Throws - Error: Queue is empty
+     */
+    fun dequeue() {
+        if (this.isEmpty()) {
+            throw new Error("Queue is empty");
+        }
+        head = this.head;
+        this.head = this.head.next;
+        return head.value;
+    }
+
+    /**
+     * Gets the value at the front of the queue
+     * Returns - Value: the value at the front of the queue
+     * Throws - Error: Queue is empty
+     */
+    fun front() {
+        if (this.isEmpty()) {
+            throw new Error("Queue is empty");
+        }
+        return this.head.value;
+    }
+
+    /**
+     * Gets the value at the end of the queue
+     * Returns - Value: the value at the end of the queue
+     * Throws - Error: Queue is empty
+     */
+    fun end() {
+        if (this.isEmpty()) {
+            throw new Error("Queue is empty");
+        }
+        return this.tail.value;
+    }
+
+    /**
+     * Converts the queue to a list,
+     * with the start of the queue being first
+     * Returns - List: the queue as a list
+     */
+    fun toList() {
+        list = [];
+        current = this.head;
+        while (current != null) {
+            list.append(current);
+            current = current.next;
+        }
+        return list;
+    }
+}
