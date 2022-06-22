@@ -38,7 +38,7 @@ class MaterialUtils {
         return CHESTPLATES;
     }
 
-    static fun getChestLeggings() {
+    static fun getLeggings() {
         return LEGGINGS;
     }
 
