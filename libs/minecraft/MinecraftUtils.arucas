@@ -55,3 +55,143 @@ class ItemUtils {
         throw new Error("'%s' was not an item".format(item));
     }
 }
+
+enum Direction {
+    NORTH(0, 0, -1),
+    EAST(1, 0, 0),
+    SOUTH(0, 0, 1),
+    WEST(-1, 0, 0),
+    UP(0, 1, 0),
+    DOWN(0, -1, 0),
+    NONE(0, 0, 0);
+
+    var vector;
+
+    Direction(x, y, z) {
+        this.vector = new Pos(x, y, z);
+    }
+
+    fun opposite() {
+        switch (this) {
+            case Direction.NORTH -> return Direction.SOUTH;
+            case Direction.SOUTH -> return Direction.NORTH;
+            case Direction.EAST -> return Direction.WEST;
+            case Direction.WEST -> return Direction.EAST;
+            case Direction.UP -> return Direction.DOWN;
+            case Direction.DOWN -> return Direction.UP;
+        }
+        return Direction.NONE;
+    }
+
+    fun right() {
+        switch(this) {
+            case Direction.NORTH -> return Direction.EAST;
+            case Direction.EAST -> return Direction.SOUTH;
+            case Direction.SOUTH -> return Direction.WEST;
+            case Direction.WEST -> return Direction.NORTH;
+        }
+        return Direction.NONE;
+    }
+
+    fun left() {
+        switch(this) {
+            case Direction.NORTH -> return Direction.WEST;
+            case Direction.WEST -> return Direction.SOUTH;
+            case Direction.SOUTH -> return Direction.EAST;
+            case Direction.EAST -> return Direction.NORTH;
+        }
+        return Direction.NONE;
+    }
+
+    fun vec() {
+        return this.vector.copy();
+    }
+
+    fun x() {
+        return this.vector.getX();
+    }
+
+    fun y() {
+        return this.vector.getY();
+    }
+
+    fun z() {
+        return this.vector.getZ();
+    }
+
+    fun toString() {
+        return this.getName().lowercase();
+    }
+
+    static fun getEntityFacingFirst(entity) {
+        facing = Direction.getEntityFacingOrdered(entity);
+        if (facing.isEmpty()) {
+            return Direction.NONE;
+        }
+        return facing[0];
+    }
+
+    static fun getEntityFacingOrdered(entity) {
+        if (entity.instanceOf(Entity.type)) {
+            pitch = entity.getPitch() * (Math.pi / 180);
+            yaw = -1 * entity.getYaw() * (Math.pi / 180);
+            pSin, pCos, ySin, yCos = [Math.sin(pitch), Math.cos(pitch), Math.sin(yaw), Math.cos(yaw)];
+
+            x, y, z = [null, null, null];
+            if (ySin > 0) {
+                x = Direction.EAST;
+            } else {
+                x = Direction.WEST;
+                ySin = -ySin;
+            }
+            if (pSin < 0) {
+                y = Direction.UP;
+                pSin = -pSin;
+            } else {
+                y = Direction.DOWN;
+            }
+            if (yCos > 0) {
+                z = Direction.SOUTH;
+            } else {
+                z = Direction.NORTH;
+                yCos = -yCos;
+            }
+
+            theta = ySin * pCos;
+            omega = yCos * pCos;
+            if (ySin > yCos) {
+                if (pSin > theta) {
+                    return Direction.listClosest(y, x, z);
+                } else if (omega > pSin) {
+                    return Direction.listClosest(x, z, y);
+                }
+                return Direction.listClosest(x, y, z);
+            } else if (pSin > omega) {
+                return Direction.listClosest(y, z, x);
+            } else if (theta > pSin) {
+                return Direction.listClosest(z, x, y);
+            }
+            return Direction.listClosest(z, y, x);
+            
+        }
+        return [];
+    }
+
+    static fun listClosest(first, second, third) {
+        return [first, second, third, third.opposite(), second.opposite(), first.opposite()];
+    }
+
+    static fun fromString(string) {
+        if (Type.of(string) == String.type) {
+            switch(string.lowercase()) {
+                case "north" -> return Direction.NORTH;
+                case "east" -> return Direction.EAST;
+                case "south" -> return Direction.SOUTH;
+                case "west" -> return Direction.WEST;
+                case "up" -> return Direction.UP;
+                case "down" -> return Direction.DOWN;
+            }
+        }
+        return Direction.NONE;
+    }
+}
