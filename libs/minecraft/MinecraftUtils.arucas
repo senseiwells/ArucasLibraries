@@ -73,7 +73,7 @@ enum Direction {
     var vector;
     var axis;
     Direction(x, y, z, axis) {
-        this.vector = new PosWithFun(x, y, z);
+        this.vector = new Pos(x, y, z);
         this.axis = axis;
     }
 
@@ -145,7 +145,11 @@ enum Direction {
     }
 
     fun mult(value){
-        return this.vector.mult(value);
+        return this.vector.multiply(value);
+    }
+
+    fun multiply(value){
+        return this.vector.multiply(value);
     }
 
     fun equals(other){
