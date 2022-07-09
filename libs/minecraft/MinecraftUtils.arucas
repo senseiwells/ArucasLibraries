@@ -55,23 +55,29 @@ class ItemUtils {
         throw new Error("'%s' was not an item".format(item));
     }
 }
-
+enum Axis {
+    X,
+    Y,
+    Z,
+    NONE;
+}
 enum Direction {
-    NORTH(0, 0, -1),
-    EAST(1, 0, 0),
-    SOUTH(0, 0, 1),
-    WEST(-1, 0, 0),
-    UP(0, 1, 0),
-    DOWN(0, -1, 0),
-    NONE(0, 0, 0);
+    DOWN(0, -1, 0, Axis.Y),
+    UP(0, 1, 0, Axis.Y),
+    NORTH(0, 0, -1, Axis.Z),
+    SOUTH(0, 0, 1, Axis.Z),
+    WEST(-1, 0, 0, Axis.X),
+    EAST(1, 0, 0, Axis.X),
+    NONE(0, 0, 0, Axis.NONE); //Actual ordinals of minecraft directions.
 
     var vector;
-
-    Direction(x, y, z) {
-        this.vector = new Pos(x, y, z);
+    var axis;
+    Direction(x, y, z, axis) {
+        this.vector = new PosWithFun(x, y, z);
+        this.axis = axis;
     }
 
-    fun opposite() {
+    fun getOpposite() {
         switch (this) {
             case Direction.NORTH -> return Direction.SOUTH;
             case Direction.SOUTH -> return Direction.NORTH;
@@ -93,6 +99,10 @@ enum Direction {
         return Direction.NONE;
     }
 
+    fun rotateYClockwise() {
+        return this.right();
+    }
+
     fun left() {
         switch(this) {
             case Direction.NORTH -> return Direction.WEST;
@@ -102,20 +112,27 @@ enum Direction {
         }
         return Direction.NONE;
     }
+    fun rotateYCounterClockwise() {
+        return this.left();
+    }
 
-    fun vec() {
+    fun getAxis(){
+        return this.axis;
+    }
+
+    fun asVector() {
         return this.vector.copy();
     }
 
-    fun x() {
+    fun getX() {
         return this.vector.getX();
     }
 
-    fun y() {
+    fun getY() {
         return this.vector.getY();
     }
 
-    fun z() {
+    fun getZ() {
         return this.vector.getZ();
     }
 
@@ -123,6 +140,17 @@ enum Direction {
         return this.getName().lowercase();
     }
 
+    fun isValid(){
+        return this != Direction.NONE;
+    }
+
+    fun mult(value){
+        return this.vector.mult(value);
+    }
+
+    fun equals(other){
+        return this == other;
+    }
     static fun getEntityFacingFirst(entity) {
         facing = Direction.getEntityFacingOrdered(entity);
         if (facing.isEmpty()) {
@@ -172,13 +200,13 @@ enum Direction {
                 return Direction.listClosest(z, x, y);
             }
             return Direction.listClosest(z, y, x);
-            
+
         }
         return [];
     }
 
     static fun listClosest(first, second, third) {
-        return [first, second, third, third.opposite(), second.opposite(), first.opposite()];
+        return [first, second, third, third.getOpposite(), second.getOpposite(), first.getOpposite()];
     }
 
     static fun fromString(string) {
@@ -193,5 +221,11 @@ enum Direction {
             }
         }
         return Direction.NONE;
+    }
+    static fun values(){
+        return [Direction.UP, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH];
+    }
+    static fun horizontal(){
+        return [Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH];
     }
 }
