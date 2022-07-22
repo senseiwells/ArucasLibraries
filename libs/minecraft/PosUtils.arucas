@@ -102,7 +102,7 @@ enum Direction {
     fun equals(other){
         return this == other;
     }
-    
+
     static fun getEntityFacingFirst(entity) {
         facing = Direction.getEntityFacingOrdered(entity);
         if (facing.isEmpty()) {
@@ -179,5 +179,265 @@ enum Direction {
     }
     static fun horizontal(){
         return [Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH];
+    }
+}
+
+
+class PosWithFun {
+    //Extended PosWithFun class
+    var x;
+    var y;
+    var z;
+    var pos : Pos = new Pos(0,0,0);
+    as Pos{
+        return this.pos;
+    }
+    PosWithFun(x, y, z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.pos = new Pos(x,y,z);
+    }
+    PosWithFun(pos){
+        this.x = pos.getX();
+        this.y = pos.getY();
+        this.z = pos.getZ();
+        this.pos = new Pos(this.x,this.y,this.z);
+    }
+    fun getX(){
+        //compat with pos
+        return this.x;
+    }
+    fun getY(){
+        return this.y;
+    }
+    fun getZ(){
+        return this.z;
+    }
+    fun add(other){
+        return new PosWithFun(this.x + other.getX(), this.y + other.getY(), this.z + other.getZ());
+    }
+    fun add(x,y,z){
+        return new PosWithFun(this.x +x, this.y + y, this.z + z);
+    }
+    fun internalAdd(x,y,z,p){
+        return new PosWithFun(this.x + x * p, this.y + y * p, this.z + z * p);
+    }
+    fun internalAdd(other, p){
+        return new PosWithFun(this.x + other.getX() * p, this.y + other.getY() * p, this.z + other.getZ() * p);
+    }
+    fun subtract(other){
+        return new PosWithFun(this.x - other.getX(), this.y - other.getY(), this.z - other.getZ());
+    }
+    fun distanceTo(otherPos){
+        dx = otherPos.getX() - this.x;
+        dy = otherPos.getY() - this.y;
+        dz = otherPos.getZ() - this.z;
+        return (dx ^2 + dy ^2 + dz ^2) ^ 0.5;
+    }
+    fun asCenter(){
+        return new PosWithFun(this.x + 0.5, this.y + 0.5, this.z + 0.5);
+    } // Explicit same type casting
+
+    fun getSidePos(direction){ //for Wall Mounted Blocks vanilla protocol
+        //we expect Direction object here
+        return this.asCenter().offset(direction, 0.5);
+    } // Explicit same type casting
+    fun mult(integer){
+        return new PosWithFun(this.x * integer, this.y * integer, this.z * integer);
+    }
+    fun asPos(){
+        return new Pos(this.x, this.y, this.z);
+    } //explicit casting
+    fun asJavaPos(){
+        return Java.constructClass('net.minecraft.util.math.BlockPos',this.x, this.y, this.z);
+    }//conversion
+    fun formatted(){
+        return 'x '+ this.x + ' y' + this.y + ' z' + this.z;
+    }
+    fun copy(){
+        return new PosWithFun(this.x, this.y, this.z);
+    }
+    fun offset(direction){
+        //south +z north -z west -x east +x
+        return this.add(direction.asVector());
+    }
+    fun offset(direction, amount){
+        return this.internalAdd(direction, amount);
+    }
+    fun multiply(amount){
+        //compat
+        return this.mult(amount);
+    }
+    fun up(){
+        return this.add(Direction.UP);
+    }
+    fun down(){
+        return this.add(Direction.DOWN);
+    }
+    fun up(int){
+        return this.offset(Direction.UP, int);
+    }
+    fun down(int){
+        return this.offset(Direction.DOWN, int);
+    }
+    fun east(){
+        return this.add(Direction.EAST);
+    }
+    fun west(){
+        return this.add(Direction.WEST);
+    }
+    fun east(int){
+        return this.offset(Direction.EAST, int);
+    }
+    fun west(int){
+        return this.offset(Direction.WEST, int);
+    }
+    fun north(){
+        return this.add(Direction.NORTH);
+    }
+    fun south(){
+        return this.add(Direction.SOUTH);
+    }
+    fun north(int){
+        return this.offset(Direction.NORTH, int);
+    }
+    fun isNear(entity, distance){
+        pos = entity.getPos();
+        return this.distanceTo(pos) < distance;
+    }
+    
+    fun south(int){
+        return this.offset(Direction.SOUTH, int);
+    }
+    fun getMinPos(otherPos){ //Compare two positions to get Minimum position (Box)
+        return new PosWithFun(Math.min(this.x, otherPos.x),Math.min(this.y, otherPos.y),Math.min(this.z, otherPos.z) );
+    }
+    fun getMaxPos(otherPos){
+        return new PosWithFun(Math.max(this.x, otherPos.x),Math.max(this.y, otherPos.y),Math.max(this.z, otherPos.z) );
+    }
+    fun equals(otherPos){
+        return this.x == otherPos.x && this.y == otherPos.y && this.z == otherPos.z;
+    }
+}
+class PosWithDirection{
+    // Utility class that holds Position and Direction information
+    var x;
+    var y;
+    var z;
+    var pos : Pos = new Pos(0,0,0);
+    var direction = Direction.NONE;
+    as Pos{
+        return this.pos;
+    }
+    as Direction{
+        return this.direction;
+    }
+    PosWithDirection(x, y, z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.pos = new Pos(x,y,z);
+    }
+    PosWithDirection(x, y, z, direction){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.pos = new Pos(x,y,z);
+        this.direction = direction;
+    }
+    PosWithDirection(pos){
+        this.x = pos.getX();
+        this.y = pos.getY();
+        this.z = pos.getZ();
+        this.pos = new Pos(this.x,this.y,this.z);
+    }
+    PosWithDirection(pos, direction){
+        this.x = pos.getX();
+        this.y = pos.getY();
+        this.z = pos.getZ();
+        this.pos = new Pos(this.x,this.y,this.z);
+        this.direction = direction;
+    }
+    fun getX(){
+        //compat with pos
+        return this.x;
+    }
+    fun getY(){
+        return this.y;
+    }
+    fun getZ(){
+        return this.z;
+    }
+    fun getDirection(){
+        return this.direction;
+    }
+    fun add(other){
+        return new PosWithDirection(this.x + other.getX(), this.y + other.getY(), this.z + other.getZ(), this.direction);
+    }
+    fun subtract(other){
+        return new PosWithDirection(this.x - other.getX(), this.y - other.getY(), this.z - other.getZ(), this.direction);
+    }
+    fun distanceTo(otherPos){
+        dx = otherPos.getX() - this.x;
+        dy = otherPos.getY() - this.y;
+        dz = otherPos.getZ() - this.z;
+        return (dx ^2 + dy ^2 + dz ^2) ^ 0.5;
+    }
+    fun isNear(entity){
+        pos = entity.getPos();
+        dist = this.distanceTo(pos);
+        return dist < 4.5;//player reach
+    }
+    fun asCenter(){
+        return new PosWithFun(this.x + 0.5, this.y + 0.5, this.z + 0.5);
+    } // sometimes you need this?
+    fun getSidePos(direction){ //for Wall Mounted Blocks vanilla protocol
+        //we expect Direction object here
+        return this.asCenter().offset(direction, 0.5);
+    }
+    fun isNear(entity, distance){
+        pos = entity.getPos();
+        return this.distanceTo(pos) < distance;
+    }
+    fun mult(integer){
+        return new PosWithDirection(this.x * integer, this.y * integer, this.z * integer, this.direction);
+    }
+    fun asPos(){
+        return new Pos(this.x, this.y, this.z);
+    }
+    fun asJavaPos(){
+        return Java.constructClass('net.minecraft.util.math.BlockPos',this.x, this.y, this.z);
+    }//conversion
+    fun formatted(){
+        return 'x '+ this.x + ' y' + this.y + ' z' + this.z + ' ' + this.direction.fromString;
+    }
+    fun copy(){
+        return new PosWithDirection(this.x, this.y, this.z);
+    }
+    fun offset(){
+        return this.add(this.direction.asVector());
+    }
+    fun offset(direction){
+        //south +z north -z west -x east +x
+        return this.add(direction.asVector());
+    }
+    fun offset(direction, amount){
+        return this.add(direction.asVector().mult(amount));
+    }
+    fun up(){
+        return this.add(Direction.UP);
+    }
+    fun down(){
+        return this.add(Direction.DOWN);
+    }
+    fun getMinPos(otherPos){ //Compare two positions to get Minimum position (Box)
+        return new PosWithDirection(Math.min(this.x, otherPos.x),Math.min(this.y, otherPos.y),Math.min(this.z, otherPos.z) );
+    }
+    fun getMaxPos(otherPos){
+        return new PosWithDirection(Math.max(this.x, otherPos.x),Math.max(this.y, otherPos.y),Math.max(this.z, otherPos.z) );
+    }
+    fun equals(otherPos){
+        return this.x == otherPos.x && this.y == otherPos.y && this.z == otherPos.z;
     }
 }
