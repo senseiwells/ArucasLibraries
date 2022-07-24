@@ -400,6 +400,23 @@ class LinearCommand{
             )
         );
     }
+    fun getMap(){
+        name = this.waitingQueue.pop().get(0);
+        if(Type.of(name).getName() != 'String'){
+            throwRuntimeError("Expected name : <String>  in map, but given name : " + name);
+        }
+        subcommands = this.internalMapBuild();
+        arguments = this.internalGetArgMap();
+        map = {
+                    "name" : name,
+                    "subcommands": subcommands,
+                    "arguments" : arguments
+                };
+        if(map.isEmpty()){
+            throw new Error("What is happening now?");
+        }
+        return map;
+    }
     fun process(){
         if (this.shouldProcessAsMap()){
             this.processMapCommand();
