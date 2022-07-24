@@ -1,0 +1,130 @@
+import * from minecraft.PosUtils;
+
+fun assertNonNegative(args...){
+    foreach(arg : args){
+        if(arg <= 0){
+            throw new Error("Argument was 0 or negative number");
+        }
+    }
+}
+class DivideArea{
+    var pos1 : PosWithFun = new PosWithFun(0,0,0);
+    var pos2 : PosWithFun = new PosWithFun(0,0,0);
+    as String {
+        return ''+this.pos1 + ' : '+ this.pos2;
+    }
+    DivideArea(x, y, z, ex, ey, ez){
+        this.pos1 = new PosWithFun(x,y,z);
+        this.pos2 = new PosWithFun(ex,ey,ez);
+        minPos = this.pos1.getMinPos(this.pos2);
+        maxPos = this.pos2.getMaxPos(this.pos1);
+        this.pos1 = minPos;
+        this.pos2 = maxPos;
+    }
+    DivideArea(p1, p2 ){
+        this.pos1 = new PosWithFun(p1);
+        this.pos2 = new PosWithFun(p2);
+        minPos = this.pos1.getMinPos(this.pos2);
+        maxPos = this.pos2.getMaxPos(this.pos1);
+        this.pos1 = minPos;
+        this.pos2 = maxPos;
+    }
+    fun adjustPos(pos){
+        this.pos1 = this.pos1.add(pos);
+        this.pos2 = this.pos2.add(pos);
+    }
+    fun getSize(){
+        res = this.pos2.subtract(this.pos1.asPos());
+        return (res.x+1)* (res.y+1)* (res.z+1);
+    }
+    fun getLengthArr(){
+        res = this.pos2.subtract(this.pos1.asPos());
+        return res.add(1,1,1);
+    }
+    fun format(){
+         return ''+this.pos1.formatted() + ' : '+ this.pos2.formatted();
+    }
+    fun divideBlock(blockX : Number, blockY: Number, blockZ: Number){
+        //divides by block X,Y,Z
+        assertNonNegative(blockX, blockY, blockZ);
+        res = this.pos2.subtract(this.pos1.asPos());
+        arr = [];
+        xRange = Math.ceil(res.x / blockX);
+        yRange = Math.ceil(res.y / blockY);
+        zRange = Math.ceil(res.z / blockZ);
+        foreach (xCount : range(xRange)){
+            foreach (yCount : range(yRange)){
+                foreach (zCount : range(zRange)){
+                    area = new DivideArea(xCount * blockX, yCount * blockY , zCount * blockZ, Math.min((xCount+1) * blockX - 1, res.x),Math.min((yCount+1) * blockY - 1, res.y),Math.min((zCount+1) * blockZ - 1, res.z));
+                    area.adjustPos(this.pos1);
+                    arr.append(area);
+                }
+            }
+        }
+        return arr;
+    }
+    fun divideBy(xCount : Number, yCount : Number, zCount : Number){
+        //divides by number
+        res = this.pos2.subtract(this.pos1.asPos());
+        blockX = Math.ceil(res.x / xCount);
+        blockY = Math.ceil(res.y / yCount);
+        blockZ = Math.ceil(res.z / zCount);
+        return this.divideBlock(blockX, blockY, blockZ);
+    }
+    fun divide8(){
+        res = this.pos2.subtract(this.pos1.asPos());
+        if(res.x < 3 || res.y < 3 || res.z < 3){
+            return [this];
+        }
+        midpoint = this.pos1.add(this.pos2.asPos()).multiply(0.5).toBlockPos();
+        ret = [];
+        sx = 0;
+        sy = 0;
+        sz = 0;
+        ex = 0;
+        ey = 0;
+        ez = 0;
+        foreach (xloc : [0,1]){
+            foreach (yloc : [0,1]){
+                foreach (zloc : [0,1]){
+                    if (xloc == 0){
+                        sx = this.pos1.getX();
+                        ex = midpoint.getX();
+                    }
+                    else {
+                        sx = midpoint.getX()+1;
+                        ex = this.pos2.getX();
+                    }
+                    if (yloc == 0){
+                        sy = this.pos1.getY();
+                        ey = midpoint.getY();
+                    }
+                    else {
+                        sy = midpoint.getY()+1;
+                        ey = this.pos2.getY();
+                    }
+                    if (zloc == 0){
+                        sz = this.pos1.getZ();
+                        ez = midpoint.getZ();
+                    }
+                    else {
+                        sz = midpoint.getZ()+1;
+                        ez = this.pos2.getZ();
+                    }
+                    arr = new DivideArea(sx, sy, sz, ex, ey, ez);
+                    ret.append(arr);
+                }
+            }
+        }
+        return ret;
+    }
+    //external access, cast when
+    fun getPos1(){
+        return this.pos1.asPos();
+    }
+    fun getPos2(){
+        return this.pos2.asPos();
+    }
+}
+//something like pos.interpolate(pos2) as extend function?
+
