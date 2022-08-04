@@ -51,7 +51,7 @@ class MapPrinter{
                 retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + MapPrinter.showList(map.get(keys), indent+1) + ",";
             }
             else {
-                retval = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + map.get(keys) + ",";
+                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + map.get(keys) + ",";
             }
         }
         return retVal +'\n'+ repeatStr('    ' , indent) + '}';
@@ -69,7 +69,7 @@ class MapPrinter{
                 retVal = retVal + '\n' + MapPrinter.showList(items) + ",";
             }
             else {
-                retval = retVal + '\n' + items + ",";
+                retVal = retVal + '\n' + items + ",";
             }
         }
         return retVal + '\n]';
@@ -87,7 +87,7 @@ class MapPrinter{
                 retVal = retVal + '\n' + repeatStr('    ' , indent+1) + MapPrinter.showList(items) + ",";
             }
             else {
-                retval = retVal + '\n' + repeatStr('    ' , indent+1) + items + ",";
+                retVal = retVal + '\n' + repeatStr('    ' , indent+1) + items + ",";
             }
         }
         return retVal +'\n'+ repeatStr('    ' , indent) + ']';
