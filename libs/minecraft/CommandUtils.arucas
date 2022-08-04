@@ -33,7 +33,7 @@ class MapPrinter{
                 retVal = retVal + '\n' +'"' + keys + '"'+ " : " + MapPrinter.showList(map.get(keys),1) + ",";
             }
             else {
-                retval = retVal + '\n' +'"' + keys + '"'+ " : " + map.get(keys) + ",";
+                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + map.get(keys) + ",";
             }
         }
         return retVal + '\n}';
