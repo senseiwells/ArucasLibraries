@@ -152,7 +152,8 @@ class Circle {
     var centre;
     var radius;
     Circle(centre, radius){
-
+        this.centre = centre;
+        this.radius = radius;
     }
 
     fun getPoints(resolution){
