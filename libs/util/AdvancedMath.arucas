@@ -120,7 +120,6 @@ class BezierCurve {
         this.coordinates = this.getPoints(100);
     }
 
-    //todo: make it work in 3d
     fun getPoint(t){
         if (this.quadratic) {
             for (t = 0; t < 1; t = t + (1/resolution)) {
