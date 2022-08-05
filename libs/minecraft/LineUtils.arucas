@@ -1,0 +1,34 @@
+class LineManager {
+    var lines = [];
+
+
+    var r; var g; var b;
+    var opacity;
+    var renderThroughBlocks;
+
+    LineManager(r, g, b, opacity, rtb) {
+        this.r = r; this.g = g; this.b = b;
+        this.opacity = opacity;
+        this.renderThroughBlocks = rtb;
+    }
+
+    fun clearLines() {
+        foreach (line : lines) {
+            line.stopRendering();
+        }
+        this.lines.clear();
+    }
+
+    fun addPosition(x1,y1,z1, x2,y2,z2) {
+        startPoint = new Pos(x1, y1, z1);
+        endPoint = new Pos(x2, y2, z2);
+
+        line = new LineShape(startPoint, endPoint);
+        line.setColour(this.r, this.g, this.b);
+        line.setOpacity(this.opacity);
+        line.setRenderThroughBlocks(this.renderThroughBlocks);
+        line.render();
+
+        this.lines.append(line);
+    }
+}
