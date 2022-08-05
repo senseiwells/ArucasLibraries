@@ -148,21 +148,50 @@ class BezierCurve {
     }
 }
 
-class Circle {
+class Ellipse {
     var centre;
-    var radius;
-    Circle(centre, radius){
+    var length;
+    var width;
+    var from = 0;
+    var to = 2 * Math.pi;
+    
+    Ellipse(centre, radius){ //Circle
         this.centre = centre;
-        this.radius = radius;
+        this.length = radius;
+        this.width = radius;
     }
+    
+    Ellipse(centre, radius, from, to){ //Partial Circle
+        this.centre = centre;
+        this.length = radius;
+        this.width = radius;
+        this.from = from;
+        this.to = to;
+    }
+    
+    Ellipse(centre, length, width){ //Ellipse
+        this.centre = centre;
+        this.length = length;
+        this.width = width;
+    }
+    
+    Ellipse(centre, length, width, from, to){ //Partial Ellipse
+        this.centre = centre;
+        this.length = length;
+        this.width = width;
+        this.from = from;
+        this.to = to;
+    }
+    
 
     fun getPoints(resolution){
         coordinates = [];
         x = this.centre.getX(); y = this.centre.getY(); z = this.centre.getZ();
-        for (theta = 0; theta < 2 * Math.pi; theta = theta + ((2*Math.pi)/resolution)) {
-            xOffset = radius * Math.cos(theta);
-            zOffset = radius * Math.sin(theta);
-            coordinates.append(new Pos(x + xOffset, y, z + zOffset));
+        for (theta = from; theta < to; theta = theta + resolution) {
+            l = this.length; w = this.width;
+            xOffset = (0.25 * l * w) / (Math.sqrt((0.5 * w * Math.sin(theta)) ^ 2 + (0.5 * l * Math.cos(theta)) ^ 2)) * Math.cos(theta);
+            zOffset = (0.25 * l * w) / (Math.sqrt((0.5 * w * Math.sin(theta)) ^ 2 + (0.5 * l * Math.cos(theta)) ^ 2)) * Math.sin(theta);
+            coordinates.append(new Pos(x + xOffset,y,z + zOffset));
         }
         return coordinates;
     }
