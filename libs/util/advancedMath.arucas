@@ -1,10 +1,10 @@
 import pos from Minecraft;
 
-class perlin_noise {
+class PerlinNoise {
     var vector_grid = {};
     var vector_grid_2d = {};
 
-    perlin_noise(){
+    PerlinNoise(){
 
     }
 
@@ -119,106 +119,33 @@ class BezierCurve {
             this.p4 = posList.get(3);
             this.quadratic = false;
         }
-        this.coordinates = this.plot(0.01);
+        this.coordinates = this.getPoints(0.01);
     }
 
-    fun plot(resolution) {
-        coordinates = [];
-        y = this.p1.getY();
-        lineManager = new LineManager(0, 0, 0, 255, false); //(r, g, b, opacity, shouldRenderThroughBlocks)
-
+    //todo: make it work in 3d
+    fun getPoint(t){
+        y=this.p1.getY();
         if (this.quadratic) {
             for (t = 0; t < 1; t = t + resolution) {
                 x = (1 - t)^2 * this.p1.getX() + 2 * (1 - t) * t * this.p2.getX() + t^2 * this.p3.getX();
                 z = (1 - t)^2 * this.p1.getZ() + 2 * (1 - t) * t * this.p2.getZ() + t^2 * this.p3.getZ();
-                coordinates.append(new Pos(x,y,z));
+                return(new Pos(x,y,z));
             }
         }
         else { //cubic
             for (t = 0; t < 1; t = t + resolution) {
-                x = (1 - t)^3 * this.p1.getX() + 3 * (1 - t)^2 * t * this.p2.getX() + 3 * (1 - t) * t^2 * this.p3.getX() + t^3 * this.p4.getX();
+                x = (1 - t)^3 * this.p1.getX() + 3 * (1 - t)^2 * t * this.p2.getX() + 3 * (1 - t) * t^2 * this.p3.getX() + t^3 * this.p4.getX();             
                 z = (1 - t)^3 * this.p1.getZ() + 3 * (1 - t)^2 * t * this.p2.getZ() + 3 * (1 - t) * t^2 * this.p3.getZ() + t^3 * this.p4.getZ();
-                coordinates.append(new Pos(x,y,z));
+                return(new Pos(x,y,z));
             }
         }
-
+    }
+    
+    fun getPoints(resolution) {
+        coordinates = [];
+        for(t = 0; t<1; t = t+resolution){
+            coordinates.append(this.getPoint(t));
+        }
         return coordinates;
-    }
-
-    fun draw(){
-        for (i = 0; i < len(this.coordinates) - 1; i++) {
-            x1 = coordinates.get(i).getX();
-            z1 = coordinates.get(i).getZ();
-            x2 = coordinates.get(i+1).getX();
-            z2 = coordinates.get(i+1).getZ();
-            lineManager.addPosition(x1,y,z1, x2,y,z2);
-        }
-    }
-
-    fun plotPoints() {
-        lineManager = new LineManager(255, 0, 0, 255, false); //(r, g, b, opacity, shouldRenderThroughBlocks)
-        posList = [this.p1, this.p2, this.p3];
-        if (this.p4 != null) {
-            posList.append(this.p4);
-        }
-
-        foreach (pos : posList) {
-            x = pos.getX(); y = pos.getY(); z = pos.getZ();
-            coordinates = [];
-            for (i = 0; i < 2 * Math.pi; i = i + 0.1) {
-                singleCoords = [];
-                singleCoords.append(0.02 * Math.cos(i));
-                singleCoords.append(0.02 * Math.sin(i));
-                coordinates.append(singleCoords);
-            }
-            for (i = 0; i < len(coordinates) - 1; i++) {
-                x1 = coordinates.get(i).get(0) + x;
-                z1 = coordinates.get(i).get(1) + z;
-                x2 = coordinates.get(i+1).get(0) + x;
-                z2 = coordinates.get(i+1).get(1) + z;
-
-                lineManager.addPosition(x1,y,z1, x2,y,z2);
-            }
-            x1 = coordinates.get(0).get(0) + x;
-            z1 = coordinates.get(0).get(1) + z;
-            x2 = coordinates.get(len(coordinates) - 1).get(0) + x;
-            z2 = coordinates.get(len(coordinates) - 1).get(1) + z;
-            lineManager.addPosition(x1,y,z1, x2,y,z2);
-        }
-    }
-}
-
-class LineManager {
-    var lines = [];
-
-
-    var r; var g; var b;
-    var opacity;
-    var renderThroughBlocks;
-
-    LineManager(r, g, b, opacity, rtb) {
-        this.r = r; this.g = g; this.b = b;
-        this.opacity = opacity;
-        this.renderThroughBlocks = rtb;
-    }
-
-    fun clearLines() {
-        foreach (line : lines) {
-            line.stopRendering();
-        }
-        this.lines.clear();
-    }
-
-    fun addPosition(x1,y1,z1, x2,y2,z2) {
-        startPoint = new Pos(x1, y1, z1);
-        endPoint = new Pos(x2, y2, z2);
-
-        line = new LineShape(startPoint, endPoint);
-        line.setColour(this.r, this.g, this.b);
-        line.setOpacity(this.opacity);
-        line.setRenderThroughBlocks(this.renderThroughBlocks);
-        line.render();
-
-        this.lines.append(line);
     }
 }
