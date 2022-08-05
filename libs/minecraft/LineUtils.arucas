@@ -1,7 +1,5 @@
 class LineManager {
     var lines = [];
-
-
     var r; var g; var b;
     var opacity;
     var renderThroughBlocks;
@@ -43,7 +41,7 @@ class LineManager {
 
 class Curve {
     var posList;
-    var closed = false;
+    var closed = true;
     var lineManager;
     Curve(posList){
         this.posList = posList;
@@ -57,14 +55,14 @@ class Curve {
         this.closed = false;
     }
     fun render(){
-        for(i = 0; i < len(posList);i++){
-            if(i == len(posList)){
+        for(i = 0; i < len(this.posList);i++){
+            if(i == len(this.posList)-1){
                 if(this.closed){
-                    this.lineManager.addPosition(posList[i],posList[0]);
+                    this.lineManager.addPosition(this.posList[i],this.posList[0]);
                 }
             }
             else{
-            this.lineManager.addPosition(posList[i],posList[i+1]);
+            this.lineManager.addPosition(this.posList[i],this.posList[i+1]);
             }
         }
     }

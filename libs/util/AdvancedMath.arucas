@@ -152,42 +152,40 @@ class Ellipse {
     var centre;
     var length;
     var width;
-    var from = 0;
-    var to = 2 * Math.pi;
+    var startingAngle = 0;
+    var endAngle = 2 * Math.pi;
     
     Ellipse(centre, radius){ //Circle
         this.centre = centre;
         this.length = radius;
         this.width = radius;
     }
-    
-    Ellipse(centre, radius, from, to){ //Partial Circle
+    Ellipse(centre, radius, startingAngle, endAngle){ //Partial Circle
         this.centre = centre;
         this.length = radius;
         this.width = radius;
-        this.from = from;
-        this.to = to;
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
     }
-    
     Ellipse(centre, length, width){ //Ellipse
         this.centre = centre;
         this.length = length;
         this.width = width;
     }
-    
-    Ellipse(centre, length, width, from, to){ //Partial Ellipse
+    Ellipse(centre, length, width, startingAngle, endAngle){ //Partial Ellipse
         this.centre = centre;
         this.length = length;
         this.width = width;
-        this.from = from;
-        this.to = to;
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
     }
     
 
-    fun getPoints(resolution){
+    fun getPoints(res){
         coordinates = [];
         x = this.centre.getX(); y = this.centre.getY(); z = this.centre.getZ();
-        for (theta = from; theta < to; theta = theta + resolution) {
+        resolution = Math.abs((this.endAngle - this.startingAngle))/res;
+        for (theta = this.startingAngle; theta < this.endAngle; theta = theta + resolution) {
             l = this.length; w = this.width;
             xOffset = (0.25 * l * w) / (Math.sqrt((0.5 * w * Math.sin(theta)) ^ 2 + (0.5 * l * Math.cos(theta)) ^ 2)) * Math.cos(theta);
             zOffset = (0.25 * l * w) / (Math.sqrt((0.5 * w * Math.sin(theta)) ^ 2 + (0.5 * l * Math.cos(theta)) ^ 2)) * Math.sin(theta);
