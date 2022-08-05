@@ -1,0 +1,219 @@
+import pos from Minecraft;
+
+class perlin_noise {
+    var vector_grid = {};
+    var vector_grid_2d = {};
+
+    perlin_noise(){
+
+    }
+
+    fun calculatePerlinValue(pos){
+        vectorList = [];
+        for(i = 0;i<2;i++){
+            x = Math.floor(pos.getX())+i;
+            if(!this.vector_grid.getKeys().contains(x))
+            this.vector_grid[x]={};
+            for(j = 0;j<2;j++){
+                y = Math.floor(pos.getY())+j;
+                if(!this.vector_grid[x].getKeys().contains(y))
+                this.vector_grid[x][y]={};
+                for(k = 0;k<2;k++){
+                    z =  Math.floor(pos.getZ())+k;
+                    if(!this.vector_grid[x][y].getKeys().contains(z)){
+                        angle_1 = random(360);
+                        angle_2 = random(360);
+                        this.vector_grid[x][y][z] = new Pos(Math.cos(Math.toRadians(angle_1)),Math.sin(Math.toRadians(angle_1)),Math.sin(Math.toRadians(angle_2)));
+                        //this.vector_grid[x][y][z] = new Pos(random(3)-1,random(3)-1,random(3)-1);
+                    }
+                    vectorList.append(new Pos(x, y, z));
+                }
+            }
+        }
+        dotProductList = [];
+        for(i = 0;i<2;i++){
+            for(j = 0;j<2;j++){
+                for(k = 0;k<2;k++){
+                    x = Math.floor(pos.getX())+i;
+                    y = Math.floor(pos.getY())+j;
+                    z = Math.floor(pos.getZ())+k;
+                    cornerVector = this.vector_grid[x][y][z];
+                    localX = pos.getX()-Math.floor(pos.getX())-i;
+                    localY = pos.getY()-Math.floor(pos.getY())-j;
+                    localZ = pos.getZ()-Math.floor(pos.getZ())-k;
+                    dotProduct = cornerVector.getX()*localX + cornerVector.getY()*localY + cornerVector.getZ()*localZ;
+                    dotProductList.append(dotProduct);
+                }
+            }
+        }
+        interpolationLevel1 = [];
+        for(i=0;i<8;i=i+2){
+            weight = pos.getZ()-Math.floor(pos.getZ());
+            interpolationLevel1.append(this.interpolate(dotProductList[i],dotProductList[i+1],weight));
+        }
+        interpolatedNumber1 = this.interpolate(interpolationLevel1[0],interpolationLevel1[1],pos.getY()-Math.floor(pos.getY()));
+        interpolatedNumber2 = this.interpolate(interpolationLevel1[2],interpolationLevel1[3],pos.getY()-Math.floor(pos.getY()));
+        return this.interpolate(interpolatedNumber1,interpolatedNumber2,pos.getX()-Math.floor(pos.getX()));
+    }
+
+    //2d noise
+    fun calculatePerlinValue(input_x,input_z){
+        vectorList = [];
+        for(i = 0;i<2;i++){
+            x = Math.floor(input_x)+i;
+            if(!this.vector_grid_2d.getKeys().contains(x))
+            this.vector_grid_2d[x]={};
+            for(k = 0;k<2;k++){
+                z =  Math.floor(input_z)+k;
+                if(!this.vector_grid_2d[x].getKeys().contains(z)){
+                    angle_1 = random(360);
+                    angle_2 = random(360);
+                    //this.vector_grid[x][y][z] = new Pos(Math.cos(Math.toRadians(angle_1)),Math.sin(Math.toRadians(angle_1)),Math.sin(Math.toRadians(angle_2)));
+                    this.vector_grid_2d[x][z] = new Pos(random(3)-1,0,random(3)-1);
+                }
+            }
+        }
+        dotProductList = [];
+        for(i = 0;i<2;i++){
+            for(k = 0;k<2;k++){
+                x = Math.floor(input_x)+i;
+                y = 0;
+                z = Math.floor(input_z)+k;
+                cornerVector = this.vector_grid_2d[x][z];
+                localX = input_x-Math.floor(input_x)-i;
+                localY = 0;
+                localZ = input_z-Math.floor(input_z)-k;
+                dotProduct = cornerVector.getX()*localX + cornerVector.getZ()*localZ;
+                dotProductList.append(dotProduct);
+            }
+        }
+        
+        interpolatedNumber1 = this.interpolate(dotProductList[0],dotProductList[1],input_z-Math.floor(input_z));
+        interpolatedNumber2 = this.interpolate(dotProductList[2],dotProductList[3],input_z-Math.floor(input_z));
+        return this.interpolate(interpolatedNumber1,interpolatedNumber2,input_x-Math.floor(input_x));
+    }
+
+    fun interpolate(number1, number2, weight){
+        output = number1+this.fadeFunction(weight)*(number2-number1);
+        return output;
+    }
+
+    fun fadeFunction(number){
+        return (6*number^5)-(15*number^4)+(10*number^3);
+    }
+}
+
+class BezierCurve {
+    var p1;
+    var p2;
+    var p3;
+    var p4;
+    var quadratic = true;
+
+    BezierCurve(posList) {
+        this.p1 = posList.get(0);
+        this.p2 = posList.get(1);
+        this.p3 = posList.get(2);
+        if (len(posList) == 4) {
+            this.p4 = posList.get(3);
+            this.quadratic = false;
+        }
+    }
+
+    fun plot() {
+        coordinates = [];
+        y = this.p1.getY();
+        lineManager = new LineManager(0, 0, 0, 255, false); //(r, g, b, opacity, shouldRenderThroughBlocks)
+
+        if (this.quadratic) {
+            for (t = 0; t < 1; t = t + 0.01) {
+                x = (1 - t)^2 * this.p1.getX() + 2 * (1 - t) * t * this.p2.getX() + t^2 * this.p3.getX();
+                z = (1 - t)^2 * this.p1.getZ() + 2 * (1 - t) * t * this.p2.getZ() + t^2 * this.p3.getZ();
+                coordinates.append(new Pos(x,y,z));
+            }
+        }
+        else { //cubic
+            for (t = 0; t < 1; t = t + 0.01) {
+                x = (1 - t)^3 * this.p1.getX() + 3 * (1 - t)^2 * t * this.p2.getX() + 3 * (1 - t) * t^2 * this.p3.getX() + t^3 * this.p4.getX();
+                z = (1 - t)^3 * this.p1.getZ() + 3 * (1 - t)^2 * t * this.p2.getZ() + 3 * (1 - t) * t^2 * this.p3.getZ() + t^3 * this.p4.getZ();
+                coordinates.append(new Pos(x,y,z));
+            }
+        }
+
+        for (i = 0; i < len(coordinates) - 1; i++) {
+            x1 = coordinates.get(i).getX();
+            z1 = coordinates.get(i).getZ();
+            x2 = coordinates.get(i+1).getX();
+            z2 = coordinates.get(i+1).getZ();
+
+            lineManager.addPosition(x1,y,z1, x2,y,z2);
+        }
+    }
+
+    fun plotPoints() {
+        lineManager = new LineManager(255, 0, 0, 255, false); //(r, g, b, opacity, shouldRenderThroughBlocks)
+        posList = [this.p1, this.p2, this.p3];
+        if (this.p4 != null) {
+            posList.append(this.p4);
+        }
+
+        foreach (pos : posList) {
+            x = pos.getX(); y = pos.getY(); z = pos.getZ();
+            coordinates = [];
+            for (i = 0; i < 2 * Math.pi; i = i + 0.1) {
+                singleCoords = [];
+                singleCoords.append(0.02 * Math.cos(i));
+                singleCoords.append(0.02 * Math.sin(i));
+                coordinates.append(singleCoords);
+            }
+            for (i = 0; i < len(coordinates) - 1; i++) {
+                x1 = coordinates.get(i).get(0) + x;
+                z1 = coordinates.get(i).get(1) + z;
+                x2 = coordinates.get(i+1).get(0) + x;
+                z2 = coordinates.get(i+1).get(1) + z;
+
+                lineManager.addPosition(x1,y,z1, x2,y,z2);
+            }
+            x1 = coordinates.get(0).get(0) + x;
+            z1 = coordinates.get(0).get(1) + z;
+            x2 = coordinates.get(len(coordinates) - 1).get(0) + x;
+            z2 = coordinates.get(len(coordinates) - 1).get(1) + z;
+            lineManager.addPosition(x1,y,z1, x2,y,z2);
+        }
+    }
+}
+
+class LineManager {
+    var lines = [];
+
+
+    var r; var g; var b;
+    var opacity;
+    var renderThroughBlocks;
+
+    LineManager(r, g, b, opacity, rtb) {
+        this.r = r; this.g = g; this.b = b;
+        this.opacity = opacity;
+        this.renderThroughBlocks = rtb;
+    }
+
+    fun clearLines() {
+        foreach (line : lines) {
+            line.stopRendering();
+        }
+        this.lines.clear();
+    }
+
+    fun addPosition(x1,y1,z1, x2,y2,z2) {
+        startPoint = new Pos(x1, y1, z1);
+        endPoint = new Pos(x2, y2, z2);
+
+        line = new LineShape(startPoint, endPoint);
+        line.setColour(this.r, this.g, this.b);
+        line.setOpacity(this.opacity);
+        line.setRenderThroughBlocks(this.renderThroughBlocks);
+        line.render();
+
+        this.lines.append(line);
+    }
+}
