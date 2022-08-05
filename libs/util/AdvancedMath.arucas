@@ -122,17 +122,18 @@ class BezierCurve {
 
     //todo: make it work in 3d
     fun getPoint(t){
-        y=this.p1.getY();
         if (this.quadratic) {
             for (t = 0; t < 1; t = t + (1/resolution)) {
                 x = (1 - t)^2 * this.p1.getX() + 2 * (1 - t) * t * this.p2.getX() + t^2 * this.p3.getX();
+                y = (1 - t)^2 * this.p1.getY() + 2 * (1 - t) * t * this.p2.getY() + t^2 * this.p3.getY();
                 z = (1 - t)^2 * this.p1.getZ() + 2 * (1 - t) * t * this.p2.getZ() + t^2 * this.p3.getZ();
                 return(new Pos(x,y,z));
             }
         }
         else { //cubic
             for (t = 0; t < 1; t = t + (1/resolution)) {
-                x = (1 - t)^3 * this.p1.getX() + 3 * (1 - t)^2 * t * this.p2.getX() + 3 * (1 - t) * t^2 * this.p3.getX() + t^3 * this.p4.getX();             
+                x = (1 - t)^3 * this.p1.getX() + 3 * (1 - t)^2 * t * this.p2.getX() + 3 * (1 - t) * t^2 * this.p3.getX() + t^3 * this.p4.getX();
+                y = (1 - t)^3 * this.p1.getY() + 3 * (1 - t)^2 * t * this.p2.getY() + 3 * (1 - t) * t^2 * this.p3.getY() + t^3 * this.p4.getY();
                 z = (1 - t)^3 * this.p1.getZ() + 3 * (1 - t)^2 * t * this.p2.getZ() + 3 * (1 - t) * t^2 * this.p3.getZ() + t^3 * this.p4.getZ();
                 return(new Pos(x,y,z));
             }
@@ -141,7 +142,7 @@ class BezierCurve {
     
     fun getPoints(resolution) {
         coordinates = [];
-        for(t = 0; t<1; t = t+resolution){
+        for(t = 0; t < 1; t = t + resolution){
             coordinates.append(this.getPoint(t));
         }
         return coordinates;
