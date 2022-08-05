@@ -31,4 +31,41 @@ class LineManager {
 
         this.lines.append(line);
     }
+    fun addPosition(startPoint, endPoint) {
+        line = new LineShape(startPoint, endPoint);
+        line.setColour(this.r, this.g, this.b);
+        line.setOpacity(this.opacity);
+        line.setRenderThroughBlocks(this.renderThroughBlocks);
+        line.render();
+        this.lines.append(line);
+    }
+}
+
+class Curve {
+    var posList;
+    var closed = false;
+    var lineManager;
+    Curve(posList){
+        this.posList = posList;
+        this.lineManager = new LineManager(255,255,255,255,false);
+    }
+    fun closed(){
+        this.closed = true;
+    }
+    
+    fun open(){
+        this.closed = false;
+    }
+    fun render(){
+        for(i = 0; i < len(posList);i++){
+            if(i == len(posList)){
+                if(this.closed){
+                    this.lineManager.addPosition(posList[i],posList[0]);
+                }
+            }
+            else{
+            this.lineManager.addPosition(posList[i],posList[i+1]);
+            }
+        }
+    }
 }
