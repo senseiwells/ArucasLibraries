@@ -148,7 +148,7 @@ class BezierCurve {
     }
 }
 
-class Circle{
+class Circle {
     var centre;
     var radius;
     Circle(centre, radius){
@@ -156,6 +156,13 @@ class Circle{
     }
 
     fun getPoints(resolution){
-
+        coordinates = [];
+        x = this.centre.getX(); y = this.centre.getY(); z = this.centre.getZ();
+        for (theta = 0; theta <= 2 * Math.pi; theta = theta + resolution) {
+            xOffset = radius * Math.cos(theta);
+            zOffset = radius * Math.sin(theta);
+            coordinates.append(new Pos(x + xOffset, y, z + zOffset));
+        }
+        return coordinates;
     }
 }
