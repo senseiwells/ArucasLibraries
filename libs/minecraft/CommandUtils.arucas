@@ -147,25 +147,49 @@ class FILOStack {
         return !this.asList.isEmpty();
     }
 }
-
-class MapSubCommand{
-    var name = "essentialCommand"; //default
-    var subCommands = {};
-    var arguments = {};
-    MapSubCommand(){
-
+exceptions = Set.of();
+exceptions.addAll([]);
+fun tryPredicateAndMerge(iterable, predicate, modifyFunction, exceptions){
+    retVal = [];
+    foreach ( i : iterable){
+        if(exceptions.contains(i)){
+            continue;
+        }
+        defaultVal = false;
+        try {
+            defaultVal = predicate(i);
+        }
+        catch (ignored) {
+            continue;
+        }
+        retVal.append(modifyFunction(i));
     }
-    MapSubCommand(name, lambda){
-        //direct execution
-    }
-    fun build(){
-        return CommandBuilder.fromMap({
-            "name" : this.name,
-            "subcommands" : this.subcommands,
-            "arguments" : this.arguments
-        });
-    }
+    return retVal;
 }
+
+lambdaItems = fun (obj){
+    return obj.asItemStack() != null;
+};
+lambdaItemGetId = fun (obj){
+    return obj.asItemStack().getId();
+};
+
+lambdaBlock = fun (obj){
+    return obj.asBlock() != null;
+};
+lambdaBlockGetId = fun (obj){
+    return obj.asBlock().getId();
+};
+
+class DefaultSuggester{
+    static var ITEMS = tryPredicateAndMerge(Material.ALL, lambdaItems, lambdaItemGetId, exceptions);
+    static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId, exceptions);
+    static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
+    static var HORIZONTAL = ['north', 'east', 'south', 'west'];
+}
+
+
+
 class LinearCommand{
     var waitingQueue;
     var lambda;
