@@ -194,3 +194,82 @@ class Ellipse {
         return coordinates;
     }
 }
+
+class Transformation {
+    var coordinates;
+
+    Transformation(coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    fun rotate(amount, unit) {
+        rotatedCoordinates = [];
+
+        return rotatedCoordinates;
+    }
+
+    fun rotate(centre, amount, unit) {
+        rotatedCoordinates = [];
+
+        return rotatedCoordinates;
+    }
+
+    fun translate(xDistance, yDistance, zDistance) {
+        translatedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            x = coordinate.getX() + xDistance;
+            y = coordinate.getY() + yDistance;
+            z = coordinate.getZ() + zDistance;
+            translatedCoordinates.append(new Pos(x,y,z));
+        }
+        return translatedCoordinates;
+    }
+    
+    //TODO: 3D
+    fun reflect(a, b, c) { // ax + bz + c = 0
+        reflectedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            x = (coordinate.getX() * (a^2 - b^2) - 2 * b * (a * coordinate.getZ() + c)) / (a^2 + b^2);
+            z = (coordinate.getZ() * (b^2 - a^2) - 2 * a * (b * coordinate.getX() + c)) / (a^2 + b^2);
+        }
+        return reflectedCoordinates;
+    }
+
+    fun reflect(axis) {
+        reflectedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            if (axis.uppercase() == "X") {
+
+            }
+            else if (axis.uppercase() == "Y") {
+
+            }
+            else if (axis.uppercase() == "Z") {
+
+            }
+        }
+        return reflectedCoordinates;
+    }
+
+    fun dilate(scale) {
+        dilatedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            x = coordinate.getX() * scale;
+            y = coordinate.getY() * scale;
+            z = coordinate.getZ() * scale;
+            dilatedCoordinates.append(new Pos(x,y,z));
+        }
+        return dilatedCoordinates;
+    }
+
+    fun dilate(xScale, yScale, zScale) {
+        dilatedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            x = coordinate.getX() * xScale;
+            y = coordinate.getY() * yScale;
+            z = coordinate.getZ() * zScale;
+            dilatedCoordinates.append(new Pos(x,y,z));
+        }
+        return dilatedCoordinates;
+    }
+}
