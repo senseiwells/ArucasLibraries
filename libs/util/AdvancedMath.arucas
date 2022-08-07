@@ -231,7 +231,7 @@ class Transformation {
         foreach (coordinate : this.coordinates) {
             x = (coordinate.getX() * (a^2 - b^2) - 2 * b * (a * coordinate.getZ() + c)) / (a^2 + b^2);
             z = (coordinate.getZ() * (b^2 - a^2) - 2 * a * (b * coordinate.getX() + c)) / (a^2 + b^2);
-            relfectedCoordinates.append(new Pos(x, coordinate.getY(), z);
+            reflectedCoordinates.append(new Pos(x, coordinate.getY(), z);
         }
         return reflectedCoordinates;
     }
