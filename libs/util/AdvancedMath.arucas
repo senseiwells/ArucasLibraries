@@ -1,4 +1,4 @@
-class PerlinNoise {
+class PerlinNoise { //TODO: extend Transformation
     var vector_grid = {};
     var vector_grid_2d = {};
 
@@ -101,7 +101,7 @@ class PerlinNoise {
     }
 }
 
-class BezierCurve {
+class BezierCurve { //TODO: extend Transformation
     var p1;
     var p2;
     var p3;
@@ -148,7 +148,7 @@ class BezierCurve {
     }
 }
 
-class Ellipse {
+class Ellipse { //TODO: extend Transformation
     var centre;
     var length;
     var width;
@@ -245,16 +245,16 @@ class Transformation {
         return reflectedCoordinates;
     }
 
-    fun reflect(axis) {
+    fun reflect(plane) {
         reflectedCoordinates = [];
         foreach (coordinate : this.coordinates) {
-            if (axis.uppercase() == "X") {
+            if (plane.uppercase() == "XY") {
 
             }
-            else if (axis.uppercase() == "Y") {
+            else if (plane.uppercase() == "XZ") {
 
             }
-            else if (axis.uppercase() == "Z") {
+            else if (plane.uppercase() == "YZ") {
 
             }
         }
