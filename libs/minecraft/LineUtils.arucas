@@ -11,7 +11,7 @@ class LineManager {
     }
 
     fun clearLines() {
-        foreach (line : lines) {
+        foreach (line : this.lines) {
             line.stopRendering();
         }
         this.lines.clear();
