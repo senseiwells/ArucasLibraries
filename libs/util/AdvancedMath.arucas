@@ -109,6 +109,10 @@ class BezierCurve { //TODO: extend Transformation
     var quadratic = true;
     var coordinates;
 
+    static fun getPoints(posList,resolution){
+
+    }
+     
     BezierCurve(posList) {
         this.p1 = posList.get(0);
         this.p2 = posList.get(1);
@@ -195,14 +199,66 @@ class Ellipse { //TODO: extend Transformation
     }
 }
 
+class AdvancedMath{
+    static fun toPolarCoordinates(x,y){
+        angle = Math.arcsin(y/x);
+        r = Math.sqrt(x^2+y^2);
+        return [angle,r];
+    }
+    static fun toPolarCoordinates(pos){
+        angle_1 = Math.arctan(Math.sqrt(pos.getX()^2+pos.getY()^2)/pos.getZ());
+        angle_2 = Math.arcsin(pos.getY()/pos.getX());
+        r = Math.sqrt(pos.getX()^2+pos.getY()^2+pos.getZ()^2);
+        return new Pos(angle_1,angle_2,r);
+    }
+    static fun toPolarCoordinates(x,y,z){
+        angle_1 = Math.arctan(Math.sqrt(x^2+y^2)/z);
+        angle_2 = Math.arcsin(y/x);
+        r = Math.sqrt(x^2+y^2+z^2);
+        return [angle_1,angle_2,r];
+    }
+    static fun toCartesianCoordinates(angle, r){
+        x = r * cos(angle);
+        y = r * sin(angle);
+        return [x,y];
+    }
+}
+
 class Transformation {
     var coordinates;
+    var axis = ["x","y","z"];
+
+    static fun rotate(coordinate, centre, amount,axis) {
+        coordinate2D = [];
+        staticCoordinate = 0;
+        foreach(value:coordinate.toList()){
+            if(this.axis.indexOf(axis)!=coordinate.toList().indexOf(value)){
+                coordinate2D.append(value-centre.toList()[this.axis.indexOf(axis)]);
+            }
+            else{
+                staticCoordinate = value-centre.toList()[this.axis.indexOf(axis)];
+            }
+        }
+        polarCoordinate = AdvancedMath.toPolarCoordinates(coordinate2D[0],coordinate2D[1]);
+        polarCoordinate[0] = polarCoordinate[0] + angle;
+        rotated2DCoordinate = AdvancedMath.toCartesianCoordinates(polarCoordinate[0],polarCoordinate[1]);
+        outputCoordinate = [];
+        foreach(value:coordinate.toList()){
+            if(this.axis.indexOf(axis)!=coordinate.toList().indexOf(value)){
+                outputCoordinate.append(value-centre.toList()[this.axis.indexOf(axis)]);
+            }
+            else{
+                outputCoordinate.append(staticCoordinate);
+            }
+        }
+        return new Pos(outputCoordinate[0],outputCoordinate[1],outputCoordinate[2]);
+    }
 
     Transformation(coordinates) {
         this.coordinates = coordinates;
     }
 
-    fun rotate(amount, unit) {
+    fun rotate(amount,axis) {
         foreach (coordinate : this.coordinates) {
             xSum = 0; ySum = 0; zSum = 0;
             xSum += coordinate.getX();
@@ -213,13 +269,20 @@ class Transformation {
         yMean = ySum / len(this.coordinates);
         zMean = zSum / len(this.coordinates);
         centre = new Pos(xMean, yMean, zMean);
- 
-        this.rotate(centre, amount, unit);
+        rotatedCoordinates = [];
+        foreach(coordinate:this.coordinates){
+            rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis))
+        }
+        this.coordinates = rotatedCoordinates;
+        return rotatedCoordinates;
     }
 
-    fun rotate(centre, amount, unit) {
+    fun rotate(centre, amount,axis){
         rotatedCoordinates = [];
-
+        foreach(coordinate:this.coordinates){
+            rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis))
+        }
+        this.coordinates = rotatedCoordinates;
         return rotatedCoordinates;
     }
 
@@ -231,20 +294,24 @@ class Transformation {
             z = coordinate.getZ() + zDistance;
             translatedCoordinates.append(new Pos(x,y,z));
         }
+        this.coordinates = translatedCoordinates;
         return translatedCoordinates;
     }
     
-    //TODO: 3D
+    
     fun reflect(a, b, c) { // ax + bz + c = 0
         reflectedCoordinates = [];
         foreach (coordinate : this.coordinates) {
             x = (coordinate.getX() * (a^2 - b^2) - 2 * b * (a * coordinate.getZ() + c)) / (a^2 + b^2);
             z = (coordinate.getZ() * (b^2 - a^2) - 2 * a * (b * coordinate.getX() + c)) / (a^2 + b^2);
-            reflectedCoordinates.append(new Pos(x, coordinate.getY(), z);
+            reflectedCoordinates.append(new Pos(x, coordinate.getY(), z));
         }
+        this.coordinates = reflectedCoordinates;
         return reflectedCoordinates;
     }
 
+    //TODO but i'm lazy
+    /*
     fun reflect(plane) {
         reflectedCoordinates = [];
         foreach (coordinate : this.coordinates) {
@@ -260,6 +327,7 @@ class Transformation {
         }
         return reflectedCoordinates;
     }
+    */
 
     fun dilate(scale) {
         dilatedCoordinates = [];
@@ -269,6 +337,7 @@ class Transformation {
             z = coordinate.getZ() * scale;
             dilatedCoordinates.append(new Pos(x,y,z));
         }
+        this.coordinates = dilatedCoordinates;
         return dilatedCoordinates;
     }
 
@@ -280,6 +349,7 @@ class Transformation {
             z = coordinate.getZ() * zScale;
             dilatedCoordinates.append(new Pos(x,y,z));
         }
+        this.coordinates = dilatedCoordinates;
         return dilatedCoordinates;
     }
 }

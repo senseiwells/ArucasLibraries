@@ -59,6 +59,32 @@ class Curve {
     var posList;
     var closed = true;
     var lineManager;
+
+    static fun generateLines(posList){
+        lineManager = new LineManager(255,255,255,255,false);
+        for(i = 0; i < len(posList);i++){
+            if(i == len(posList)-1){
+                lineManager.addPosition(posList[i],posList[0]);
+            }
+            else{
+                lineManager.addPosition(posList[i],posList[i+1]);
+            }
+        }
+    }
+    static fun generateLines(posList, closed){
+        lineManager = new LineManager(255,255,255,255,false);
+        for(i = 0; i < len(posList);i++){
+            if(i == len(posList)-1){
+                if(closed){
+                    lineManager.addPosition(posList[i],posList[0]);
+                }
+            }
+            else{
+                lineManager.addPosition(posList[i],posList[i+1]);
+            }
+        }
+    }
+    
     Curve(posList){
         this.posList = posList;
         this.lineManager = new LineManager(255,255,255,255,false);
