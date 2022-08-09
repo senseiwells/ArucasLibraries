@@ -201,9 +201,18 @@ class Ellipse { //TODO: extend Transformation
 
 class AdvancedMath{
     static fun toPolarCoordinates(x,y){
-        angle = Math.arcsin(y/x);
+        angle = Math.arctan(y/x);
+        if(x<0 && y<0){
+            angle = angle + 2* Math.pi;
+        }
+        else if (x>0 && y>0){
+            angle = angle;
+        }
+        else{
+            angle = angle + Math.pi;
+        }
         r = Math.sqrt(x^2+y^2);
-        return [angle,r];
+        return [angle,r]; 
     }
     static fun toPolarCoordinates(pos){
         angle_1 = Math.arctan(Math.sqrt(pos.getX()^2+pos.getY()^2)/pos.getZ());
@@ -218,52 +227,55 @@ class AdvancedMath{
         return [angle_1,angle_2,r];
     }
     static fun toCartesianCoordinates(angle, r){
-        x = r * cos(angle);
-        y = r * sin(angle);
+        x = r * Math.cos(angle);
+        y = r * Math.sin(angle);
         return [x,y];
     }
 }
 
 class Transformation {
-    var coordinates;
-    var axis = ["x","y","z"];
+    var coordinates = [];
 
-    static fun rotate(coordinate, centre, amount,axis) {
+    static fun rotate(coordinate, centre, amount,inputAxis) {
         coordinate2D = [];
+        axis = ["x","y","z"];
         staticCoordinate = 0;
+        i = axis.indexOf(axis);
         foreach(value:coordinate.toList()){
-            if(this.axis.indexOf(axis)!=coordinate.toList().indexOf(value)){
-                coordinate2D.append(value-centre.toList()[this.axis.indexOf(axis)]);
+            if(axis.indexOf(inputAxis)!=coordinate.toList().indexOf(value)){
+                coordinate2D.append(value - centre.toList()[coordinate.toList().indexOf(value)]);
             }
             else{
-                staticCoordinate = value-centre.toList()[this.axis.indexOf(axis)];
+                staticCoordinate = value-centre.toList()[axis.indexOf(inputAxis)];
             }
         }
         polarCoordinate = AdvancedMath.toPolarCoordinates(coordinate2D[0],coordinate2D[1]);
-        polarCoordinate[0] = polarCoordinate[0] + angle;
+        polarCoordinate[0] = polarCoordinate[0] + amount;
         rotated2DCoordinate = AdvancedMath.toCartesianCoordinates(polarCoordinate[0],polarCoordinate[1]);
         outputCoordinate = [];
-        foreach(value:coordinate.toList()){
-            if(this.axis.indexOf(axis)!=coordinate.toList().indexOf(value)){
-                outputCoordinate.append(value-centre.toList()[this.axis.indexOf(axis)]);
-            }
-            else{
+        j=0;
+        for(i=0;i<3;i++){
+            if(i == axis.indexOf(inputAxis)){
                 outputCoordinate.append(staticCoordinate);
             }
+            else{
+                outputCoordinate.append(rotated2DCoordinate[j]);
+                j++;
+            }
         }
-        return new Pos(outputCoordinate[0],outputCoordinate[1],outputCoordinate[2]);
+        return new Pos(outputCoordinate[0],outputCoordinate[1],outputCoordinate[2]).add(centre);
     }
+
 
     Transformation(coordinates) {
         this.coordinates = coordinates;
     }
-
     fun rotate(amount,axis) {
+        xSum = 0; ySum = 0; zSum = 0;
         foreach (coordinate : this.coordinates) {
-            xSum = 0; ySum = 0; zSum = 0;
-            xSum += coordinate.getX();
-            ySum += coordinate.getY();
-            zSum += coordinate.getZ();
+            xSum = xSum + coordinate.getX();
+            ySum = ySum + coordinate.getY();
+            zSum = zSum + coordinate.getZ();
         }
         xMean = xSum / len(this.coordinates);
         yMean = ySum / len(this.coordinates);
@@ -271,7 +283,7 @@ class Transformation {
         centre = new Pos(xMean, yMean, zMean);
         rotatedCoordinates = [];
         foreach(coordinate:this.coordinates){
-            rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis))
+            rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis));
         }
         this.coordinates = rotatedCoordinates;
         return rotatedCoordinates;
@@ -280,7 +292,7 @@ class Transformation {
     fun rotate(centre, amount,axis){
         rotatedCoordinates = [];
         foreach(coordinate:this.coordinates){
-            rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis))
+            rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis));
         }
         this.coordinates = rotatedCoordinates;
         return rotatedCoordinates;

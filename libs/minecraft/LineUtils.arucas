@@ -70,6 +70,7 @@ class Curve {
                 lineManager.addPosition(posList[i],posList[i+1]);
             }
         }
+        lineManager.render();
     }
     static fun generateLines(posList, closed){
         lineManager = new LineManager(255,255,255,255,false);
@@ -83,6 +84,7 @@ class Curve {
                 lineManager.addPosition(posList[i],posList[i+1]);
             }
         }
+        lineManager.render();
     }
     
     Curve(posList){
