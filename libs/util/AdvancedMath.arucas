@@ -110,7 +110,33 @@ class BezierCurve { //TODO: extend Transformation
     var coordinates;
 
     static fun getPoints(posList,resolution){
-
+        quadratic = true;
+        p1 = posList.get(0);
+        p2 = posList.get(1);
+        p3 = posList.get(2);
+        coordinates = [];
+        if (len(posList) == 4) {
+            p4 = posList.get(3);
+            quadratic = false;
+        }
+        for(t = 0; t < 1; t = t + resolution){
+            if (this.quadratic) {
+                for (t = 0; t < 1; t = t + (1/resolution)) {
+                    x = (1 - t)^2 * this.p1.getX() + 2 * (1 - t) * t * this.p2.getX() + t^2 * this.p3.getX();
+                    y = (1 - t)^2 * this.p1.getY() + 2 * (1 - t) * t * this.p2.getY() + t^2 * this.p3.getY();
+                    z = (1 - t)^2 * this.p1.getZ() + 2 * (1 - t) * t * this.p2.getZ() + t^2 * this.p3.getZ();
+                    coordinates.append(new Pos(x,y,z));
+                }
+            }
+            else { //cubic
+                for (t = 0; t < 1; t = t + (1/resolution)) {
+                    x = (1 - t)^3 * this.p1.getX() + 3 * (1 - t)^2 * t * this.p2.getX() + 3 * (1 - t) * t^2 * this.p3.getX() + t^3 * this.p4.getX();
+                    y = (1 - t)^3 * this.p1.getY() + 3 * (1 - t)^2 * t * this.p2.getY() + 3 * (1 - t) * t^2 * this.p3.getY() + t^3 * this.p4.getY();
+                    z = (1 - t)^3 * this.p1.getZ() + 3 * (1 - t)^2 * t * this.p2.getZ() + 3 * (1 - t) * t^2 * this.p3.getZ() + t^3 * this.p4.getZ();
+                    coordinates.append(new Pos(x,y,z));
+                }
+            }
+        }
     }
      
     BezierCurve(posList) {
@@ -152,7 +178,7 @@ class BezierCurve { //TODO: extend Transformation
     }
 }
 
-class Ellipse { //TODO: extend Transformation
+class Ellipse { //TODO: add static functions
     var centre;
     var length;
     var width;
@@ -202,14 +228,11 @@ class Ellipse { //TODO: extend Transformation
 class AdvancedMath{
     static fun toPolarCoordinates(x,y){
         angle = Math.arctan(y/x);
-        if(x<0 && y<0){
-            angle = angle + 2* Math.pi;
-        }
-        else if (x>0 && y>0){
-            angle = angle;
-        }
-        else{
+        if(x<0){
             angle = angle + Math.pi;
+        }
+        if(angle.isNaN()){
+            angle = 0;
         }
         r = Math.sqrt(x^2+y^2);
         return [angle,r]; 
@@ -250,7 +273,7 @@ class Transformation {
             }
         }
         polarCoordinate = AdvancedMath.toPolarCoordinates(coordinate2D[0],coordinate2D[1]);
-        polarCoordinate[0] = polarCoordinate[0] + amount;
+        polarCoordinate[0] = polarCoordinate[0] - amount;
         rotated2DCoordinate = AdvancedMath.toCartesianCoordinates(polarCoordinate[0],polarCoordinate[1]);
         outputCoordinate = [];
         j=0;
@@ -270,7 +293,8 @@ class Transformation {
     Transformation(coordinates) {
         this.coordinates = coordinates;
     }
-    fun rotate(amount,axis) {
+
+    fun averageCoordintate(){
         xSum = 0; ySum = 0; zSum = 0;
         foreach (coordinate : this.coordinates) {
             xSum = xSum + coordinate.getX();
@@ -280,7 +304,10 @@ class Transformation {
         xMean = xSum / len(this.coordinates);
         yMean = ySum / len(this.coordinates);
         zMean = zSum / len(this.coordinates);
-        centre = new Pos(xMean, yMean, zMean);
+        return  new Pos(xMean, yMean, zMean);
+    }
+    fun rotate(amount,axis) {
+        centre = this.averageCoordintate();
         rotatedCoordinates = [];
         foreach(coordinate:this.coordinates){
             rotatedCoordinates.append(Transformation.rotate(coordinate,centre,amount,axis));
@@ -342,24 +369,48 @@ class Transformation {
     */
 
     fun dilate(scale) {
+        origin = this.averageCoordintate();
         dilatedCoordinates = [];
         foreach (coordinate : this.coordinates) {
-            x = coordinate.getX() * scale;
-            y = coordinate.getY() * scale;
-            z = coordinate.getZ() * scale;
-            dilatedCoordinates.append(new Pos(x,y,z));
+            x = (coordinate.getX()-origin.getX()) * scale;
+            y = (coordinate.getY()-origin.getY()) * scale;
+            z = (coordinate.getZ()-origin.getZ()) * scale;
+            dilatedCoordinates.append(new Pos(x,y,z).add(origin));
         }
         this.coordinates = dilatedCoordinates;
         return dilatedCoordinates;
     }
 
-    fun dilate(xScale, yScale, zScale) {
+    fun dilate(origin, scale){  
         dilatedCoordinates = [];
         foreach (coordinate : this.coordinates) {
-            x = coordinate.getX() * xScale;
-            y = coordinate.getY() * yScale;
-            z = coordinate.getZ() * zScale;
-            dilatedCoordinates.append(new Pos(x,y,z));
+            x = (coordinate.getX()-origin.getX()) * scale;
+            y = (coordinate.getY()-origin.getY()) * scale;
+            z = (coordinate.getZ()-origin.getZ()) * scale;
+            dilatedCoordinates.append(new Pos(x,y,z).add(origin));
+        }
+        this.coordinates = dilatedCoordinates;
+        return dilatedCoordinates;
+    }
+    fun dilate(origin, xScale, yScale, zScale){
+        dilatedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            x = (coordinate.getX()-origin.getX()) * xScale;
+            y = (coordinate.getY()-origin.getY()) * yScale;
+            z = (coordinate.getZ()-origin.getZ()) * zScale;
+            dilatedCoordinates.append(new Pos(x,y,z).add(origin));
+        }
+        this.coordinates = dilatedCoordinates;
+        return dilatedCoordinates;
+    }
+    fun dilate(xScale, yScale, zScale) {
+        origin = this.averageCoordintate();
+        dilatedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            x = (coordinate.getX()-origin.getX()) * xScale;
+            y = (coordinate.getY()-origin.getY()) * yScale;
+            z = (coordinate.getZ()-origin.getZ()) * zScale;
+            dilatedCoordinates.append(new Pos(x,y,z).add(origin));
         }
         this.coordinates = dilatedCoordinates;
         return dilatedCoordinates;
