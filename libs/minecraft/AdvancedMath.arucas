@@ -1,0 +1,48 @@
+import * from util.AdvancedMath;
+
+class AdvancedMath{
+    static fun newPerlinNoise(){
+        return new PerlinNoise(fun(pos){return [pos.getX(),pos.getY(),pos.getZ()];});
+    }
+
+    static fun newCircle(centre,radius){
+        return new Ellipse(centre,radius,radius,0,2*Math.pi,fun(pos){
+            return [pos.getX(),pos.getY(),pos.getZ()];
+        },
+        fun(x,y,z){
+            return new Pos(x,y,z);
+        });
+    }
+    static fun newCircleArc(centre,radius,startingAngle,endAngle){
+        return new Ellipse(centre,radius,radius,startingAngle,endAngle,fun(pos){
+            return [pos.getX(),pos.getY(),pos.getZ()];
+        },
+        fun(x,y,z){
+            return new Pos(x,y,z);
+        });
+    }
+    static fun newEllipse(centre,length,width){
+        return new Ellipse(centre,length,width,0,2*Math.pi,fun(pos){
+            return [pos.getX(),pos.getY(),pos.getZ()];
+        },
+        fun(x,y,z){
+            return new Pos(x,y,z);
+        });
+    }
+    static fun newEllipseArc(centre,length,width,startingAngle,endAngle){
+        return new Ellipse(centre,length,width,startingAngle,endAngle,fun(pos){
+            return [pos.getX(),pos.getY(),pos.getZ()];
+        },
+        fun(x,y,z){
+            return new Pos(x,y,z);
+        });
+    }
+    static fun newTransformation(coords){
+        return new Transformation(coords,fun(pos){
+            return [pos.getX(),pos.getY(),pos.getZ()];
+        },
+        fun(list){
+            return new Pos(list[0],list[1],list[2]);
+        });
+    }
+}
