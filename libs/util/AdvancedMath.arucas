@@ -543,7 +543,7 @@ class ComplexNumber{
     
 }
 
-class Vector {
+class Vec2D {
     var x;
     var y;
     
