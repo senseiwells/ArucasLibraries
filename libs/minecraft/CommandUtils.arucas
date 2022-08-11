@@ -1,119 +1,17 @@
 //Check Argument has Unique names, prevent client crash
-
+import * from util.FormatUtils;
 client = MinecraftClient.getClient();
 //functions for argParse
 fun checkArguments(iterable){
     argNames = Set.of();
     foreach( i : iterable){
-        if  ( argNames.contains(i)){
-            throwRuntimeError("Arguments name should have unique names!");
+        if  (argNames.contains(i)){
+            throw new Error("Arguments name should have unique names!");
         }
         argNames.add(i);
     }
 }
-fun repeatStr(string, count){
-    retVal = '';
-    while (count > 0){
-        retVal = retVal+ string;
-        count--;
-    }
-    return retVal;
-}
-class MapPrinter{
-    static fun showMap(map){
-        if (MapPrinter.checkArgs(map)){
-            return "" + map;
-        }
-        retVal = '{';
-        foreach ( keys : map.getKeys()){
-            if (Type.of(map.get(keys)).getName() == 'Map'){
-                retVal = retVal + '\n' + '"'+ keys + '"'+ " : " + MapPrinter.showMap(map.get(keys), 1) + ",";
-            }
-            else if (Type.of(map.get(keys)).getName() == 'List'){
-                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + MapPrinter.showList(map.get(keys),1) + ",";
-            }
-            else {
-                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + map.get(keys) + ",";
-            }
-        }
-        return retVal + '\n}';
-    }
-    static fun showMap(map, indent){
-        if (MapPrinter.checkArgs(map)){
-            return "" + map;
-        }
-        retVal = '{';
-        foreach ( keys : map.getKeys()){
-            if (Type.of(map.get(keys)).getName() == 'Map'){
-                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"'+ keys + '"'+ " : " + MapPrinter.showMap(map.get(keys), indent+1) + ",";
-            }
-            else if (Type.of(map.get(keys)).getName() == 'List'){
-                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + MapPrinter.showList(map.get(keys), indent+1) + ",";
-            }
-            else {
-                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + map.get(keys) + ",";
-            }
-        }
-        return retVal +'\n'+ repeatStr('    ' , indent) + '}';
-    }
-    static fun showList(list){
-        if (MapPrinter.checkArgs(list)){
-            return "" + list;
-        }
-        retVal = '[';
-        foreach ( items : list){
-            if (Type.of(items).getName() == 'Map'){
-                retVal = retVal + '\n' + MapPrinter.showMap(items) + ",";
-            }
-            else if (Type.of(items).getName() == 'List'){
-                retVal = retVal + '\n' + MapPrinter.showList(items) + ",";
-            }
-            else {
-                retVal = retVal + '\n' + items + ",";
-            }
-        }
-        return retVal + '\n]';
-    }
-    static fun showList(list, indent){
-        if (MapPrinter.checkArgs(list)){
-            return "" + list;
-        }
-        retVal = repeatStr('    ' , indent) + '[';
-        foreach ( items : list){
-            if (Type.of(items).getName() == 'Map'){
-                retVal = retVal + '\n' + repeatStr('    ' , indent+1) +MapPrinter.showMap(items) + ",";
-            }
-            else if (Type.of(items).getName() == 'List'){
-                retVal = retVal + '\n' + repeatStr('    ' , indent+1) + MapPrinter.showList(items) + ",";
-            }
-            else {
-                retVal = retVal + '\n' + repeatStr('    ' , indent+1) + items + ",";
-            }
-        }
-        return retVal +'\n'+ repeatStr('    ' , indent) + ']';
-    }
-    static fun checkArgs(iterable){
-        if (Type.of(iterable).getName() == 'Map'){
-            foreach (item : iterable.getValues()){
-                type = Type.of(item).getName();
-                if (type == 'Map' || type == 'List'){
-                    return false;
-                }
-            }
-            return true;
-        }
-        if (Type.of(iterable).getName() == 'List'){
-            foreach (item : iterable){
-                type = Type.of(item).getName();
-                if (type == 'Map' || type == 'List'){
-                    return false;
-                }
-            }
-            return true;
-        }
-        return true;
-    }
-}
+
 //Very handy command builder
 //lambda as fun(){something;}
 //LinearCommand([ArgList], lambda).build() to get 'built' one, .debugBuild() to get 'string' format, .process() to process and register command.
@@ -147,14 +45,9 @@ class FILOStack {
         return !this.asList.isEmpty();
     }
 }
-exceptions = Set.of();
-exceptions.addAll([]);
-fun tryPredicateAndMerge(iterable, predicate, modifyFunction, exceptions){
+fun tryPredicateAndMerge(iterable, predicate, modifyFunction){
     retVal = [];
     foreach ( i : iterable){
-        if(exceptions.contains(i)){
-            continue;
-        }
         defaultVal = false;
         try {
             defaultVal = predicate(i);
@@ -181,9 +74,10 @@ lambdaBlockGetId = fun (obj){
     return obj.asBlock().getId();
 };
 
-class DefaultSuggester{
-    static var ITEMS = tryPredicateAndMerge(Material.ALL, lambdaItems, lambdaItemGetId, exceptions);
-    static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId, exceptions);
+class DefaultSuggester {
+    //warn : this requires fix from pr #67!
+    static var ITEMS = tryPredicateAndMerge(Material.ALL, lambdaItems, lambdaItemGetId);
+    static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId);
     static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
     static var HORIZONTAL = ['north', 'east', 'south', 'west'];
 }
@@ -335,7 +229,7 @@ class LinearCommand{
         if(innerBuilt.isEmpty()){
             throw new Error("Return value of was empty");
         }
-        str = MapPrinter.showMap(innerBuilt);
+        str = FormatUtil.showMap(innerBuilt);
         //try alternative
         retVal = {};
         retVal.put(tempArg, innerBuilt);
