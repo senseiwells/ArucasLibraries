@@ -476,3 +476,69 @@ class Transformation {
         return returnCoordinates;
     }
 }
+
+class Graph{
+    static fun evaluate(function, fnDomain, resolution) { //TODO: multiple parameters for domain/range and inclusive/exculsive specification
+        values = [];
+        for (x = fnDomain[0]; x < fnDomain[1] x = x + ((fnDomain[1]-fnDomain[0]) / resolution)) {
+            y = function(x);
+            values.append(y);
+        }
+        return values;
+    }
+}
+
+class ComplexNumber{
+    var number = [];
+
+    ComplexNumber(a,b){
+        this.a;
+        this.b;
+    }
+    operator + (other){
+        if(Type.of(other).getName()=="Number"){
+            return [this.number[0] + other,this.number[1]];
+        }
+        else{
+            return [this.number[0] + other.number[0], this.number[1]+other.number[1]];
+        }
+    }
+    operator - (other){
+        if(Type.of(other).getName()=="Number"){
+            return [this.number[0] - other,this.number[1]];
+        }
+        else{
+            return [this.number[0] - other.number[0], this.number[1]-other.number[1]];
+        }
+    }
+    operator * (other){
+        if(Type.of(other).getName()=="Number"){
+            return [this.number[0] * other,this.number[1]*other];
+        }
+        else{
+            a1, a2 = this.number;
+            b1, b2 = this.other;
+            z1 = (a1*a2-b1*b2);
+            z2 = (a1*b2-a2*b1);
+            return [z1,z2];
+        }
+    }   
+    operator / (other){
+        if(Type.of(other).getName()=="Number"){
+            return [this.number[0]/other,this.number[1]/other];
+        }
+        else{
+            a1, a2 = this.number;
+            b1, b2 = this.other;
+            z1 = (a1*a2+b1*b2)/(a2^2+b2^2);
+            z2 = (a2*b1-a1*b2)/(a2^2+b2^2);
+            return [z1,z2];
+        }
+    }
+    fun getExponentialForm(){
+        r = sqrt(a^2+b^2);
+        theta = Math.arctan(Math.abs(b)/Math.abs(a));
+        return(r,theta);
+    }
+    
+}
