@@ -543,27 +543,27 @@ class ComplexNumber{
     
 }
 
-class Vec2D {
+class Vec2d {
     var x;
     var y;
     
-    Vector(x: Number,y: Number) {
+    Vec2d(x: Number,y: Number) {
         this.x = x;
         this.y = y;
     }
 
-    static fun zeroVector(): Vector {
-        return new Vector(0, 0);
+    static fun zeroVector(): Vec2d {
+        return new Vec2d(0, 0);
     }
 
-    static fun fromScalar(s: Number): Vector {
-        return new Vector(s, s);
+    static fun fromScalar(s: Number): Vec2d {
+        return new Vec2d(s, s);
     }
 
     /**
      * -pi to pi
      */
-    static fun angleBetween(v1: Vector, v2: Vector): Number {
+    static fun angleBetween(v1: Vec2d, v2: Vec2d): Number {
         // -2pi to 2pi
         angleBetween = v1.angle() - v2.angle();
         if (angleBetween > Math.pi) {
@@ -576,17 +576,17 @@ class Vec2D {
 
     /**
      * Tests whether a point lies to the left of a line
-     * @param  {Vector} linePoint     Point on the line
-     * @param  {Vector} lineDirection 
-     * @param  {Vector} point
-     * @return {Vector}               true if left, false otherwise
+     * @param  {Vec2d} linePoint     Point on the line
+     * @param  {Vec2d} lineDirection 
+     * @param  {Vec2d} point
+     * @return {Vec2d}               true if left, false otherwise
      */
-    static fun isLeft(linePoint: Vector, lineDirection: Vector, point: Vector): Boolean {
-        perpendicularVector = new Vector(lineDirection.y, -lineDirection.x);
+    static fun isLeft(linePoint: Vec2d, lineDirection: Vec2d, point: Vec2d): Boolean {
+        perpendicularVector = new Vec2d(lineDirection.y, -lineDirection.x);
         return point.clone().sub(linePoint).dot(perpendicularVector) < 0;
     }
 
-    fun add(v: Vector): Vector {
+    fun add(v: Vec2d): Vec2d {
         this.x = this.x + v.x;
         this.y = this.y + v.y;
         return this;
@@ -599,31 +599,31 @@ class Vec2D {
         return Math.arctan(this.y/this.x);
     }
 
-    fun clone(): Vector {
-        return new Vector(this.x, this.y);
+    fun clone(): Vec2d {
+        return new Vec2d(this.x, this.y);
     }
 
-    fun copy(v: Vector): Vector {
+    fun copy(v: Vec2d): Vec2d {
         this.x = v.x;
         this.y = v.y;
         return this;
     }
 
-    fun cross(v: Vector): Number {
+    fun cross(v: Vec2d): Number {
         return this.x * v.y - this.y * v.x;
     }
 
-    fun distanceTo(v: Vector): Number {
+    fun distanceTo(v: Vec2d): Number {
         return Math.sqrt(this.distanceToSquared(v));
     }
 
-    fun distanceToSquared (v: Vector): Number {
+    fun distanceToSquared (v: Vec2d): Number {
         dx = this.x - v.x;
         dy = this.y - v.y;
         return dx * dx + dy * dy;
     }
 
-    fun divide(v: Vector): Vector {
+    fun divide(v: Vec2d): Vec2d {
         if (v.x == 0 || v.y == 0) {
             return this;
         }
@@ -633,18 +633,18 @@ class Vec2D {
         return this;
     }
 
-    fun divideScalar(s: Number): Vector {
+    fun divideScalar(s: Number): Vec2d {
         if (s == 0) {
             return this;
         }
         return this.multiplyScalar(1 / s);
     }
 
-    fun dot(v: Vector): Number {
+    fun dot(v: Vec2d): Number {
         return this.x * v.x + this.y * v.y;
     }
 
-    fun equals(v: Vector): Boolean {
+    fun equals(v: Vec2d): Boolean {
         return ((v.x == this.x) && (v.y == this.y));
     }
 
@@ -656,23 +656,23 @@ class Vec2D {
         return this.x * this.x + this.y * this.y;
     }
 
-    fun multiply(v: Vector): Vector {
+    fun multiply(v: Vec2d): Vec2d {
         this.x = this.x * v.x;
         this.y = this.y * v.y;
         return this;
     }
 
-    fun multiplyScalar(s: Number): Vector {
+    fun multiplyScalar(s: Number): Vec2d {
         this.x = this.x * s;
         this.y = this.y * s;
         return this;
     }
 
-    fun negate(): Vector {
+    fun negate(): Vec2d {
         return this.multiplyScalar(-1);
     }
 
-    fun normalize(): Vector {
+    fun normalize(): Vec2d {
         l = this.length();
         if (l == 0) {
             return this;
@@ -684,7 +684,7 @@ class Vec2D {
     /**
      * Angle in radians
      */
-    fun rotateAround(center: Vector, angle: Number): Vector {
+    fun rotateAround(center: Vec2d, angle: Number): Vec2d {
         cos = Math.cos(angle);
         sin = Math.sin(angle);
 
@@ -696,27 +696,27 @@ class Vec2D {
         return this;
     }
 
-    fun set(v: Vector): Vector {
+    fun set(v: Vec2d): Vec2d {
         this.x = v.x;
         this.y = v.y;
         return this;
     }
 
-    fun setX(x: Number): Vector {
+    fun setX(x: Number): Vec2d {
         this.x = x;
         return this;
     }
 
-    fun setY(y: Number): Vector {
+    fun setY(y: Number): Vec2d {
         this.y = y;
         return this;
     }
 
-    fun setLength (length: Number): Vector {
+    fun setLength (length: Number): Vec2d {
         return this.normalize().multiplyScalar(length);
     }
 
-    fun sub(v: Vector): Vector {
+    fun sub(v: Vec2d): Vec2d {
         this.x = this.x - v.x;
         this.y = this.y - v.y;
         return this;
