@@ -1,0 +1,27 @@
+class Predicate{
+    static fun mergedPredicate(predicates...){
+        return fun (value){
+            foreach(pred : predicates){
+                if(!pred(value)){
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+    static fun and(a, b){
+        return fun (value){
+            return a(value) && b(value);
+        };
+    }
+    static fun or(a,b){
+        return fun (value){
+            return a(value) || b(value);
+        };
+    }
+    static fun xor(a,b){
+        return fun (value){
+            return a(value) ~ b(value);
+        };
+    }
+}
