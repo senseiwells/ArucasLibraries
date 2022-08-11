@@ -542,3 +542,183 @@ class ComplexNumber{
     }
     
 }
+
+class Vector {
+    var x;
+    var y;
+    
+    Vector(x: Number,y: Number) {
+        this.x = x;
+        this.y = y;
+    }
+
+    static fun zeroVector(): Vector {
+        return new Vector(0, 0);
+    }
+
+    static fun fromScalar(s: Number): Vector {
+        return new Vector(s, s);
+    }
+
+    /**
+     * -pi to pi
+     */
+    static fun angleBetween(v1: Vector, v2: Vector): Number {
+        // -2pi to 2pi
+        angleBetween = v1.angle() - v2.angle();
+        if (angleBetween > Math.pi) {
+            angleBetween = angleBetween - 2 * Math.pi;
+        } else if (angleBetween <= -Math.pi) {
+            angleBetween = angleBetween + 2 * Math.pi;
+        }
+        return angleBetween;
+    }
+
+    /**
+     * Tests whether a point lies to the left of a line
+     * @param  {Vector} linePoint     Point on the line
+     * @param  {Vector} lineDirection 
+     * @param  {Vector} point
+     * @return {Vector}               true if left, false otherwise
+     */
+    static fun isLeft(linePoint: Vector, lineDirection: Vector, point: Vector): Boolean {
+        perpendicularVector = new Vector(lineDirection.y, -lineDirection.x);
+        return point.clone().sub(linePoint).dot(perpendicularVector) < 0;
+    }
+
+    fun add(v: Vector): Vector {
+        this.x = this.x + v.x;
+        this.y = this.y + v.y;
+        return this;
+    }
+
+    /**
+     * Angle in radians to positive x-axis between -pi and pi
+     */
+    fun angle(): Number {
+        return Math.arctan(this.y/this.x);
+    }
+
+    fun clone(): Vector {
+        return new Vector(this.x, this.y);
+    }
+
+    fun copy(v: Vector): Vector {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
+    }
+
+    fun cross(v: Vector): Number {
+        return this.x * v.y - this.y * v.x;
+    }
+
+    fun distanceTo(v: Vector): Number {
+        return Math.sqrt(this.distanceToSquared(v));
+    }
+
+    fun distanceToSquared (v: Vector): Number {
+        dx = this.x - v.x;
+        dy = this.y - v.y;
+        return dx * dx + dy * dy;
+    }
+
+    fun divide(v: Vector): Vector {
+        if (v.x == 0 || v.y == 0) {
+            return this;
+        }
+
+        this.x = this.x/v.x;
+        this.y = this.y/v.y;
+        return this;
+    }
+
+    fun divideScalar(s: Number): Vector {
+        if (s == 0) {
+            return this;
+        }
+        return this.multiplyScalar(1 / s);
+    }
+
+    fun dot(v: Vector): Number {
+        return this.x * v.x + this.y * v.y;
+    }
+
+    fun equals(v: Vector): Boolean {
+        return ((v.x == this.x) && (v.y == this.y));
+    }
+
+    fun length(): Number {
+        return Math.sqrt(this.lengthSq());
+    }
+
+    fun lengthSq(): Number {
+        return this.x * this.x + this.y * this.y;
+    }
+
+    fun multiply(v: Vector): Vector {
+        this.x = this.x * v.x;
+        this.y = this.y * v.y;
+        return this;
+    }
+
+    fun multiplyScalar(s: Number): Vector {
+        this.x = this.x * s;
+        this.y = this.y * s;
+        return this;
+    }
+
+    fun negate(): Vector {
+        return this.multiplyScalar(-1);
+    }
+
+    fun normalize(): Vector {
+        l = this.length();
+        if (l == 0) {
+            return this;
+        }
+        
+        return this.divideScalar(this.length());
+    }
+
+    /**
+     * Angle in radians
+     */
+    fun rotateAround(center: Vector, angle: Number): Vector {
+        cos = Math.cos(angle);
+        sin = Math.sin(angle);
+
+        x = this.x - center.x;
+        y = this.y - center.y;
+
+        this.x = x * cos - y * sin + center.x;
+        this.y = x * sin + y * cos + center.y;
+        return this;
+    }
+
+    fun set(v: Vector): Vector {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
+    }
+
+    fun setX(x: Number): Vector {
+        this.x = x;
+        return this;
+    }
+
+    fun setY(y: Number): Vector {
+        this.y = y;
+        return this;
+    }
+
+    fun setLength (length: Number): Vector {
+        return this.normalize().multiplyScalar(length);
+    }
+
+    fun sub(v: Vector): Vector {
+        this.x = this.x - v.x;
+        this.y = this.y - v.y;
+        return this;
+    }
+}
