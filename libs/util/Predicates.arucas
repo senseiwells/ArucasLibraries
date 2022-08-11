@@ -1,5 +1,5 @@
 class Predicate{
-    static fun mergedPredicate(predicates...){
+    static fun all(predicates...){
         return fun (value){
             foreach(pred : predicates){
                 if(!pred(value)){
@@ -7,6 +7,16 @@ class Predicate{
                 }
             }
             return true;
+        };
+    }
+    static fun any(predicates...){
+        return fun (value){
+            foreach(pred : predicates){
+                if(pred(value)){
+                    return true;
+                }
+            }
+            return false;
         };
     }
     static fun and(a, b){
@@ -23,5 +33,15 @@ class Predicate{
         return fun (value){
             return a(value) ~ b(value);
         };
+    }
+    static fun always_true(){
+        return fun (value){
+            return true;
+        }
+    }
+    static fun always_false(){
+        return fun (value){
+            return false;
+        }
     }
 }
