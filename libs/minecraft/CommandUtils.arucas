@@ -80,9 +80,85 @@ class DefaultSuggester {
     static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId);
     static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
     static var HORIZONTAL = ['north', 'east', 'south', 'west'];
+    static fun getAvailableProperties(propName) {
+        immutableMap = {
+            'lit' : ['true', 'false'],
+            'facing' : ['up', 'down', 'north', 'east', 'south', 'west'],
+            'face' : ['wall', 'ceiling', 'floor'],
+            'powered' : ['true', 'false'],
+            'waterlogged' : ['true', 'false'],
+            'open' : ['true', 'false'],
+            'half' : ['top', 'down'],
+            'axis' : ['x','y','z'],
+            'extended' : ['true', 'false'],
+            'delay' : ['0','1','2','3'],
+            'locked' : ['true','false'],
+            'shape' : ['east_west', 'north_south', 'ascending_west', 'ascending_east', 'ascending_north', 'ascending_south'],
+            'mode' : ['subtract', 'compare'],
+            'persistent' : ['true', 'false']
+        };
+        retVal = [];
+        if (immutableMap.get(propName) != null){
+            return immutableMap.get(propName);
+        }
+        return [];
+    }
 }
 
+//private
 
+class PropertySuggester {
+    //suggests properties from block, last index should be block
+    static fun getProperties(args...){
+        if(len(args) == 0){
+            throw new Error("Length of the args was 0!");
+        }
+        blockName = args.get(len(args) - 1);
+        try {
+            block = Material.of(blockName).asBlock();
+            prop = block.getBlockProperties();
+            return prop.getKeys();
+        }
+        catch (error){
+            return ["None"];
+        }
+    }
+    static fun getPropertyValues(args...){
+        if(len(args) <= 0){
+            throw new Error("Length of the args was 0!");
+        }
+        blockName = args.get(len(args) - 2);
+        propertyName = args.get(len(args) - 1);
+        canSuggest = DefaultSuggester.getAvailableProperties(propertyName);
+        if (!canSuggest.isEmpty()){
+            return canSuggest;
+        }
+        try {
+            block = Material.of(blockName).asBlock();
+            prop = block.getBlockProperties();
+            return [prop.get(propertyName)];
+        }
+        catch (error){
+            return ["None"];
+        }
+    }
+    static fun parseValue(property){
+        if (property.lowercase() == 'true'){
+            return true;
+        }
+        if (property.lowercase() == 'false'){
+            return false;
+        }
+        try {
+            numbervalue = property.toNumber();
+            return numbervalue;
+        }
+        catch (exception){
+            //ignored
+        }
+        return property;
+    }
+}
 
 class LinearCommand{
     var waitingQueue;
