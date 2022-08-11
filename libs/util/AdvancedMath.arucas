@@ -587,9 +587,9 @@ class Vec2d {
     }
 
     fun add(v: Vec2d): Vec2d {
-        this.x = this.x + v.x;
-        this.y = this.y + v.y;
-        return this;
+        x = this.x + v.x;
+        y = this.y + v.y;
+        return new Vec2d(x,y);
     }
 
     /**
@@ -604,9 +604,9 @@ class Vec2d {
     }
 
     fun copy(v: Vec2d): Vec2d {
-        this.x = v.x;
-        this.y = v.y;
-        return this;
+        x = v.x;
+        y = v.y;
+        return new Vec2d(x,y);
     }
 
     fun cross(v: Vec2d): Number {
@@ -625,12 +625,12 @@ class Vec2d {
 
     fun divide(v: Vec2d): Vec2d {
         if (v.x == 0 || v.y == 0) {
-            return this;
+            return this.copy();
         }
 
-        this.x = this.x/v.x;
-        this.y = this.y/v.y;
-        return this;
+        x = this.x/v.x;
+        y = this.y/v.y;
+        return new Vec2d(x,y);
     }
 
     fun divideScalar(s: Number): Vec2d {
@@ -657,15 +657,15 @@ class Vec2d {
     }
 
     fun multiply(v: Vec2d): Vec2d {
-        this.x = this.x * v.x;
-        this.y = this.y * v.y;
-        return this;
+        x = this.x * v.x;
+        y = this.y * v.y;
+        return new Vec2d(x,y);
     }
 
     fun multiplyScalar(s: Number): Vec2d {
-        this.x = this.x * s;
-        this.y = this.y * s;
-        return this;
+        x = this.x * s;
+        y = this.y * s;
+        return new Vec2d(x,y);
     }
 
     fun negate(): Vec2d {
@@ -675,7 +675,7 @@ class Vec2d {
     fun normalize(): Vec2d {
         l = this.length();
         if (l == 0) {
-            return this;
+            return this.copy();
         }
         
         return this.divideScalar(this.length());
@@ -691,9 +691,9 @@ class Vec2d {
         x = this.x - center.x;
         y = this.y - center.y;
 
-        this.x = x * cos - y * sin + center.x;
-        this.y = x * sin + y * cos + center.y;
-        return this;
+        x = x * cos - y * sin + center.x;
+        y = x * sin + y * cos + center.y;
+        return new Vec2d(x,y);
     }
 
     fun set(v: Vec2d): Vec2d {
@@ -717,8 +717,8 @@ class Vec2d {
     }
 
     fun sub(v: Vec2d): Vec2d {
-        this.x = this.x - v.x;
-        this.y = this.y - v.y;
-        return this;
+        x = this.x - v.x;
+        y = this.y - v.y;
+        return new Vec2d(x,y);
     }
 }
