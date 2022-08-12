@@ -199,13 +199,20 @@ class PosWithFun {
         this.pos = new Pos(x,y,z);
     }
     PosWithFun(pos){
+        if (Type.of(pos).getName() == 'List'){
+            pos = PosWithFun.getPos(pos);
+        }
         this.x = pos.getX();
         this.y = pos.getY();
         this.z = pos.getZ();
         this.pos = new Pos(this.x,this.y,this.z);
     }
     static fun getPos(value){
-        return new Pos(value.x,value.y,value.z);
+        if (Type.of(value).getName() == 'List'){
+            print(value);
+            return new Pos(value.get(0), value.get(1), value.get(2));
+        }
+        return new Pos(value.getX(),value.getY(),value.getZ());
     }
 
     fun getX(){
