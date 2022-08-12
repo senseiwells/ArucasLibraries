@@ -88,7 +88,7 @@ class InventoryUtil {
                 return true;
             }
         }
-        this.player.message('Pickaxe Item was not found');
+        this.player.message('Item ' +itemString +' was not found');
         return null;
     }
     // Swaps to pickaxe.
