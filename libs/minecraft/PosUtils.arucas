@@ -204,6 +204,10 @@ class PosWithFun {
         this.z = pos.getZ();
         this.pos = new Pos(this.x,this.y,this.z);
     }
+    static fun getPos(value){
+        return new Pos(value.x,value.y,value.z);
+    }
+
     fun getX(){
         //compat with pos
         return this.x;
@@ -306,7 +310,7 @@ class PosWithFun {
         pos = entity.getPos();
         return this.distanceTo(pos) < distance;
     }
-    
+
     fun south(int){
         return this.offset(Direction.SOUTH, int);
     }
