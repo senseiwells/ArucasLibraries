@@ -230,3 +230,77 @@ class LinkedQueue {
         return (builder + "}").toString();
     }
 }
+
+class DefaultedMap {
+    var map;
+    var defaultValue = null;
+    DefaultedMap(items){
+        this.map = {};
+        foreach (item : items){
+            this.map.put(item, this.defaultValue);
+        }
+    }
+    DefaultedMap(items, defaultValue){
+        this.map = {};
+        this.defaultValue = defaultValue;
+        foreach (item : items){
+            this.map.put(item, this.defaultValue);
+        }
+    }
+    fun addAll(values){
+        if (Type.of(values).getName() == 'List'){
+            foreach (item : values){
+                this.map.put(item, this.defaultValue);
+            }
+        }
+        else {
+            this.map.addAll(values);
+        }
+    }
+    fun getValues(){
+        return this.map.getValues();
+    }
+    fun containsKey(key){
+        return this.map.conatinsKey();
+    }
+    fun putAll(other){
+        this.map.putAll(other);
+    }
+    fun addList(other){
+        this.map.putAll(new DefaultedMap(other).map);
+    }
+    fun get(key){
+        return this.map.get(key);
+    }
+    fun isEmpty(){
+        return this.map.isEmpty();
+    }
+    fun clear(){
+        this.map.clear();
+    }
+    fun toString(){
+        return this.map.toString();
+    }
+    fun getKeys(){
+        return this.map.getKeys();
+    }
+    fun putIfAbsent(key, value){
+        return this.map.putIfAbsent(key, value);
+    }
+    fun remove(key){
+        if (key == null){
+            return null;
+        }
+        return this.map.remove(key);
+    }
+    fun put(key, value){
+        return this.map.put(key, value);
+    }
+    fun put(key){
+        return this.map.put(key, this.defaultValue);
+    }
+    fun poll(){
+        if (!this.isEmpty())
+            return this.map.getKeys().get(0);
+    }
+}
