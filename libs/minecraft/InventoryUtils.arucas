@@ -76,7 +76,7 @@ class InventoryUtil {
         slot = this.player.getSlotFor(ItemStack.of(Material.of(itemString)));
         retVal = false;
         if (slot == null) {
-            player.message('Pickaxe Item was not found');
+            this.player.message('Pickaxe Item was not found');
             return false;
         }
         if (slot != null) {
@@ -88,7 +88,7 @@ class InventoryUtil {
                 return true;
             }
         }
-        player.message('Pickaxe Item was not found');
+        this.player.message('Pickaxe Item was not found');
         return null;
     }
     // Swaps to pickaxe.
@@ -122,7 +122,7 @@ class InventoryUtil {
             if (this.player.getGamemode() == 'creative'){
                 preslot = this.player.getSwappableHotbarSlot();
                 //deprecated
-                clientJava.interactionManager.clickCreativeStack(Java.valueOf(ItemStack.of(Material.of("netherite_pickaxe"))), Java.intOf(36 + preslot));
+                this.player.clickCreativeStack(ItemStack.of(Material.of("netherite_pickaxe")), 36 + preslot);
                 this.player.setSelectedSlot(preslot);
                 return true;
             }
@@ -146,7 +146,7 @@ class InventoryUtil {
         if (slot != null) {
             return true;
         }
-        player.message('Pickaxe Item was not found');
+        this.player.message('Pickaxe Item was not found');
         return false;
     }
     fun assertItem(itemString){
