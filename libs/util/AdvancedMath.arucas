@@ -722,3 +722,230 @@ class Vec2d {
         return new Vec2d(x,y);
     }
 }
+
+class ComplexNumber{
+
+    var real;
+    var imaginary;
+    var arg;
+    var abs;
+
+    //"Constructors"
+    ComplexNumber(r : Number, i : Number){
+        this.real = r;
+        this.imaginary = i;
+        this.arg = Math.arctan(i/r);
+        this.abs = Math.sqrt(r*r + i*i);
+    }
+
+    ComplexNumber(polar : List){
+        this.abs = polar[0];
+        this.arg = polar[1];
+        this.real = this.abs * Math.cos(this.arg);
+        this.imaginary = this.abs * Math.sin(this.arg);
+    }
+
+    static fun complex(r : Number, i : Number): ComplexNumber{
+        return new ComplexNumber(r,i);
+    }
+
+
+    // Operators
+    operator +(other){
+        if(Type.of(other).getName() == 'Number'){
+            return this.add(other,0);
+        }
+        else if(Type.of(other).getName() == 'ComplexNumber'){
+            return this.add(other);
+        }
+        else{
+            return null;
+        }
+    }
+
+    operator -(other){
+        if(Type.of(other).getName() == 'Number'){
+            return this.substract(other,0);
+        }
+        else if(Type.of(other).getName() == 'ComplexNumber'){
+            return this.substract(other);
+        }
+        else{
+            return null;
+        }
+    }
+
+    operator *(other){
+        if(Type.of(other).getName() == 'Number'){
+            return this.multiply(other,0);
+        }
+        else if(Type.of(other).getName() == 'ComplexNumber'){
+            return this.multiply(other);
+        }
+        else{
+            return null;
+        }
+    }
+
+    operator /(other){
+        if(Type.of(other).getName() == 'Number'){
+            return this.multiply(1/other,0);
+        }
+        else if(Type.of(other).getName() == 'ComplexNumber'){
+            return this.divide(other);
+        }
+        else{
+            return null;
+        }
+    }
+
+    operator ^(other){
+        if(Type.of(other).getName() == 'Number'){
+            return this.exponent(other);
+        }
+        else{
+            return null;
+        }
+    }
+
+    operator ==(other){
+        if(Type.of(other).getName() == 'ComplexNumber'){
+            if(this.real == other.real && this.imaginary ==  other.imaginary){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else{
+            return null;
+        }
+    }
+
+
+    //Different Forms
+    fun getExponentialForm(): List{
+        return [this.mod(), this.arg()];
+    }
+
+    fun getStringForm():String{
+        rString =  '' + this.real;
+        if(this.imaginary > 0){
+            rString = rString + '+' + this.imaginary + 'i';
+        }
+        else if(this.imaginary < 0){
+            rString = rString + this.imaginary +'i';
+        }
+        return rString;
+    }
+
+    fun getPolarForm(): Map{
+        rMap = {};
+        rMap['real'] = Math.cos(this.arg);
+        rMap['imaginary'] = Math.sin(this.arg);
+        rMap['stringForm'] = '' + this.abs + '(cos(' + this.arg + ') + i sin(' + this.arg +'))';
+        return rMap;
+    }
+
+
+    //Functions
+    fun add(r : Number, i : Number):ComplexNumber{
+        return new ComplexNumber(this.real + r, this.imaginary + i);
+    }
+
+    fun add (x : ComplexNumber):ComplexNumber{
+        return new ComplexNumber(this.real + x.real, this.imaginary + x.imaginary);
+    }    
+
+    fun substract(r : Number, i : Number):ComplexNumber{
+        return new ComplexNumber(this.real - r, this.imaginary - i);
+    }
+
+    fun substract(x : ComplexNumber):ComplexNumber{
+        return new ComplexNumber(this.real - x.real, this.imaginary - x.imaginary);
+    }   
+
+    fun multiply(r : Number, i : Number):ComplexNumber{
+        realPart = this.real * r - this.imaginary * i;
+        imaginaryPart = this.real * i + this.imaginary * r;
+        return new ComplexNumber(realPart, imaginaryPart);
+    }
+
+    fun multiply(x : ComplexNumber):ComplexNumber{
+        realPart = this.real * x.real - this.imaginary * x.imaginary;
+        imaginaryPart = this.real * x.imaginary + this.imaginary * x.real;
+        return new ComplexNumber(realPart, imaginaryPart);
+    }  
+
+    fun scale( x : Number){
+        this.real = x*this.real;
+        this.imaginary = x*this.imaginary;
+    }
+
+    fun rotate( theta : Number){
+        this.arg = this.arg + Math.toRadians(theta);
+        this.real = this.abs*Math.cos(this.arg);
+        this.imaginary = this.abs*Math.sin(this.arg); 
+    }
+
+    fun divide(r : Number, i : Number):ComplexNumber{
+        conjugate = new ComplexNumber(r,i).conjugate();
+        numerator =  this.multiply(conjugate.real, conjugate.imaginary);
+        denominator = (new ComplexNumber(r,i).multiply(conjugate.real, conjugate.imaginary)).real;
+        return new ComplexNumber(numerator.real/denominator, numerator.imaginary/denominator);
+    }
+
+    fun divide(x : ComplexNumber):ComplexNumber{
+        conjugate = x.conjugate();
+        numerator =  this.multiply(conjugate.real, conjugate.imaginary);
+        denominator = (x.multiply(conjugate.real, conjugate.imaginary)).real;
+        return new ComplexNumber(numerator.real/denominator, numerator.imaginary/denominator);
+    }
+
+    fun conjugate():ComplexNumber{
+        return new ComplexNumber(this.real, -(this. imaginary));
+    }
+
+    fun mod(): Number{
+        return Math.sqrt(this.real * this.real + this.imaginary * this.imaginary);
+    }
+
+    fun arg(): Number{
+        return Math.arctan(this.imaginary/this.real);
+    }
+
+    fun sq(): ComplexNumber{
+        return this.multiply(this.real, this.imaginary);
+    }
+
+    fun sqrt(): ComplexNumber{
+        a = this.real;
+        b = this.imaginary;
+        real = Math.sqrt((Math.sqrt(a*a + b*b) + a)/2);
+        imaginary = Math.sqrt((Math.sqrt(a*a + b*b) - a)/2);
+        return new ComplexNumber(real,imaginary);
+    }
+
+    fun setReal(x : Number){
+        this.real = x;
+        this.abs = this.mod();
+        this.arg = this.arg();
+    }
+
+    fun setImaginary(x : Number){
+        this.imaginary = x;
+        this.abs = this.mod();
+        this.arg = this.arg();
+    }
+
+    fun exponent(x : Number): ComplexNumber{
+        newArg =  this.arg * x;
+        newAbs = this.abs ^ x; 
+        return new ComplexNumber([newAbs,newArg]);
+    }
+
+    fun log(): ComplexNumber{
+        return new ComplexNumber(Math.log(this.real), this.arg);        
+    }
+
+}
