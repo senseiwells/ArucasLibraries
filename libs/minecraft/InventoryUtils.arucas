@@ -3,9 +3,20 @@ import * from util.Collections;
 class InventoryUtil {
     var player;
     var debug = false;
+    var selectedSlot = null;
     //class InventoryUtil does not offer static method, instead, it offers player-related options based on binded player entity
+    //Please never use setSeletedSlot outside! or, use sync() to refresh selected slot!
     InventoryUtil(player){
         this.player = player;
+    }
+    fun sync(){
+        this.selectedSlot = this.player.getCurrentSlot();
+    }
+    fun optionalSelectedSlot(){
+        if (this.selectedSlot == null){
+            this.selectedSlot = this.player.getCurrentSlot();
+        }
+        return this.selectedSlot;
     }
     fun isInHotbar(itemString){
         foreach(i : [0,1,2,3,4,5,6,7,8]){
@@ -21,7 +32,7 @@ class InventoryUtil {
         }
     }
     fun swapToItem(itemString){
-        if (this.player.getItemForSlot(this.player.getCurrentSlot() + 36).getId() == itemString){
+        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString){
             this.sendDebugMessage("Already had item " + itemString +" in current slot");
             return true;
         }
@@ -32,7 +43,8 @@ class InventoryUtil {
         foreach(i : [0,1,2,3,4,5,6,7,8]){
             if(this.player.getItemForPlayerSlot(i).getId() == itemString){
                 this.player.setSelectedSlot(i);
-                this.sendDebugMessage("Changed to slot " + i);
+                this.selectedSlot = i;
+                this.sendDebugMessage("Changed to slot " + i + " for "+ itemString);
                 return true;
             }
         }
@@ -41,21 +53,23 @@ class InventoryUtil {
         if (slot == null) {
             if (this.player.getGamemode() == 'creative'){
                 this.sendDebugMessage("Clicked creative slot");
-                this.player.clickCreativeStack(ItemStack.of(Material.of(itemString)), 36 + this.player.getCurrentSlot());
+                this.player.clickCreativeStack(ItemStack.of(Material.of(itemString)), 36 + this.optionalSelectedSlot());
                 return true;
             }
         }
         if (slot != null) {
             if (0 <= slot-36 && slot-36  <= 8) {
                 this.player.setSelectedSlot(slot-36);
-                this.sendDebugMessage("Changed to slot " + (slot - 36));
+                this.selectedSlot = slot-36;
+                this.sendDebugMessage("Changed to slot " + (slot - 36) + " for "+ itemString);
                 return true;
             }
             else {
                 preslot = this.player.getSwappableHotbarSlot();
                 this.player.swapPlayerSlotWithHotbar(slot);
                 this.player.setSelectedSlot(preslot);
-                this.sendDebugMessage("swapped to slot " + slot);
+                this.selectedSlot = preslot;
+                this.sendDebugMessage("swapped to slot " + slot + " for "+ itemString);
                 return true;
             }
         }
@@ -65,7 +79,7 @@ class InventoryUtil {
         if (this.player.getGamemode() == 'creative'){
             return true;
         }
-        if (this.player.getItemForSlot(this.player.getCurrentSlot() + 36).getId() == itemString){
+        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString){
             return true;
         }
         foreach(i : [0,1,2,3,4,5,6,7,8]){
@@ -93,7 +107,7 @@ class InventoryUtil {
     }
     // Swaps to pickaxe.
     fun swapToPickaxe(){
-        if (this.player.getItemForSlot(this.player.getCurrentSlot() + 36).getId().contains("pickaxe")){
+        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains("pickaxe")){
             this.sendDebugMessage("Already had pickaxe in current slot");
             return true;
         }
@@ -106,15 +120,17 @@ class InventoryUtil {
         }
         if (slot != null) {
             if (0 <= slot-36 && slot-36  <= 8) {
-                this.sendDebugMessage("Selected slot "+ (slot - 36));
+                this.sendDebugMessage("Selected slot "+ (slot - 36) + " for pickaxe");
                 this.player.setSelectedSlot(slot-36);
+                this.selectedSlot = slot - 36;
                 return true;
             }
             else {
                 preslot = this.player.getSwappableHotbarSlot();
-                this.sendDebugMessage("Swapped with slot "+ slot);
+                this.sendDebugMessage("Swapped with slot "+ slot+ " for pickaxe");
                 this.player.swapPlayerSlotWithHotbar(slot);
                 this.player.setSelectedSlot(preslot);
+                this.selectedSlot = preslot;
                 return true;
             }
         }
@@ -124,6 +140,7 @@ class InventoryUtil {
                 //deprecated
                 this.player.clickCreativeStack(ItemStack.of(Material.of("netherite_pickaxe")), 36 + preslot);
                 this.player.setSelectedSlot(preslot);
+                this.selectedSlot = preslot;
                 return true;
             }
         }
@@ -133,7 +150,7 @@ class InventoryUtil {
         if(this.player.getGamemode() == 'creative'){
             return true;
         }
-        if (this.player.getItemForSlot(this.player.getCurrentSlot() + 36).getId().contains("pickaxe")){
+        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains("pickaxe")){
             return true;
         }
         slot = null;
@@ -151,11 +168,11 @@ class InventoryUtil {
     }
     fun assertItem(itemString){
         this.swapToItem(itemString);
-        return this.player.getItemForSlot(this.player.getCurrentSlot() + 36).getId() == itemString;
+        return this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString;
     }
 
     fun assertTool(){
         this.swapToPickaxe();
-        return this.player.getItemForSlot(this.player.getCurrentSlot() + 36).getId().contains('pickaxe');
+        return this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains('pickaxe');
     }
 }
