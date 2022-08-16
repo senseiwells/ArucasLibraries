@@ -57,7 +57,7 @@ class LineManager {
 
 class Curve {
     var posList;
-    var closed = true;
+    var closed = false;
     var lineManager;
 
     static fun generateLines(posList){

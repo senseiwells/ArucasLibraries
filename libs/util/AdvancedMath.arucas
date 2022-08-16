@@ -488,82 +488,38 @@ class Graph{
     }
 }
 
-class ComplexNumber{
-    var number = [];
-
-    ComplexNumber(a,b){
-        this.a;
-        this.b;
-    }
-    operator + (other){
-        if(Type.of(other).getName()=="Number"){
-            return [this.number[0] + other,this.number[1]];
-        }
-        else{
-            return [this.number[0] + other.number[0], this.number[1]+other.number[1]];
-        }
-    }
-    operator - (other){
-        if(Type.of(other).getName()=="Number"){
-            return [this.number[0] - other,this.number[1]];
-        }
-        else{
-            return [this.number[0] - other.number[0], this.number[1]-other.number[1]];
-        }
-    }
-    operator * (other){
-        if(Type.of(other).getName()=="Number"){
-            return [this.number[0] * other,this.number[1]*other];
-        }
-        else{
-            a1, a2 = this.number;
-            b1, b2 = this.other;
-            z1 = (a1*a2-b1*b2);
-            z2 = (a1*b2-a2*b1);
-            return [z1,z2];
-        }
-    }   
-    operator / (other){
-        if(Type.of(other).getName()=="Number"){
-            return [this.number[0]/other,this.number[1]/other];
-        }
-        else{
-            a1, a2 = this.number;
-            b1, b2 = this.other;
-            z1 = (a1*a2+b1*b2)/(a2^2+b2^2);
-            z2 = (a2*b1-a1*b2)/(a2^2+b2^2);
-            return [z1,z2];
-        }
-    }
-    fun getExponentialForm(){
-        r = sqrt(a^2+b^2);
-        theta = Math.arctan(Math.abs(b)/Math.abs(a));
-        return(r,theta);
-    }
-    
-}
 
 class Vec2d {
     var x;
     var y;
     
-    Vec2d(x: Number,y: Number) {
+    Vec2d(x,y) {
         this.x = x;
         this.y = y;
     }
+    Vec2d(list){
+        this.x = list[0];
+        this.y = list[1];
+    }
 
-    static fun zeroVector(): Vec2d {
+    static fun zeroVector() {
         return new Vec2d(0, 0);
     }
 
-    static fun fromScalar(s: Number): Vec2d {
+    static fun fromScalar(s) {
         return new Vec2d(s, s);
+    }
+    static fun fromString(string){
+        string = string.replaceAll('\\[',"");
+        string = string.replaceAll('\\]',"");
+        list = string.split(',');
+        return new Vec2d(list[0].toNumber(),list[1].toNumber());
     }
 
     /**
      * -pi to pi
      */
-    static fun angleBetween(v1: Vec2d, v2: Vec2d): Number {
+    static fun angleBetween(v1, v2) {
         // -2pi to 2pi
         angleBetween = v1.angle() - v2.angle();
         if (angleBetween > Math.pi) {
@@ -574,19 +530,7 @@ class Vec2d {
         return angleBetween;
     }
 
-    /**
-     * Tests whether a point lies to the left of a line
-     * @param  {Vec2d} linePoint     Point on the line
-     * @param  {Vec2d} lineDirection 
-     * @param  {Vec2d} point
-     * @return {Vec2d}               true if left, false otherwise
-     */
-    static fun isLeft(linePoint: Vec2d, lineDirection: Vec2d, point: Vec2d): Boolean {
-        perpendicularVector = new Vec2d(lineDirection.y, -lineDirection.x);
-        return point.clone().sub(linePoint).dot(perpendicularVector) < 0;
-    }
-
-    fun add(v: Vec2d): Vec2d {
+    fun add(v) {
         x = this.x + v.x;
         y = this.y + v.y;
         return new Vec2d(x,y);
@@ -595,37 +539,33 @@ class Vec2d {
     /**
      * Angle in radians to positive x-axis between -pi and pi
      */
-    fun angle(): Number {
+    fun angle() {
         return Math.arctan(this.y/this.x);
     }
 
-    fun clone(): Vec2d {
+    fun copy() {
         return new Vec2d(this.x, this.y);
     }
 
-    fun copy(v: Vec2d): Vec2d {
-        x = v.x;
-        y = v.y;
-        return new Vec2d(x,y);
-    }
 
-    fun cross(v: Vec2d): Number {
+
+    fun cross(v) {
         return this.x * v.y - this.y * v.x;
     }
 
-    fun distanceTo(v: Vec2d): Number {
+    fun distanceTo(v) {
         return Math.sqrt(this.distanceToSquared(v));
     }
 
-    fun distanceToSquared (v: Vec2d): Number {
+    fun distanceToSquared (v) {
         dx = this.x - v.x;
         dy = this.y - v.y;
         return dx * dx + dy * dy;
     }
 
-    fun divide(v: Vec2d): Vec2d {
+    fun divide(v) {
         if (v.x == 0 || v.y == 0) {
-            return this.copy();
+            return this;
         }
 
         x = this.x/v.x;
@@ -633,58 +573,58 @@ class Vec2d {
         return new Vec2d(x,y);
     }
 
-    fun divideScalar(s: Number): Vec2d {
+    fun divideScalar(s) {
         if (s == 0) {
             return this;
         }
         return this.multiplyScalar(1 / s);
     }
 
-    fun dot(v: Vec2d): Number {
+    fun dot(v) {
         return this.x * v.x + this.y * v.y;
     }
 
-    fun equals(v: Vec2d): Boolean {
+    fun equals(v): Boolean {
         return ((v.x == this.x) && (v.y == this.y));
     }
 
-    fun length(): Number {
+    fun length() {
         return Math.sqrt(this.lengthSq());
     }
 
-    fun lengthSq(): Number {
+    fun lengthSq() {
         return this.x * this.x + this.y * this.y;
     }
 
-    fun multiply(v: Vec2d): Vec2d {
+    fun multiply(v) {
         x = this.x * v.x;
         y = this.y * v.y;
         return new Vec2d(x,y);
     }
 
-    fun multiplyScalar(s: Number): Vec2d {
+    fun multiplyScalar(s) {
         x = this.x * s;
         y = this.y * s;
         return new Vec2d(x,y);
     }
 
-    fun negate(): Vec2d {
+    fun negate() {
         return this.multiplyScalar(-1);
     }
 
-    fun normalize(): Vec2d {
+    fun normalize() {
         l = this.length();
         if (l == 0) {
-            return this.copy();
+            return this;
         }
         
         return this.divideScalar(this.length());
     }
 
-    /**
+    /*
      * Angle in radians
      */
-    fun rotateAround(center: Vec2d, angle: Number): Vec2d {
+    fun rotateAround(center, angle) {
         cos = Math.cos(angle);
         sin = Math.sin(angle);
 
@@ -696,30 +636,41 @@ class Vec2d {
         return new Vec2d(x,y);
     }
 
-    fun set(v: Vec2d): Vec2d {
+    fun set(v) {
         this.x = v.x;
         this.y = v.y;
         return this;
     }
 
-    fun setX(x: Number): Vec2d {
+    fun setX(x) {
         this.x = x;
         return this;
     }
 
-    fun setY(y: Number): Vec2d {
+    fun setY(y) {
         this.y = y;
         return this;
     }
 
-    fun setLength (length: Number): Vec2d {
+    fun setLength (length) {
         return this.normalize().multiplyScalar(length);
     }
 
-    fun sub(v: Vec2d): Vec2d {
+    fun sub(v) {
         x = this.x - v.x;
         y = this.y - v.y;
         return new Vec2d(x,y);
+    }
+    operator [] (index){
+        return [this.x,this.y][index];
+    }
+    
+    fun toString(){
+        return "[" + this.x + ", " + this.y + "]";
+    }
+
+    fun floor(){
+        return new Vec2d(Math.floor(this.x),Math.floor(this.y));
     }
 }
 
