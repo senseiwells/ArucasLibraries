@@ -4,6 +4,8 @@ class InventoryUtil {
     var player;
     var debug = false;
     var selectedSlot = null;
+    var deprecatedWarn = true;
+    var preserveDurability = false;
     //class InventoryUtil does not offer static method, instead, it offers player-related options based on binded player entity
     //Please never use setSeletedSlot outside! or, use sync() to refresh selected slot!
     InventoryUtil(player){
@@ -42,8 +44,7 @@ class InventoryUtil {
         }
         foreach(i : [0,1,2,3,4,5,6,7,8]){
             if(this.player.getItemForPlayerSlot(i).getId() == itemString){
-                this.player.setSelectedSlot(i);
-                this.selectedSlot = i;
+                this.setSelectedSlot(i);
                 this.sendDebugMessage("Changed to slot " + i + " for "+ itemString);
                 return true;
             }
@@ -59,21 +60,26 @@ class InventoryUtil {
         }
         if (slot != null) {
             if (0 <= slot-36 && slot-36  <= 8) {
-                this.player.setSelectedSlot(slot-36);
-                this.selectedSlot = slot-36;
+                this.setSelectedSlot(slot-36);
                 this.sendDebugMessage("Changed to slot " + (slot - 36) + " for "+ itemString);
                 return true;
             }
             else {
                 preslot = this.player.getSwappableHotbarSlot();
                 this.player.swapPlayerSlotWithHotbar(slot);
-                this.player.setSelectedSlot(preslot);
-                this.selectedSlot = preslot;
+                this.setSelectedSlot(preslot);
                 this.sendDebugMessage("swapped to slot " + slot + " for "+ itemString);
                 return true;
             }
         }
         return null;
+    }
+    fun setSelectedSlot(slotNum){
+        if (slotNum < 0 || slotNum > 9){
+            throw new Error('Selected slot number should be between 0 and 8');
+        }
+        this.selectedSlot = slotNum;
+        this.player.setSelectedSlot(slotNum);
     }
     fun checkItem(itemString){
         if (this.player.getGamemode() == 'creative'){
@@ -107,6 +113,10 @@ class InventoryUtil {
     }
     // Swaps to pickaxe.
     fun swapToPickaxe(){
+        if (!deprecatedWarn){
+            print('function swapToPickaxe is deprecated! please use swapToTool("pickaxe")');
+            deprecatedWarn = true;
+        }
         if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains("pickaxe")){
             this.sendDebugMessage("Already had pickaxe in current slot");
             return true;
@@ -121,16 +131,14 @@ class InventoryUtil {
         if (slot != null) {
             if (0 <= slot-36 && slot-36  <= 8) {
                 this.sendDebugMessage("Selected slot "+ (slot - 36) + " for pickaxe");
-                this.player.setSelectedSlot(slot-36);
-                this.selectedSlot = slot - 36;
+                this.setSelectedSlot(slot-36);
                 return true;
             }
             else {
                 preslot = this.player.getSwappableHotbarSlot();
                 this.sendDebugMessage("Swapped with slot "+ slot+ " for pickaxe");
                 this.player.swapPlayerSlotWithHotbar(slot);
-                this.player.setSelectedSlot(preslot);
-                this.selectedSlot = preslot;
+                this.setSelectedSlot(preslot);
                 return true;
             }
         }
@@ -139,13 +147,122 @@ class InventoryUtil {
                 preslot = this.player.getSwappableHotbarSlot();
                 //deprecated
                 this.player.clickCreativeStack(ItemStack.of(Material.of("netherite_pickaxe")), 36 + preslot);
-                this.player.setSelectedSlot(preslot);
-                this.selectedSlot = preslot;
+                this.setSelectedSlot(preslot);
                 return true;
             }
         }
         return false;
     }
+    //toolSwitch
+    fun toolSwitch(block){
+        speeds = {};
+        foreach (itemName : ['axe', 'shovel', 'pickaxe', 'hoe']){
+            speeds.put(this.player.getBlockBreakingSpeed(ItemStack.of(Material.of('netherite_' + itemName)), block), itemName);
+        }
+        value = speeds.getKeys().sort()[len(speeds.getKeys())-1];
+        if (value < 1){
+            return false;
+        }
+        return this.swapToTool(speeds.get(value));
+    }
+    fun _preserveTools(slotNum){
+        //returns true if slotNum matches predicate
+        if (this.preserveDurability){
+            stack = this.player.getItemForSlot(slotNum);
+            fullDurability = {'netherite' : 2031, 'diamond' : 1561}; //add more
+            dur = 0;
+            foreach (materials : fullDurability.getKeys()){
+                if (stack.getId().contains(materials)){
+                    dur = fullDurability.get(materials);
+                    break;
+                }
+            }
+            if (dur == 0 || stack.getNbt().get('Damage') == null){
+                return false;
+            }
+            return stack.getNbt().get('Damage') + 7 >= dur;
+        }
+        return false;
+    }
+    fun _removeFromHotbar(hotbarNum){
+        foreach (i : range(9, 36)){
+            if (this.player.isPlayerSlot(i)){
+                if (this._preserveTools(i)){
+                    continue;
+                }
+                this.player.swapSlots(i, hotbarNum + 36);
+                return true;
+            }
+        }
+        return false;
+    }
+    fun swapToTool(itemName){
+        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains(itemName)){
+            if (this._preserveTools(this.optionalSelectedSlot() + 36)){
+                this._removeFromHotbar(this.optionalSelectedSlot());
+            }
+            else {
+                this.sendDebugMessage("Already had "+itemName+" in current slot");
+                return true;
+            }
+        }
+        slot = null;
+        materials = null;
+         switch (itemName){
+            case 'shovel' -> {materials = MaterialUtils.getShovels();}
+            case 'pickaxe' -> {materials =MaterialUtils.getPickaxes();}
+            case 'axe' -> {materials =MaterialUtils.getAxes();}
+            case 'hoe' -> {materials =MaterialUtils.getHoes();}
+        }
+        foreach (items : materials){
+            foreach(i : [0,1,2,3,4,5,6,7,8]){
+                if(this.player.getItemForPlayerSlot(i).getMaterial() == items && !this._preserveTools(i)){
+                    this.setSelectedSlot(i);
+                    this.sendDebugMessage("Changed to slot " + i + " for "+ itemName);
+                    return true;
+                }
+            }
+        }
+        found = null;
+        foreach (items : materials){
+            slots = this.player.getAllSlotsFor(ItemStack.of(items));
+            foreach (slot : slots){
+                if (slot != null &&!this._preserveTools(slot)){
+                    found = slot;
+                    break;
+                }
+            }
+            if (found != null){
+                break;
+            }
+        }
+        slot = found;
+        if (slot != null) {
+            if (0 <= slot-36 && slot-36  <= 8) {
+                this.sendDebugMessage("Selected slot "+ (slot - 36) + " for "+ itemName);
+                this.setSelectedSlot(slot-36);
+                return true;
+            }
+            else {
+                preslot = this.player.getSwappableHotbarSlot();
+                this.sendDebugMessage("Swapped with slot "+ slot+ " for "+ itemName);
+                this.player.swapPlayerSlotWithHotbar(slot);
+                this.setSelectedSlot(preslot);
+                return true;
+            }
+        }
+        if (slot == null) {
+            if (this.player.getGamemode() == 'creative'){
+                preslot = this.player.getSwappableHotbarSlot();
+                //deprecated
+                this.player.clickCreativeStack(ItemStack.of(Material.of("netherite_" + itemName)), 36 + preslot);
+                this.setSelectedSlot(preslot);
+                return true;
+            }
+        }
+        return false;
+    }
+
     fun checkPickaxe(){
         if(this.player.getGamemode() == 'creative'){
             return true;
