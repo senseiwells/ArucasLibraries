@@ -15,6 +15,7 @@ class InventoryUtil {
     }
     fun sync(){
         this.selectedSlot = this.player.getCurrentSlot();
+        this.hotbarSlotCache = {};
     }
     fun optionalSelectedSlot(){
         if (this.selectedSlot == null){
@@ -31,15 +32,30 @@ class InventoryUtil {
         }
         return null;
     }
-    fun getCachedSlot(itemString){
+    fun getCachedSlot(itemArgs...){
+        itemCount = -1;
+        itemString = itemArgs.get(0);
+        if (len(itemArgs) > 1){
+            itemCount = itemArgs.get(1);
+        }
         foreach (i : this.hotbarSlotCache.getKeys()){
-            if (this.hotbarSlotCache.get(i) == itemString){
+            if (this.hotbarSlotCache.get(i).get('id') == itemString){
+                if (itemCount > -1){
+                    this.hotbarSlotCache.get(i).put('Count', itemCount);
+                }
                 return i;
             }
         }
         ptr = this.updatePointer();
-        this.hotbarSlotCache.put(ptr, itemString);
+        this.hotbarSlotCache.put(ptr, {'id' : itemString, 'Count' : itemCount});
         return ptr;
+    }
+    fun isCachedItem(itemString){
+        selectedSlot = this.optionalSelectedSlot();
+        if (this.hotbarSlotCache.get(selectedSlot) != null && this.hotbarSlotCache.get(selectedSlot).get('id') == itemString ){
+            return true;
+        }
+        return false;
     }
     fun updatePointer(){
         if (this.hotbarSlotCache.get(this.pointer) == null){
@@ -58,7 +74,8 @@ class InventoryUtil {
         }
     }
     fun swapToItem(itemString){
-        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString){
+        if (this.isCachedItem(itemString)){
+        //if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString){
             this.sendDebugMessage("Already had item " + itemString +" in current slot " + this.optionalSelectedSlot());
             return true;
         }
