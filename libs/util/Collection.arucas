@@ -129,7 +129,7 @@ class Collector {
      * Returns - Collector: the collector
      */
     static fun of(collection: Collection): Collector {
-        return new Collector.of(collection);
+        return new Collector(collection);
     }
 
     /*
