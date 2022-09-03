@@ -45,4 +45,12 @@ class AdvancedMath{
             return new Pos(list[0],list[1],list[2]);
         });
     }
+    static fun newBezierCurve(posList){
+        return new BezierCurve(posList,fun(pos){
+            return [pos.getX(),pos.getY(),pos.getZ()];
+        },
+        fun(list){
+            return new Pos(list[0],list[1],list[2]);
+        });
+    }
 }
