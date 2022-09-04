@@ -264,7 +264,7 @@ class PerlinNoise /* T */: VectorConvertible {
             if (!this.vector2dGrid.containsKey(x)) {
                 this.vector2dGrid[x] = {};
             }
-            for(k = 0; k < 2; k++){
+            for (k = 0; k < 2; k++){
                 z = fPosZ + k;
                 if(!this.vector2dGrid[x].containsKey(z)) {
                     this.vector2dGrid[x][z] = [random(3) - 1, 0, random(3) - 1];
@@ -308,7 +308,7 @@ class BezierCurve /* T */: Transformation {
         this.p2 = this.dismantler(posList[1]);
         this.p3 = this.dismantler(posList[2]);
         if (len(posList) == 4) {
-            this.p4 = posList.get(3);
+            this.p4 = posList[3];
             this.quadratic = false;
         }
         // Should this really be done by default? - Sensei
