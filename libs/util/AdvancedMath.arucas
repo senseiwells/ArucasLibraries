@@ -311,6 +311,7 @@ class BezierCurve /* T */: Transformation {
             this.p4 = posList.get(3);
             this.quadratic = false;
         }
+        // Should this really be done by default? - Sensei
         this.coordinates = this.getPoints(100);
     }
 
@@ -330,7 +331,7 @@ class BezierCurve /* T */: Transformation {
                 z = oneMinusT_S * this.p1[2] + oneMinusTTimes2T * this.p2[2] + tS * this.p3[2];
                 return this.factory(x, y, z);
             }
-        } else { //cubic
+        } else { // Cubic
             for (t = 0; t < 1; t = t + rResolution) {
                 oneMinusT = 1 - t;
                 oneMinusT_C = oneMinusT * oneMinusT * oneMinusT;
@@ -369,7 +370,7 @@ class Ellipse {
     var dismantler; 
     var factory = fun(x, y, z) { return [x, y, z]; };
 
-    Ellipse(centre, radius){ //Circle
+    Ellipse(centre, radius) { //Circle
         this.centre = centre;
         this.length = radius;
         this.width = radius;
@@ -462,45 +463,40 @@ class Graph{
 */
 
 class Vec2d {
-    var x;
-    var y;
+    var x: Number = 0;
+    var y: Number = 0;
     
+    Vec2d();
+
     Vec2d(x, y) {
         this.x = x;
         this.y = y;
     }
-    Vec2d(list){
-        this.x = list[0];
-        this.y = list[1];
+
+    Vec2d(list: List) {
+        this.x, this.y = list;
     }
 
-    static fun zeroVector() {
-        return new Vec2d(0, 0);
+    // I would avoid using the following:
+    // mutating objects like this may be undesirable
+
+    fun set(v: Vec2d) {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
     }
 
-    static fun fromScalar(s) {
-        return new Vec2d(s, s);
-    }
-    static fun fromString(string){
-        string = string.replaceAll('\\[', "");
-        string = string.replaceAll('\\]', "");
-        list = string.split(', ');
-        return new Vec2d(list[0].toNumber(), list[1].toNumber());
+    fun setX(x: Number) {
+        this.x = x;
+        return this;
     }
 
-    /**
-     * -pi to pi
-     */
-    static fun angleBetween(v1, v2) {
-        // -2pi to 2pi
-        angleBetween = v1.angle() - v2.angle();
-        if (angleBetween > Math.pi) {
-            angleBetween = angleBetween - 2 * Math.pi;
-        } else if (angleBetween <= -Math.pi) {
-            angleBetween = angleBetween + 2 * Math.pi;
-        }
-        return angleBetween;
+    fun setY(y: Number) {
+        this.y = y;
+        return this;
     }
+
+    // End
 
     fun add(v) {
         x = this.x + v.x;
@@ -512,16 +508,10 @@ class Vec2d {
      * Angle in radians to positive x-axis between -pi and pi
      */
     fun angle() {
-        return Math.arctan(this.y/this.x);
+        return Math.arctan(this.y / this.x);
     }
 
-    fun copy() {
-        return new Vec2d(this.x, this.y);
-    }
-
-
-
-    fun cross(v) {
+    fun cross(v: Vec2d) {
         return this.x * v.y - this.y * v.x;
     }
 
@@ -540,9 +530,7 @@ class Vec2d {
             return this;
         }
 
-        x = this.x/v.x;
-        y = this.y/v.y;
-        return new Vec2d(x, y);
+        return new Vec2d(this.x / v.x, this.y / v.y);
     }
 
     fun divideScalar(s) {
@@ -554,10 +542,6 @@ class Vec2d {
 
     fun dot(v) {
         return this.x * v.x + this.y * v.y;
-    }
-
-    fun equals(v): Boolean {
-        return ((v.x == this.x) && (v.y == this.y));
     }
 
     fun length() {
@@ -608,46 +592,85 @@ class Vec2d {
         return new Vec2d(x, y);
     }
 
-    fun set(v) {
-        this.x = v.x;
-        this.y = v.y;
-        return this;
-    }
-
-    fun setX(x) {
-        this.x = x;
-        return this;
-    }
-
-    fun setY(y) {
-        this.y = y;
-        return this;
-    }
-
-    fun setLength (length) {
+    /**
+     * Returns new Vector
+     */
+    fun setLength(length: Number) {
         return this.normalize().multiplyScalar(length);
     }
 
-    fun sub(v) {
+    fun sub(v: Vec2d) {
         x = this.x - v.x;
         y = this.y - v.y;
         return new Vec2d(x, y);
     }
-    operator [] (index){
-        return [this.x, this.y][index];
+
+    fun floor() {
+        return new Vec2d(Math.floor(this.x), Math.floor(this.y));
+    }
+
+    /**
+     * This should not be used, instead use '=='
+     */
+    fun equals(v): Boolean {
+        return v.instanceOf(Vec2d.type) && (v.x == this.x) && (v.y == this.y);
+    }
+
+    fun hashCode(): Number {
+        return 31 * (31 * this.x + this.y);
     }
     
-    fun toString(){
+    fun toString() {
         return "[" + this.x + ", " + this.y + "]";
     }
 
-    fun floor(){
-        return new Vec2d(Math.floor(this.x), Math.floor(this.y));
+    fun copy() {
+        return new Vec2d(this.x, this.y);
+    }
+    
+    operator [] (index: Number){
+        if (index == 0) {
+            return this.x;
+        } else if (index == 1) {
+            return this.y;
+        } else {
+            throw new Error("Index out of bounds for Vec: " + index);
+        }
+    }
+
+    operator == (other) {
+        return this.equals(other);
+    }
+
+    static fun zeroVector() {
+        return Vec2d.fromScalar(0);
+    }
+
+    static fun fromScalar(s: Number) {
+        return new Vec2d(s, s);
+    }
+
+    static fun fromString(string: String): Vec2d {
+        list = string.replaceAll('\\[', "").replaceAll('\\]', "").split(', ');
+        return new Vec2d(list[0].toNumber(), list[1].toNumber());
+    }
+
+    /**
+     * -pi to pi
+     */
+    static fun angleBetween(v1, v2) {
+        // -2pi to 2pi
+        between = v1.angle() - v2.angle();
+        if (between > Math.pi) {
+            between = between - 2 * Math.pi;
+        } else if (between <= - Math.pi) {
+            between = between + 2 * Math.pi;
+        }
+        return between;
     }
 }
 
 class ComplexNumber{
-
     var real;
     var imaginary;
     var arg;
