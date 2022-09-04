@@ -1,22 +1,29 @@
 DEFAULT_DISMANTLER = fun(a) a;
 DEFAULT_FACTORY = fun(x, y, z) [x, y, z];
 
-class Transformation /* T */ {
-    var coordinates: List = [];
-    var averageCoordintate: List = [];
-
+class VectorConvertible /* T */ {
     // Takes in type T and returns a triple
     var dismantler: Function = DEFAULT_DISMANTLER;
     // Takes in x, y, z and returns type T
     var factory: Function = DEFAULT_FACTORY;
 
-    Transformation(coordinates: List) {
+    VectorConvertible(); // Defaults
+
+    VectorConvertible(dismantler: Function, factory: Function) {
+        this.dismantler = dismantler;
+        this.factory = factory;
+    }
+}
+
+class Transformation /* T */: VectorConvertible {
+    var coordinates: List = [];
+    var averageCoordintate: List = [];
+
+    Transformation(coordinates: List): super() {
         this.coordinates = coordinates;
     }
 
-    Transformation(coordinates /* T */, dismantler: Function, factory: Function) {
-        this.dismantler = dismantler;
-        this.factory = factory;
+    Transformation(coordinates /* T */, dismantler: Function, factory: Function): super(dismantler, factory) {
         foreach (coord : coordinates) {
             this.coordinates.append(this.dismantler(coord));
         }
@@ -179,112 +186,113 @@ class Transformation /* T */ {
     }
 }
 
-class PerlinNoise { //TODO: extend Transformation
-    var vector_grid = {};
-    var vector_grid_2d = {};
-    var dismantler;
+class PerlinNoise /* T */: VectorConvertible { 
+    var vectorGrid = {};
+    var vector2dGrid = {};
 
-    PerlinNoise(){
-        this.dismantler = fun(vec) { return vec; }; 
-    }
+    PerlinNoise(): super();
 
-    PerlinNoise(dismantler){
+    PerlinNoise(dismantler: Function): this() {
         this.dismantler = dismantler;
     }
 
-    fun calculatePerlinValue(pos){
-        pos = this.dismantler(pos);
+    fun calculatePerlinValue(pos /* T */){
+        posX, posY, posZ = this.dismantler(pos);
+        fPosX = Math.floor(posX);
+        fPosY = Math.floor(posY);
+        fPosZ = Math.floor(posZ);
+        diffPosX = posX - fPosX;
+        diffPosY = posY - fPosY;
+        diffPosZ = posZ - fPosZ;
+
         vectorList = [];
-        for(i = 0;i<2;i++){
-            x = Math.floor(pos[0])+i;
-            if(!this.vector_grid.getKeys().contains(x))
-            this.vector_grid[x]={};
-            for(j = 0;j<2;j++){
-                y = Math.floor(pos[1])+j;
-                if(!this.vector_grid[x].getKeys().contains(y))
-                this.vector_grid[x][y]={};
-                for(k = 0;k<2;k++){
-                    z =  Math.floor(pos[2])+k;
-                    if(!this.vector_grid[x][y].getKeys().contains(z)){
-                        angle_1 = random(360);
-                        angle_2 = random(360);
-                        this.vector_grid[x][y][z] = [Math.cos(Math.toRadians(angle_1)), Math.sin(Math.toRadians(angle_1)), Math.sin(Math.toRadians(angle_2))];
-                        //this.vector_grid[x][y][z] = [random(3)-1, random(3)-1, random(3)-1)];
+        for (i = 0; i < 2; i++) {
+            x = fPosX + i;
+            if (!this.vectorGrid.containsKey(x)) {
+                this.vectorGrid[x] = {};
+            }
+            for (j = 0; j < 2; j++){
+                y = fPosY + j;
+                if (!this.vectorGrid[x].containsKey(y)) {
+                    this.vectorGrid[x][y] = {};
+                }
+                for (k = 0; k < 2; k++){
+                    z = fPosZ + k;
+                    if(!this.vectorGrid[x][y].containsKey(z)){
+                        angle1 = Math.toRadians(random(360));
+                        angle2 = Math.toRadians(random(360));
+                        this.vectorGrid[x][y][z] = [Math.cos(angle1), Math.sin(angle1), Math.sin(angle2)];
+                        //this.vectorGrid[x][y][z] = [random(3)-1, random(3)-1, random(3)-1)];
                     }
                     vectorList.append([x, y, z]);
                 }
             }
         }
+
         dotProductList = [];
-        for(i = 0;i<2;i++){
-            for(j = 0;j<2;j++){
-                for(k = 0;k<2;k++){
-                    x = Math.floor(pos[0])+i;
-                    y = Math.floor(pos[1])+j;
-                    z = Math.floor(pos[2])+k;
-                    cornerVector = this.vector_grid[x][y][z];
-                    localX = pos[0]-Math.floor(pos[0])-i;
-                    localY = pos[1]-Math.floor(pos[1])-j;
-                    localZ = pos[2]-Math.floor(pos[2])-k;
-                    dotProduct = cornerVector[0]*localX + cornerVector[1]*localY + cornerVector[2]*localZ;
-                    dotProductList.append(dotProduct);
+        for (i = 0; i < 2; i++){
+            for(j = 0; j < 2; j++){
+                for(k = 0; k < 2; k++){
+                    x = fPosX + i;
+                    y = fPosY + j;
+                    z = Math.floor(pos[2]) + k;
+                    cX, cY, cZ = this.vectorGrid[x][y][z];
+                    dotProductList.append(cX * (diffPosX - i) + cY * (diffPosY - j) + cZ * (diffPosZ - k));
                 }
             }
         }
+
         interpolationLevel1 = [];
-        for(i=0;i<8;i=i+2){
-            weight = pos[2]-Math.floor(pos[2]);
-            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i+1], weight));
+        for (i = 0; i < 8; i = i + 2){
+            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], diffPosZ));
         }
-        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], pos[1]-Math.floor(pos[1]));
-        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], pos[1]-Math.floor(pos[1]));
-        return this.interpolate(interpolatedNumber1, interpolatedNumber2, pos[0]-Math.floor(pos[0]));
+        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], diffPosY);
+        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], diffPosY);
+        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
     }
 
-    //2d noise
-    fun calculatePerlinValue(input_x, input_z){
+    // 2d Noise
+    fun calculatePerlinValue(inputX: Number, inputZ: Number){
+        fPosX = Math.floor(inputX);
+        fPosZ = Math.floor(inputZ);
+        diffPosX = inputX - fPosX;
+        diffPosZ = inputZ - fPosZ;
+
         vectorList = [];
-        for(i = 0;i<2;i++){
-            x = Math.floor(input_x)+i;
-            if(!this.vector_grid_2d.getKeys().contains(x))
-            this.vector_grid_2d[x]={};
-            for(k = 0;k<2;k++){
-                z =  Math.floor(input_z)+k;
-                if(!this.vector_grid_2d[x].getKeys().contains(z)){
-                    angle_1 = random(360);
-                    angle_2 = random(360);
-                    //this.vector_grid[x][y][z] = [Math.cos(Math.toRadians(angle_1)), Math.sin(Math.toRadians(angle_1)), Math.sin(Math.toRadians(angle_2))];
-                    this.vector_grid_2d[x][z] = [random(3)-1, 0, random(3)-1];
+        for (i = 0; i < 2; i++){
+            x = fPosX + i;
+            if (!this.vector2dGrid.containsKey(x)) {
+                this.vector2dGrid[x] = {};
+            }
+            for(k = 0; k < 2; k++){
+                z = fPosZ + k;
+                if(!this.vector2dGrid[x].containsKey(z)) {
+                    this.vector2dGrid[x][z] = [random(3) - 1, 0, random(3) - 1];
                 }
             }
         }
+
         dotProductList = [];
-        for(i = 0;i<2;i++){
-            for(k = 0;k<2;k++){
-                x = Math.floor(input_x)+i;
-                y = 0;
-                z = Math.floor(input_z)+k;
-                cornerVector = this.vector_grid_2d[x][z];
-                localX = input_x-Math.floor(input_x)-i;
-                localY = 0;
-                localZ = input_z-Math.floor(input_z)-k;
-                dotProduct = cornerVector[0]*localX + cornerVector[2]*localZ;
+        for (i = 0; i < 2; i++) {
+            for (k = 0; k < 2; k++) {
+                x = fPosX + i; y = 0; z = fPosZ + k;
+                cornerVector = this.vector2dGrid[x][z];
+                dotProduct = cornerVector[0]* (diffPosX - i) + cornerVector[2]* (diffPosZ - k);
                 dotProductList.append(dotProduct);
             }
         }
         
-        interpolatedNumber1 = this.interpolate(dotProductList[0], dotProductList[1], input_z-Math.floor(input_z));
-        interpolatedNumber2 = this.interpolate(dotProductList[2], dotProductList[3], input_z-Math.floor(input_z));
-        return this.interpolate(interpolatedNumber1, interpolatedNumber2, input_x-Math.floor(input_x));
+        interpolatedNumber1 = this.interpolate(dotProductList[0], dotProductList[1], diffPosZ);
+        interpolatedNumber2 = this.interpolate(dotProductList[2], dotProductList[3], diffPosZ);
+        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
     }
 
-    fun interpolate(number1, number2, weight){
-        output = number1+this.fadeFunction(weight)*(number2-number1);
-        return output;
+    fun interpolate(number1: Number, number2: Number, weight: Number) {
+        return number1 + this.fadeFunction(weight) * (number2 - number1);
     }
 
-    fun fadeFunction(number){
-        return (6*number^5)-(15*number^4)+(10*number^3);
+    fun fadeFunction(number: Number){
+        return (6 * number ^ 5) - (15 * number ^ 4) + (10 * number ^ 3);
     }
 }
 
@@ -450,16 +458,16 @@ class PolarCoordinates{
         return [angle, r]; 
     }
     static fun toPolarCoordinates(pos){
-        angle_1 = Math.arctan(Math.sqrt(pos[0]^2+pos[1]^2)/pos[2]);
-        angle_2 = Math.arcsin(pos[1]/pos[0]);
+        angle1 = Math.arctan(Math.sqrt(pos[0]^2+pos[1]^2)/pos[2]);
+        angle2 = Math.arcsin(pos[1]/pos[0]);
         r = Math.sqrt(pos[0]^2+pos[1]^2+pos[2]^2);
-        return [angle_1, angle_2, r];
+        return [angle1, angle2, r];
     }
     static fun toPolarCoordinates(x, y, z){
-        angle_1 = Math.arctan(Math.sqrt(x^2+y^2)/z);
-        angle_2 = Math.arcsin(y/x);
+        angle1 = Math.arctan(Math.sqrt(x^2+y^2)/z);
+        angle2 = Math.arcsin(y/x);
         r = Math.sqrt(x^2+y^2+z^2);
-        return [angle_1, angle_2, r];
+        return [angle1, angle2, r];
     }
     static fun toCartesianCoordinates(angle, r){
         x = r * Math.cos(angle);
@@ -468,12 +476,9 @@ class PolarCoordinates{
     }
 }
 
-
-
-
 /* TODO
 class Graph{
-    static fun evaluate(function, fnDomain, resolution) { //TODO: multiple parameters for domain/range and inclusive/exculsive specification
+    static fun evaluate(function, fnDomain, resolution) { // TODO: multiple parameters for domain/range and inclusive/exculsive specification
         values = [];
         for (x = fnDomain[0]; x < fnDomain[1] x = x + ((fnDomain[1]-fnDomain[0]) / resolution)) {
             y = function(x);
