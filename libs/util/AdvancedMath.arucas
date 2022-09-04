@@ -360,43 +360,48 @@ class BezierCurve /* T */: Transformation {
     }
 }
 
-class Ellipse {
-    var centre;
-    var length;
-    var width;
-    var startingAngle = 0;
-    var endAngle = 2 * Math.pi;
-    
-    var dismantler; 
-    var factory = fun(x, y, z) { return [x, y, z]; };
+class Ellipse /* T */: Transformation {
+    var centre: Number = 0;
+    var length: Number = 0;
+    var width: Number = 0;
+    var startingAngle: Number = 0;
+    var endAngle: Number = 2 * Math.pi;
 
-    Ellipse(centre, radius) { //Circle
+    // Circle
+    Ellipse(centre, radius): super() { 
         this.centre = centre;
         this.length = radius;
         this.width = radius;
     }
-    Ellipse(centre, radius, startingAngle, endAngle){ //Partial Circle
-        this.centre = centre;
-        this.length = radius;
-        this.width = radius;
+
+    // Partial Circle
+    Ellipse(centre, radius, startingAngle, endAngle): this(centre, radius) {
         this.startingAngle = startingAngle;
         this.endAngle = endAngle;
     }
-    Ellipse(centre, length, width){ //Ellipse
+
+    // Ellipse
+    Ellipse(centre, length, width): super() { 
         this.centre = centre;
         this.length = length;
         this.width = width;
     }
-    Ellipse(centre, length, width, startingAngle, endAngle){ //Partial Ellipse
-        this.centre = centre;
-        this.length = length;
-        this.width = width;
+
+    // Partial Ellipse
+    Ellipse(centre, length, width, startingAngle, endAngle): this(centre, length, width) {
         this.startingAngle = startingAngle;
         this.endAngle = endAngle;
     }
-    Ellipse(centre, length, width, startingAngle, endAngle, dismantler, factory){
-        this.factory = factory;
-        this.dismantler = dismantler;
+
+    Ellipse(
+        centre /* T */, 
+        length: Number, 
+        width: Number, 
+        startingAngle: Number, 
+        endAngle: Number, 
+        dismantler: Function, 
+        factory: Function
+    ): super(dismantler, factory) {
         this.centre = this.dismantler(centre);
         this.length = length;
         this.width = width;
@@ -404,45 +409,51 @@ class Ellipse {
         this.endAngle = endAngle;     
     }
 
-    fun getPoints(res){
+    fun getPoints(res): List /* Of T */ {
         coordinates = [];
-        x = this.centre[0]; y = this.centre[1]; z = this.centre[2];
-        resolution = Math.abs((this.endAngle - this.startingAngle))/res;
+        x, y, z = this.centre;
+        resolution = Math.abs(this.endAngle - this.startingAngle) / res;
+
+        quarterLengthWidth = 0.25 * l * w;
         for (theta = this.startingAngle; theta < this.endAngle; theta = theta + resolution) {
-            l = this.length; w = this.width;
-            xOffset = (0.25 * l * w) / (Math.sqrt((0.5 * w * Math.sin(theta)) ^ 2 + (0.5 * l * Math.cos(theta)) ^ 2)) * Math.cos(theta);
-            zOffset = (0.25 * l * w) / (Math.sqrt((0.5 * w * Math.sin(theta)) ^ 2 + (0.5 * l * Math.cos(theta)) ^ 2)) * Math.sin(theta);
+            sinT = Math.sin(theta);
+            cosT = Math.cos(theta);
+            magicNum = (Math.sqrt((0.5 * this.width * sinT) ^ 2 + (0.5 * this.length * cosT) ^ 2));
+            xOffset = quarterLengthWidth / magicNum * cosT;
+            zOffset = quarterLengthWidth / magicNum * sinT;
             coordinates.append(this.factory(x + xOffset, y, z + zOffset));
         }
+
         return coordinates;
     }
 }
 
-class PolarCoordinates{
-    static fun toPolarCoordinates(x, y){
-        angle = Math.arctan(y/x);
-        if(x<0){
+class PolarCoordinates {
+    static fun toPolarCoordinates(x, y): List {
+        angle = Math.arctan(y / x);
+        if (x < 0){
             angle = angle + Math.pi;
         }
-        if(angle.isNaN()){
+        if (angle.isNaN()) {
             angle = 0;
         }
-        r = Math.sqrt(x^2+y^2);
+        r = Math.sqrt(x ^ 2 + y ^ 2);
         return [angle, r]; 
     }
-    static fun toPolarCoordinates(pos){
-        angle1 = Math.arctan(Math.sqrt(pos[0]^2+pos[1]^2)/pos[2]);
-        angle2 = Math.arcsin(pos[1]/pos[0]);
-        r = Math.sqrt(pos[0]^2+pos[1]^2+pos[2]^2);
+
+    static fun toPolarCoordinates(pos): List {
+        x, y, z = pos;
+        return PolarCoordinates.toPolarCoordinates(x, y, z);
+    }
+
+    static fun toPolarCoordinates(x, y, z): List {
+        angle1 = Math.arctan(Math.sqrt(x ^ 2 + y ^ 2) / z);
+        angle2 = Math.arcsin(y / x);
+        r = Math.sqrt(x ^ 2 + y ^ 2 + z ^ 2);
         return [angle1, angle2, r];
     }
-    static fun toPolarCoordinates(x, y, z){
-        angle1 = Math.arctan(Math.sqrt(x^2+y^2)/z);
-        angle2 = Math.arcsin(y/x);
-        r = Math.sqrt(x^2+y^2+z^2);
-        return [angle1, angle2, r];
-    }
-    static fun toCartesianCoordinates(angle, r){
+
+    static fun toCartesianCoordinates(angle, r): List {
         x = r * Math.cos(angle);
         y = r * Math.sin(angle);
         return [x, y];
@@ -858,16 +869,15 @@ class ComplexNumber {
         return new ComplexNumber(r, i);
     }
 
+    /**
+     * Takes a string in the form of any complex number.
+     * Examples: -10+i, 0-9.8i, +19.1i
+     */
     static fun fromString(string: String): ComplexNumber {
         // Imaginary only
         match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)?i$");
         if (!match.isEmpty()) {
-            i = match[2];
-            if (len(i) == 0) {
-                i = 1;
-            } else {
-                i = i.toNumber();
-            }
+            i = ComplexNumber.numberOf(match[2]);
             if (match[1] == "-") {
                 i = -i;
             }
@@ -886,7 +896,15 @@ class ComplexNumber {
         match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)([-+])(\\d*?\\.?\\d+)?i$")
         if (!match.isEmpty()) {
             _, realSign, real, imaginarySign, imaginary = match;
-            
+            real = real.toNumber();
+            if (realSign == "-") {
+                real = -real;
+            }
+            imaginary = ComplexNumber.numberOf(imaginary);
+            if (imaginarySign == "-") {
+                imaginary = -imaginary;
+            }
+            return new ComplexNumber(real, imaginary);
         }
         throw new Error("Cannort convert " + string + " to a complex number");
     }
