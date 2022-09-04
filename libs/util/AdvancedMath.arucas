@@ -296,94 +296,66 @@ class PerlinNoise /* T */: VectorConvertible {
     }
 }
 
-class BezierCurve { //TODO: extend Transformation
+class BezierCurve /* T */: Transformation {
     var p1;
     var p2;
     var p3;
     var p4;
     var quadratic = true;
-    var coordinates;
-
-    var dismantler = fun(vec) { return vec; }; 
-    var factory = fun(x, y, z) { return [x, y, z]; };
-
-    static fun getPoints(posList, resolution){
-        quadratic = true;
-        p1 = posList.get(0);
-        p2 = posList.get(1);
-        p3 = posList.get(2);
-        coordinates = [];
-        if (len(posList) == 4) {
-            p4 = posList.get(3);
-            quadratic = false;
-        }
-        for(t = 0; t < 1; t = t + resolution){
-            if (this.quadratic) {
-                for (t = 0; t < 1; t = t + (1/resolution)) {
-                    x = (1 - t)^2 * this.p1[0] + 2 * (1 - t) * t * this.p2[0] + t^2 * this.p3[0];
-                    y = (1 - t)^2 * this.p1[1] + 2 * (1 - t) * t * this.p2[1] + t^2 * this.p3[1];
-                    z = (1 - t)^2 * this.p1[2] + 2 * (1 - t) * t * this.p2[2] + t^2 * this.p3[2];
-                    coordinates.append([x, y, z]);
-                }
-            }
-            else { //cubic
-                for (t = 0; t < 1; t = t + (1/resolution)) {
-                    x = (1 - t)^3 * this.p1[0] + 3 * (1 - t)^2 * t * this.p2[0] + 3 * (1 - t) * t^2 * this.p3[0] + t^3 * this.p4[0];
-                    y = (1 - t)^3 * this.p1[1] + 3 * (1 - t)^2 * t * this.p2[1] + 3 * (1 - t) * t^2 * this.p3[1] + t^3 * this.p4[1];
-                    z = (1 - t)^3 * this.p1[2] + 3 * (1 - t)^2 * t * this.p2[2] + 3 * (1 - t) * t^2 * this.p3[2] + t^3 * this.p4[2];
-                    coordinates.append([x, y, z]);
-                }
-            }
-        }
-    }
      
-    BezierCurve(posList, dismantler, factory) {
-        this.dismantler = dismantler;
-        this.factory = factory;
-        this.p1 = this.dismantler(posList.get(0));
-        this.p2 = this.dismantler(posList.get(1));
-        this.p3 = this.dismantler(posList.get(2));
+    BezierCurve(posList: List /* Of T */, dismantler: Function, factory: Function): super(dismantler, factory) {
+        this.p1 = this.dismantler(posList[0]);
+        this.p2 = this.dismantler(posList[1]);
+        this.p3 = this.dismantler(posList[2]);
         if (len(posList) == 4) {
             this.p4 = posList.get(3);
             this.quadratic = false;
         }
         this.coordinates = this.getPoints(100);
     }
-    BezierCurve(posList) {
-        this.p1 = posList.get(0);
-        this.p2 = posList.get(1);
-        this.p3 = posList.get(2);
-        if (len(posList) == 4) {
-            this.p4 = posList.get(3);
-            this.quadratic = false;
-        }
-        this.coordinates = this.getPoints(100);
-    }
-    fun getPoint(t){
+
+    BezierCurve(posList: List /* Of T */): this(posList, DEFAULT_DISMANTLER, DEFAULT_FACTORY);
+
+    fun getPoint(resolution: Number) {
+        // This is very readable... - Sensei
+        rResolution = 1 / resolution;
         if (this.quadratic) {
-            for (t = 0; t < 1; t = t + (1/resolution)) {
-                x = (1 - t)^2 * this.p1[0] + 2 * (1 - t) * t * this.p2[0] + t^2 * this.p3[0];
-                y = (1 - t)^2 * this.p1[1] + 2 * (1 - t) * t * this.p2[1] + t^2 * this.p3[1];
-                z = (1 - t)^2 * this.p1[2] + 2 * (1 - t) * t * this.p2[2] + t^2 * this.p3[2];
-                return(this.factory(x, y, z));
+            for (t = 0; t < 1; t = t + rResolution) {
+                oneMinusT = 1 - t;
+                oneMinusT_S = oneMinusT ^ 2;
+                oneMinusTTimes2T = oneMinusT * 2 * t;
+                tS = t * t;
+                x = oneMinusT_S * this.p1[0] + oneMinusTTimes2T * this.p2[0] + tS * this.p3[0];
+                y = oneMinusT_S * this.p1[1] + oneMinusTTimes2T * this.p2[1] + tS * this.p3[1];
+                z = oneMinusT_S * this.p1[2] + oneMinusTTimes2T * this.p2[2] + tS * this.p3[2];
+                return this.factory(x, y, z);
             }
-        }
-        else { //cubic
-            for (t = 0; t < 1; t = t + (1/resolution)) {
-                x = (1 - t)^3 * this.p1[0] + 3 * (1 - t)^2 * t * this.p2[0] + 3 * (1 - t) * t^2 * this.p3[0] + t^3 * this.p4[0];
-                y = (1 - t)^3 * this.p1[1] + 3 * (1 - t)^2 * t * this.p2[1] + 3 * (1 - t) * t^2 * this.p3[1] + t^3 * this.p4[1];
-                z = (1 - t)^3 * this.p1[2] + 3 * (1 - t)^2 * t * this.p2[2] + 3 * (1 - t) * t^2 * this.p3[2] + t^3 * this.p4[2];
-                return(this.factory(x, y, z));
+        } else { //cubic
+            for (t = 0; t < 1; t = t + rResolution) {
+                oneMinusT = 1 - t;
+                oneMinusT_C = oneMinusT * oneMinusT * oneMinusT;
+                oneMinusT_S_Times3T = oneMinusT * oneMinusT * 3 * t;
+                oneMinusTTimes3tS = oneMinusT * 3 * t * t;
+                tC = t * t * t;
+                x = oneMinusT_C * this.p1[0] + oneMinusT_S_Times3T * this.p2[0] + oneMinusTTimes3tS * this.p3[0] + tC * this.p4[0];
+                y = oneMinusT_C * this.p1[1] + oneMinusT_S_Times3T * this.p2[1] + oneMinusTTimes3tS * this.p3[1] + tC * this.p4[1];
+                z = oneMinusT_C * this.p1[2] + oneMinusT_S_Times3T * this.p2[2] + oneMinusTTimes3tS * this.p3[2] + tC * this.p4[2];
+                return this.factory(x, y, z);
             }
         }
     }
     
-    fun getPoints(resolution) {
+    fun getPoints(resolution: Number) {
         coordinates = [];
-        for(t = 0; t < 1; t = t + resolution){
+        for (t = 0; t < 1; t = t + resolution){
             coordinates.append(this.getPoint(t));
         }
         return coordinates;
+    }
+
+
+    static fun getPoints(posList: List, resolution: Number){
+        return new BezierCurve(posList).getPoints(resolution);
     }
 }
 
