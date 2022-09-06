@@ -29,6 +29,30 @@ class Transformation /* T */: VectorConvertible {
         }
     }
 
+    Transformation(dismantler: Function, factory: Function): super(dismantler, factory) {
+    }
+
+    fun dismantleList(list: List): List{
+        returnList = [];
+        foreach(item:list){
+            returnList.append(this.dismantler(item));
+        }
+        return returnList;
+    }
+
+    fun assambleList(list: List): List{
+        returnList = [];
+        foreach(item:list){
+            returnList.append(this.factory(item));
+        }
+        return returnList;
+    }
+    
+    fun getPoints(){
+        return this.assambleList(this.coordinates);
+    }
+
+
     fun calculateAverageCoordintate() /* T */ {
         xSum = 0; ySum = 0; zSum = 0;
         foreach (coordinate : this.coordinates) {
@@ -41,7 +65,7 @@ class Transformation /* T */: VectorConvertible {
         yMean = ySum * rCoordinateLength;
         zMean = zSum * rCoordinateLength;
         this.averageCoordintate = [xMean, yMean, zMean];
-        return this.factory(xMean, yMean, zMean);
+        return this.factory([xMean, yMean, zMean]);
     }
 
     fun rotate(centre /* T */, amount: Number, axis: String): List /* Of T */ {
@@ -82,6 +106,7 @@ class Transformation /* T */: VectorConvertible {
     }
     
     // ax + bz + c = 0
+    //TODO: add Line class instead of using three parameters
     fun reflect(a: Number, b: Number, c: Number): List /* Of T */ { 
         reflectedCoordinates = [];
         returnCoordinates = [];
@@ -97,7 +122,7 @@ class Transformation /* T */: VectorConvertible {
             coords = [
                 (x * ASMinusB2 - twoB * (a * z + c)) * rA2PlusB2, y,
                 (z * B2MinusA2 - twoA * (b * x + c)) * rA2PlusB2
-            ]
+            ];
             reflectedCoordinates.append(coords);
             returnCoordinates.append(this.factory(coords));
         }
@@ -178,7 +203,7 @@ class Transformation /* T */: VectorConvertible {
             if (i == axis){
                 outputCoordinate[i] = staticCoordinate + centre[i];
             } else {
-                outputCoordinate[i] = rotated2DCoordinate[j] + center[i];
+                outputCoordinate[i] = rotated2DCoordinate[j] + centre[i];
                 j++;
             }
         }
@@ -235,7 +260,7 @@ class PerlinNoise /* T */: VectorConvertible {
                 for(k = 0; k < 2; k++){
                     x = fPosX + i;
                     y = fPosY + j;
-                    z = Math.floor(pos[2]) + k;
+                    z = fPosZ + k;
                     cX, cY, cZ = this.vectorGrid[x][y][z];
                     dotProductList.append(cX * (diffPosX - i) + cY * (diffPosY - j) + cZ * (diffPosZ - k));
                 }
@@ -312,56 +337,52 @@ class BezierCurve /* T */: Transformation {
             this.quadratic = false;
         }
         // Should this really be done by default? - Sensei
-        this.coordinates = this.getPoints(100);
+        this.generatePoints(100);
     }
 
     BezierCurve(posList: List /* Of T */): this(posList, DEFAULT_DISMANTLER, DEFAULT_FACTORY);
 
-    fun getPoint(resolution: Number) {
+    fun getPoint(t: Number) {
         // This is very readable... - Sensei
-        rResolution = 1 / resolution;
         if (this.quadratic) {
-            for (t = 0; t < 1; t = t + rResolution) {
-                oneMinusT = 1 - t;
-                oneMinusT_S = oneMinusT ^ 2;
-                oneMinusTTimes2T = oneMinusT * 2 * t;
-                tS = t * t;
-                x = oneMinusT_S * this.p1[0] + oneMinusTTimes2T * this.p2[0] + tS * this.p3[0];
-                y = oneMinusT_S * this.p1[1] + oneMinusTTimes2T * this.p2[1] + tS * this.p3[1];
-                z = oneMinusT_S * this.p1[2] + oneMinusTTimes2T * this.p2[2] + tS * this.p3[2];
-                return this.factory(x, y, z);
-            }
+            oneMinusT = 1 - t;
+            oneMinusT_S = oneMinusT ^ 2;
+            oneMinusTTimes2T = oneMinusT * 2 * t;
+            tS = t * t;
+            x = oneMinusT_S * this.p1[0] + oneMinusTTimes2T * this.p2[0] + tS * this.p3[0];
+            y = oneMinusT_S * this.p1[1] + oneMinusTTimes2T * this.p2[1] + tS * this.p3[1];
+            z = oneMinusT_S * this.p1[2] + oneMinusTTimes2T * this.p2[2] + tS * this.p3[2];
+            return this.factory([x, y, z]);
         } else { // Cubic
-            for (t = 0; t < 1; t = t + rResolution) {
-                oneMinusT = 1 - t;
-                oneMinusT_C = oneMinusT * oneMinusT * oneMinusT;
-                oneMinusT_S_Times3T = oneMinusT * oneMinusT * 3 * t;
-                oneMinusTTimes3tS = oneMinusT * 3 * t * t;
-                tC = t * t * t;
-                x = oneMinusT_C * this.p1[0] + oneMinusT_S_Times3T * this.p2[0] + oneMinusTTimes3tS * this.p3[0] + tC * this.p4[0];
-                y = oneMinusT_C * this.p1[1] + oneMinusT_S_Times3T * this.p2[1] + oneMinusTTimes3tS * this.p3[1] + tC * this.p4[1];
-                z = oneMinusT_C * this.p1[2] + oneMinusT_S_Times3T * this.p2[2] + oneMinusTTimes3tS * this.p3[2] + tC * this.p4[2];
-                return this.factory(x, y, z);
-            }
+            oneMinusT = 1 - t;
+            oneMinusT_C = oneMinusT * oneMinusT * oneMinusT;
+            oneMinusT_S_Times3T = oneMinusT * oneMinusT * 3 * t;
+            oneMinusTTimes3tS = oneMinusT * 3 * t * t;
+            tC = t * t * t;
+            x = oneMinusT_C * this.p1[0] + oneMinusT_S_Times3T * this.p2[0] + oneMinusTTimes3tS * this.p3[0] + tC * this.p4[0];
+            y = oneMinusT_C * this.p1[1] + oneMinusT_S_Times3T * this.p2[1] + oneMinusTTimes3tS * this.p3[1] + tC * this.p4[1];
+            z = oneMinusT_C * this.p1[2] + oneMinusT_S_Times3T * this.p2[2] + oneMinusTTimes3tS * this.p3[2] + tC * this.p4[2];
+            return this.factory([x, y, z]);
         }
     }
     
-    fun getPoints(resolution: Number) {
+    fun generatePoints(resolution: Number) {
         coordinates = [];
-        for (t = 0; t < 1; t = t + resolution){
+        for (t = 0; t < 1; t = t + (1/resolution)){
             coordinates.append(this.getPoint(t));
         }
+        this.coordinates = this.dismantleList(coordinates);
         return coordinates;
     }
 
 
-    static fun getPoints(posList: List, resolution: Number){
-        return new BezierCurve(posList).getPoints(resolution);
+    static fun generatePoints(posList: List, resolution: Number){
+        return new BezierCurve(posList).generatePoints(resolution);
     }
 }
 
 class Ellipse /* T */: Transformation {
-    var centre: Number = 0;
+    var centre: List = [0,0,0];
     var length: Number = 0;
     var width: Number = 0;
     var startingAngle: Number = 0;
@@ -406,25 +427,26 @@ class Ellipse /* T */: Transformation {
         this.length = length;
         this.width = width;
         this.startingAngle = startingAngle;
-        this.endAngle = endAngle;     
+        this.endAngle = endAngle;
+        this.generatePoints(100);     
     }
 
-    fun getPoints(res): List /* Of T */ {
+    fun generatePoints(res): List /* Of T */ {
         coordinates = [];
         x, y, z = this.centre;
         resolution = Math.abs(this.endAngle - this.startingAngle) / res;
 
-        quarterLengthWidth = 0.25 * l * w;
+        quarterLengthWidth = 0.25 * this.length * this.width;
         for (theta = this.startingAngle; theta < this.endAngle; theta = theta + resolution) {
             sinT = Math.sin(theta);
             cosT = Math.cos(theta);
             magicNum = (Math.sqrt((0.5 * this.width * sinT) ^ 2 + (0.5 * this.length * cosT) ^ 2));
             xOffset = quarterLengthWidth / magicNum * cosT;
             zOffset = quarterLengthWidth / magicNum * sinT;
-            coordinates.append(this.factory(x + xOffset, y, z + zOffset));
+            coordinates.append([x + xOffset, y, z + zOffset]);
         }
-
-        return coordinates;
+        this.coordinates = coordinates;
+        return this.assambleList(coordinates);
     }
 }
 
@@ -591,15 +613,15 @@ class Vec2d {
     /*
      * Angle in radians
      */
-    fun rotateAround(center, angle) {
+    fun rotateAround(centre, angle) {
         cos = Math.cos(angle);
         sin = Math.sin(angle);
 
-        x = this.x - center.x;
-        y = this.y - center.y;
+        x = this.x - centre.x;
+        y = this.y - centre.y;
 
-        x = x * cos - y * sin + center.x;
-        y = x * sin + y * cos + center.y;
+        x = x * cos - y * sin + centre.x;
+        y = x * sin + y * cos + centre.y;
         return new Vec2d(x, y);
     }
 
@@ -893,7 +915,7 @@ class ComplexNumber {
             return new ComplexNumber(r, 0);
         }
         // Complex
-        match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)([-+])(\\d*?\\.?\\d+)?i$")
+        match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)([-+])(\\d*?\\.?\\d+)?i$");
         if (!match.isEmpty()) {
             _, realSign, real, imaginarySign, imaginary = match;
             real = real.toNumber();
