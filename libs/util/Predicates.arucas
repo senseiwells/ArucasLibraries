@@ -37,11 +37,11 @@ class Predicate{
     static fun always_true(){
         return fun (value){
             return true;
-        }
+        };
     }
     static fun always_false(){
         return fun (value){
             return false;
-        }
+        };
     }
 }
