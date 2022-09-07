@@ -10,7 +10,7 @@ fun assertNonNegative(args...){
 class DivideArea{
     var pos1 : PosWithFun = new PosWithFun(0,0,0);
     var pos2 : PosWithFun = new PosWithFun(0,0,0);
-    as String {
+    fun toString() {
         return ''+this.pos1 + ' : '+ this.pos2;
     }
     DivideArea(x, y, z, ex, ey, ez){
@@ -124,6 +124,10 @@ class DivideArea{
     }
     fun getPos2(){
         return this.pos2.asPos();
+    }
+    fun getBlockCount(){
+        ref = this.pos2.subtract(this.pos1);
+        return (ref.getX() + 1) * (ref.getY() + 1) * (ref.getZ() + 1);
     }
 }
 //something like pos.interpolate(pos2) as extend function?

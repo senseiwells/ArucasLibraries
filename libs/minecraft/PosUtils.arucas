@@ -1,3 +1,4 @@
+import * from Minecraft;
 enum Axis {
     X,
     Y,
@@ -183,22 +184,19 @@ enum Direction {
 }
 
 
-class PosWithFun {
+class PosWithFun : Pos{
     //Extended PosWithFun class
     var x;
     var y;
     var z;
     var pos : Pos = new Pos(0,0,0);
-    as Pos{
-        return this.pos;
-    }
-    PosWithFun(x, y, z){
+    PosWithFun(x, y, z) : super(x,y,z) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.pos = new Pos(x,y,z);
     }
-    PosWithFun(pos){
+    PosWithFun(pos) : super(pos.getX(), pos.getY(), pos.getZ()){
         if (Type.of(pos).getName() == 'List'){
             pos = PosWithFun.getPos(pos);
         }
@@ -331,39 +329,33 @@ class PosWithFun {
         return this.x == otherPos.x && this.y == otherPos.y && this.z == otherPos.z;
     }
 }
-class PosWithDirection{
+class PosWithDirection : Pos{
     // Utility class that holds Position and Direction information
     var x;
     var y;
     var z;
     var pos : Pos = new Pos(0,0,0);
     var direction = Direction.NONE;
-    as Pos{
-        return this.pos;
-    }
-    as Direction{
-        return this.direction;
-    }
-    PosWithDirection(x, y, z){
+    PosWithDirection(x, y, z) : super(x,y,z){
         this.x = x;
         this.y = y;
         this.z = z;
         this.pos = new Pos(x,y,z);
     }
-    PosWithDirection(x, y, z, direction){
+    PosWithDirection(x, y, z, direction): super(x,y,z){
         this.x = x;
         this.y = y;
         this.z = z;
         this.pos = new Pos(x,y,z);
         this.direction = direction;
     }
-    PosWithDirection(pos){
+    PosWithDirection(pos): super(pos.getX(), pos.getY(), pos.getZ()){
         this.x = pos.getX();
         this.y = pos.getY();
         this.z = pos.getZ();
         this.pos = new Pos(this.x,this.y,this.z);
     }
-    PosWithDirection(pos, direction){
+    PosWithDirection(pos, direction): super(pos.getX(), pos.getY(), pos.getZ()){
         this.x = pos.getX();
         this.y = pos.getY();
         this.z = pos.getZ();
