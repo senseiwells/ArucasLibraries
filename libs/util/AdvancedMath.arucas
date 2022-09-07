@@ -1,0 +1,940 @@
+DEFAULT_DISMANTLER = fun(a) a;
+DEFAULT_FACTORY = fun(x, y, z) [x, y, z];
+
+class VectorConvertible /* T */ {
+    // Takes in type T and returns a triple
+    var dismantler: Function = DEFAULT_DISMANTLER;
+    // Takes in x, y, z and returns type T
+    var factory: Function = DEFAULT_FACTORY;
+
+    VectorConvertible(); // Defaults
+
+    VectorConvertible(dismantler: Function, factory: Function) {
+        this.dismantler = dismantler;
+        this.factory = factory;
+    }
+}
+
+class Transformation /* T */: VectorConvertible {
+    var coordinates: List = [];
+    var averageCoordintate: List = [];
+
+    Transformation(coordinates: List): super() {
+        this.coordinates = coordinates;
+    }
+
+    Transformation(coordinates /* T */, dismantler: Function, factory: Function): super(dismantler, factory) {
+        foreach (coord : coordinates) {
+            this.coordinates.append(this.dismantler(coord));
+        }
+    }
+
+    Transformation(dismantler: Function, factory: Function): super(dismantler, factory) {
+    }
+
+    fun dismantleList(list: List): List{
+        returnList = [];
+        foreach(item:list){
+            returnList.append(this.dismantler(item));
+        }
+        return returnList;
+    }
+
+    fun assambleList(list: List): List{
+        returnList = [];
+        foreach(item:list){
+            returnList.append(this.factory(item));
+        }
+        return returnList;
+    }
+    
+    fun getPoints(){
+        return this.assambleList(this.coordinates);
+    }
+
+
+    fun calculateAverageCoordintate() /* T */ {
+        xSum = 0; ySum = 0; zSum = 0;
+        foreach (coordinate : this.coordinates) {
+            xSum = xSum + coordinate[0];
+            ySum = ySum + coordinate[1];
+            zSum = zSum + coordinate[2];
+        }
+        rCoordinateLength = 1 / len(this.coordinates);
+        xMean = xSum * rCoordinateLength;
+        yMean = ySum * rCoordinateLength;
+        zMean = zSum * rCoordinateLength;
+        this.averageCoordintate = [xMean, yMean, zMean];
+        return this.factory([xMean, yMean, zMean]);
+    }
+
+    fun rotate(centre /* T */, amount: Number, axis: String): List /* Of T */ {
+        centre = this.dismantler(centre);
+
+        rotatedCoordinates = [];
+        returnCoordinates = [];
+        foreach(coordinate : this.coordinates){
+            rot = Transformation.rotate(coordinate, centre, amount, axis);
+
+            rotatedCoordinates.append(rot);
+            returnCoordinates.append(this.factory(rot));
+        }
+        
+        this.coordinates = rotatedCoordinates;
+        return returnCoordinates;
+    }
+
+    fun rotate(amount: Number, axis: String): List /* Of T */ {
+        average = this.calculateAverageCoordintate();
+        return this.rotate(average, amount, axis);
+    }
+
+    fun translate(xDistance: Number, yDistance: Number, zDistance: Number): List /* Of T */ {
+        translatedCoordinates = [];
+        returnCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            coords = [
+                coordinate[0] + xDistance,
+                coordinate[1] + yDistance,
+                coordinate[2] + zDistance
+            ];
+            translatedCoordinates.append(coords);
+            returnCoordinates.append(this.factory(coords));
+        }
+        this.coordinates = translatedCoordinates;
+        return returnCoordinates;
+    }
+    
+    // ax + bz + c = 0
+    //TODO: add Line class instead of using three parameters
+    fun reflect(a: Number, b: Number, c: Number): List /* Of T */ { 
+        reflectedCoordinates = [];
+        returnCoordinates = [];
+
+        rA2PlusB2 = 1 / (a^2 + b^2);
+        twoA = 2 * a;
+        twoB = 2 * b;
+        ASMinusB2 = (a^2 - b^2);
+        B2MinusA2 = (b^2 - a^2);
+
+        foreach (coordinate : this.coordinates) {
+            x, y, z = coordinate;
+            coords = [
+                (x * ASMinusB2 - twoB * (a * z + c)) * rA2PlusB2, y,
+                (z * B2MinusA2 - twoA * (b * x + c)) * rA2PlusB2
+            ];
+            reflectedCoordinates.append(coords);
+            returnCoordinates.append(this.factory(coords));
+        }
+        this.coordinates = reflectedCoordinates;
+        return returnCoordinates;
+    }
+
+    /* TODO but i'm lazy
+    fun reflect(plane: String): List {
+        reflectedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            if (plane.uppercase() == "XY") {
+
+            } else if (plane.uppercase() == "XZ") {
+
+            } else if (plane.uppercase() == "YZ") {
+
+            }
+        }
+        return reflectedCoordinates;
+    }
+    */
+
+    fun dilate(origin /* T */, xScale: Number, yScale: Number, zScale: Number): List /* Of T */ {
+        x, y, z = this.dismantler(origin);
+        dilatedCoordinates = [];
+        returnCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            coords = [
+                (coordinate[0] - x) * xScale + x,
+                (coordinate[1] - y) * yScale + y,
+                (coordinate[2] - z) * zScale + z
+            ];
+            dilatedCoordinates.append(coords);
+            returnCoordinates.append(this.factory(coords));
+        }
+        this.coordinates = dilatedCoordinates;
+        return returnCoordinates;
+    }
+
+    fun dilate(origin /* T */, scale: Number): List /* Of T */ {
+        return this.dilate(origin, scale, scale, scale);
+    }
+
+    fun dilate(xScale: Number, yScale: Number, zScale: Number): List /* Of T */ {
+        origin = this.calculateAverageCoordintate();
+        return this.dilate(origin, xScale, yScale, zScale);
+    }
+
+    fun dilate(scale: Number): List /* Of T */ {
+        return this.dilate(scale, scale, scale);
+    }
+    
+    static fun rotate(coordinate: List, centre: List, amount: Number, inputAxis: String): List {
+        axis = ["x", "y", "z"].indexOf(inputAxis);
+        if (axis == -1) {
+            throw new Error("Invalid axis: " + inputAxis);
+        }
+
+        coordinate2D = [];
+        staticCoordinate = 0;
+
+        for (i = 0; i < 3; i++) {
+            value = coordinate[i];
+            if (i != axis) {
+                coordinate2D.append(value - centre[i]);
+            } else {
+                staticCoordinate = value - centre[axis];
+            }
+        }
+
+        polarCoordinate = PolarCoordinates.toPolarCoordinates(coordinate2D[0], coordinate2D[1]);
+        polarCoordinate[0] = polarCoordinate[0] - amount;
+        rotated2DCoordinate = PolarCoordinates.toCartesianCoordinates(polarCoordinate[0], polarCoordinate[1]);
+
+        outputCoordinate = [0, 0, 0]; // Dummy values
+        for (i, j = [0, 0]; i < 3; i++) {
+            if (i == axis){
+                outputCoordinate[i] = staticCoordinate + centre[i];
+            } else {
+                outputCoordinate[i] = rotated2DCoordinate[j] + centre[i];
+                j++;
+            }
+        }
+        return outputCoordinate;
+    }
+}
+
+class PerlinNoise /* T */: VectorConvertible { 
+    var vectorGrid = {};
+    var vector2dGrid = {};
+
+    PerlinNoise(): super();
+
+    PerlinNoise(dismantler: Function): this() {
+        this.dismantler = dismantler;
+    }
+
+    fun calculatePerlinValue(pos /* T */){
+        posX, posY, posZ = this.dismantler(pos);
+        fPosX = Math.floor(posX);
+        fPosY = Math.floor(posY);
+        fPosZ = Math.floor(posZ);
+        diffPosX = posX - fPosX;
+        diffPosY = posY - fPosY;
+        diffPosZ = posZ - fPosZ;
+
+        vectorList = [];
+        for (i = 0; i < 2; i++) {
+            x = fPosX + i;
+            if (!this.vectorGrid.containsKey(x)) {
+                this.vectorGrid[x] = {};
+            }
+            for (j = 0; j < 2; j++){
+                y = fPosY + j;
+                if (!this.vectorGrid[x].containsKey(y)) {
+                    this.vectorGrid[x][y] = {};
+                }
+                for (k = 0; k < 2; k++){
+                    z = fPosZ + k;
+                    if(!this.vectorGrid[x][y].containsKey(z)){
+                        angle1 = Math.toRadians(random(360));
+                        angle2 = Math.toRadians(random(360));
+                        this.vectorGrid[x][y][z] = [Math.cos(angle1), Math.sin(angle1), Math.sin(angle2)];
+                        //this.vectorGrid[x][y][z] = [random(3)-1, random(3)-1, random(3)-1)];
+                    }
+                    vectorList.append([x, y, z]);
+                }
+            }
+        }
+
+        dotProductList = [];
+        for (i = 0; i < 2; i++){
+            for(j = 0; j < 2; j++){
+                for(k = 0; k < 2; k++){
+                    x = fPosX + i;
+                    y = fPosY + j;
+                    z = fPosZ + k;
+                    cX, cY, cZ = this.vectorGrid[x][y][z];
+                    dotProductList.append(cX * (diffPosX - i) + cY * (diffPosY - j) + cZ * (diffPosZ - k));
+                }
+            }
+        }
+
+        interpolationLevel1 = [];
+        for (i = 0; i < 8; i = i + 2){
+            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], diffPosZ));
+        }
+        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], diffPosY);
+        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], diffPosY);
+        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
+    }
+
+    // 2d Noise
+    fun calculatePerlinValue(inputX: Number, inputZ: Number){
+        fPosX = Math.floor(inputX);
+        fPosZ = Math.floor(inputZ);
+        diffPosX = inputX - fPosX;
+        diffPosZ = inputZ - fPosZ;
+
+        vectorList = [];
+        for (i = 0; i < 2; i++){
+            x = fPosX + i;
+            if (!this.vector2dGrid.containsKey(x)) {
+                this.vector2dGrid[x] = {};
+            }
+            for (k = 0; k < 2; k++){
+                z = fPosZ + k;
+                if(!this.vector2dGrid[x].containsKey(z)) {
+                    this.vector2dGrid[x][z] = [random(3) - 1, 0, random(3) - 1];
+                }
+            }
+        }
+
+        dotProductList = [];
+        for (i = 0; i < 2; i++) {
+            for (k = 0; k < 2; k++) {
+                x = fPosX + i; y = 0; z = fPosZ + k;
+                cornerVector = this.vector2dGrid[x][z];
+                dotProduct = cornerVector[0]* (diffPosX - i) + cornerVector[2]* (diffPosZ - k);
+                dotProductList.append(dotProduct);
+            }
+        }
+        
+        interpolatedNumber1 = this.interpolate(dotProductList[0], dotProductList[1], diffPosZ);
+        interpolatedNumber2 = this.interpolate(dotProductList[2], dotProductList[3], diffPosZ);
+        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
+    }
+
+    fun interpolate(number1: Number, number2: Number, weight: Number) {
+        return number1 + this.fadeFunction(weight) * (number2 - number1);
+    }
+
+    fun fadeFunction(number: Number){
+        return (6 * number ^ 5) - (15 * number ^ 4) + (10 * number ^ 3);
+    }
+}
+
+class BezierCurve /* T */: Transformation {
+    var p1;
+    var p2;
+    var p3;
+    var p4;
+    var quadratic = true;
+     
+    BezierCurve(posList: List /* Of T */, dismantler: Function, factory: Function): super(dismantler, factory) {
+        this.p1 = this.dismantler(posList[0]);
+        this.p2 = this.dismantler(posList[1]);
+        this.p3 = this.dismantler(posList[2]);
+        if (len(posList) == 4) {
+            this.p4 = posList[3];
+            this.quadratic = false;
+        }
+        // Should this really be done by default? - Sensei
+        this.generatePoints(100);
+    }
+
+    BezierCurve(posList: List /* Of T */): this(posList, DEFAULT_DISMANTLER, DEFAULT_FACTORY);
+
+    fun getPoint(t: Number) {
+        // This is very readable... - Sensei
+        if (this.quadratic) {
+            oneMinusT = 1 - t;
+            oneMinusT_S = oneMinusT ^ 2;
+            oneMinusTTimes2T = oneMinusT * 2 * t;
+            tS = t * t;
+            x = oneMinusT_S * this.p1[0] + oneMinusTTimes2T * this.p2[0] + tS * this.p3[0];
+            y = oneMinusT_S * this.p1[1] + oneMinusTTimes2T * this.p2[1] + tS * this.p3[1];
+            z = oneMinusT_S * this.p1[2] + oneMinusTTimes2T * this.p2[2] + tS * this.p3[2];
+            return this.factory([x, y, z]);
+        } else { // Cubic
+            oneMinusT = 1 - t;
+            oneMinusT_C = oneMinusT * oneMinusT * oneMinusT;
+            oneMinusT_S_Times3T = oneMinusT * oneMinusT * 3 * t;
+            oneMinusTTimes3tS = oneMinusT * 3 * t * t;
+            tC = t * t * t;
+            x = oneMinusT_C * this.p1[0] + oneMinusT_S_Times3T * this.p2[0] + oneMinusTTimes3tS * this.p3[0] + tC * this.p4[0];
+            y = oneMinusT_C * this.p1[1] + oneMinusT_S_Times3T * this.p2[1] + oneMinusTTimes3tS * this.p3[1] + tC * this.p4[1];
+            z = oneMinusT_C * this.p1[2] + oneMinusT_S_Times3T * this.p2[2] + oneMinusTTimes3tS * this.p3[2] + tC * this.p4[2];
+            return this.factory([x, y, z]);
+        }
+    }
+    
+    fun generatePoints(resolution: Number) {
+        coordinates = [];
+        for (t = 0; t < 1; t = t + (1/resolution)){
+            coordinates.append(this.getPoint(t));
+        }
+        this.coordinates = this.dismantleList(coordinates);
+        return coordinates;
+    }
+
+
+    static fun generatePoints(posList: List, resolution: Number){
+        return new BezierCurve(posList).generatePoints(resolution);
+    }
+}
+
+class Ellipse /* T */: Transformation {
+    var centre: List = [0,0,0];
+    var length: Number = 0;
+    var width: Number = 0;
+    var startingAngle: Number = 0;
+    var endAngle: Number = 2 * Math.pi;
+
+    // Circle
+    Ellipse(centre, radius): super() { 
+        this.centre = centre;
+        this.length = radius;
+        this.width = radius;
+    }
+
+    // Partial Circle
+    Ellipse(centre, radius, startingAngle, endAngle): this(centre, radius) {
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
+    }
+
+    // Ellipse
+    Ellipse(centre, length, width): super() { 
+        this.centre = centre;
+        this.length = length;
+        this.width = width;
+    }
+
+    // Partial Ellipse
+    Ellipse(centre, length, width, startingAngle, endAngle): this(centre, length, width) {
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
+    }
+
+    Ellipse(
+        centre /* T */, 
+        length: Number, 
+        width: Number, 
+        startingAngle: Number, 
+        endAngle: Number, 
+        dismantler: Function, 
+        factory: Function
+    ): super(dismantler, factory) {
+        this.centre = this.dismantler(centre);
+        this.length = length;
+        this.width = width;
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
+        this.generatePoints(100);     
+    }
+
+    fun generatePoints(res): List /* Of T */ {
+        coordinates = [];
+        x, y, z = this.centre;
+        resolution = Math.abs(this.endAngle - this.startingAngle) / res;
+
+        quarterLengthWidth = 0.25 * this.length * this.width;
+        for (theta = this.startingAngle; theta < this.endAngle; theta = theta + resolution) {
+            sinT = Math.sin(theta);
+            cosT = Math.cos(theta);
+            magicNum = (Math.sqrt((0.5 * this.width * sinT) ^ 2 + (0.5 * this.length * cosT) ^ 2));
+            xOffset = quarterLengthWidth / magicNum * cosT;
+            zOffset = quarterLengthWidth / magicNum * sinT;
+            coordinates.append([x + xOffset, y, z + zOffset]);
+        }
+        this.coordinates = coordinates;
+        return this.assambleList(coordinates);
+    }
+}
+
+class PolarCoordinates {
+    static fun toPolarCoordinates(x, y): List {
+        angle = Math.arctan(y / x);
+        if (x < 0){
+            angle = angle + Math.pi;
+        }
+        if (angle.isNaN()) {
+            angle = 0;
+        }
+        r = Math.sqrt(x ^ 2 + y ^ 2);
+        return [angle, r]; 
+    }
+
+    static fun toPolarCoordinates(pos): List {
+        x, y, z = pos;
+        return PolarCoordinates.toPolarCoordinates(x, y, z);
+    }
+
+    static fun toPolarCoordinates(x, y, z): List {
+        angle1 = Math.arctan(Math.sqrt(x ^ 2 + y ^ 2) / z);
+        angle2 = Math.arcsin(y / x);
+        r = Math.sqrt(x ^ 2 + y ^ 2 + z ^ 2);
+        return [angle1, angle2, r];
+    }
+
+    static fun toCartesianCoordinates(angle, r): List {
+        x = r * Math.cos(angle);
+        y = r * Math.sin(angle);
+        return [x, y];
+    }
+}
+
+/* TODO
+class Graph{
+    static fun evaluate(function, fnDomain, resolution) { // TODO: multiple parameters for domain/range and inclusive/exculsive specification
+        values = [];
+        for (x = fnDomain[0]; x < fnDomain[1] x = x + ((fnDomain[1]-fnDomain[0]) / resolution)) {
+            y = function(x);
+            values.append(y);
+        }
+        return values;
+    }
+}
+*/
+
+class Vec2d {
+    var x: Number = 0;
+    var y: Number = 0;
+    
+    Vec2d();
+
+    Vec2d(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    Vec2d(list: List) {
+        this.x, this.y = list;
+    }
+
+    // I would avoid using the following:
+    // mutating objects like this may be undesirable
+
+    fun set(v: Vec2d) {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
+    }
+
+    fun setX(x: Number) {
+        this.x = x;
+        return this;
+    }
+
+    fun setY(y: Number) {
+        this.y = y;
+        return this;
+    }
+
+    // End
+
+    fun add(v) {
+        x = this.x + v.x;
+        y = this.y + v.y;
+        return new Vec2d(x, y);
+    }
+
+    /**
+     * Angle in radians to positive x-axis between -pi and pi
+     */
+    fun angle() {
+        return Math.arctan(this.y / this.x);
+    }
+
+    fun cross(v: Vec2d) {
+        return this.x * v.y - this.y * v.x;
+    }
+
+    fun distanceTo(v) {
+        return Math.sqrt(this.distanceToSquared(v));
+    }
+
+    fun distanceToSquared (v) {
+        dx = this.x - v.x;
+        dy = this.y - v.y;
+        return dx * dx + dy * dy;
+    }
+
+    fun divide(v) {
+        if (v.x == 0 || v.y == 0) {
+            return this;
+        }
+
+        return new Vec2d(this.x / v.x, this.y / v.y);
+    }
+
+    fun divideScalar(s) {
+        if (s == 0) {
+            return this;
+        }
+        return this.multiplyScalar(1 / s);
+    }
+
+    fun dot(v) {
+        return this.x * v.x + this.y * v.y;
+    }
+
+    fun length() {
+        return Math.sqrt(this.lengthSq());
+    }
+
+    fun lengthSq() {
+        return this.x * this.x + this.y * this.y;
+    }
+
+    fun multiply(v) {
+        x = this.x * v.x;
+        y = this.y * v.y;
+        return new Vec2d(x, y);
+    }
+
+    fun multiplyScalar(s) {
+        x = this.x * s;
+        y = this.y * s;
+        return new Vec2d(x, y);
+    }
+
+    fun negate() {
+        return this.multiplyScalar(-1);
+    }
+
+    fun normalize() {
+        l = this.length();
+        if (l == 0) {
+            return this;
+        }
+        
+        return this.divideScalar(this.length());
+    }
+
+    /*
+     * Angle in radians
+     */
+    fun rotateAround(centre, angle) {
+        cos = Math.cos(angle);
+        sin = Math.sin(angle);
+
+        x = this.x - centre.x;
+        y = this.y - centre.y;
+
+        x = x * cos - y * sin + centre.x;
+        y = x * sin + y * cos + centre.y;
+        return new Vec2d(x, y);
+    }
+
+    /**
+     * Returns new Vector
+     */
+    fun setLength(length: Number) {
+        return this.normalize().multiplyScalar(length);
+    }
+
+    fun sub(v: Vec2d) {
+        x = this.x - v.x;
+        y = this.y - v.y;
+        return new Vec2d(x, y);
+    }
+
+    fun floor() {
+        return new Vec2d(Math.floor(this.x), Math.floor(this.y));
+    }
+
+    /**
+     * This should not be used, instead use '=='
+     */
+    fun equals(v): Boolean {
+        return v.instanceOf(Vec2d.type) && (v.x == this.x) && (v.y == this.y);
+    }
+
+    fun hashCode(): Number {
+        return 31 * (31 * this.x + this.y);
+    }
+    
+    fun toString() {
+        return "[" + this.x + ", " + this.y + "]";
+    }
+
+    fun copy() {
+        return new Vec2d(this.x, this.y);
+    }
+    
+    operator [] (index: Number){
+        if (index == 0) {
+            return this.x;
+        } else if (index == 1) {
+            return this.y;
+        } else {
+            throw new Error("Index out of bounds for Vec: " + index);
+        }
+    }
+
+    operator == (other) {
+        return this.equals(other);
+    }
+
+    static fun zeroVector() {
+        return Vec2d.fromScalar(0);
+    }
+
+    static fun fromScalar(s: Number) {
+        return new Vec2d(s, s);
+    }
+
+    static fun fromString(string: String): Vec2d {
+        list = string.replaceAll('\\[', "").replaceAll('\\]', "").split(', ');
+        return new Vec2d(list[0].toNumber(), list[1].toNumber());
+    }
+
+    /**
+     * -pi to pi
+     */
+    static fun angleBetween(v1, v2) {
+        // -2pi to 2pi
+        between = v1.angle() - v2.angle();
+        if (between > Math.pi) {
+            between = between - 2 * Math.pi;
+        } else if (between <= - Math.pi) {
+            between = between + 2 * Math.pi;
+        }
+        return between;
+    }
+}
+
+class ComplexNumber {
+    var real;
+    var imaginary;
+    var arg;
+    var abs;
+
+    // "Constructors"
+    ComplexNumber(r: Number, i :Number){
+        this.real = r;
+        this.imaginary = i;
+        this.arg = Math.arctan(i / r);
+        this.abs = Math.sqrt(r * r + i * i);
+    }
+
+    ComplexNumber(polar: List){
+        this.abs, this.arg = polar;
+        this.real = this.abs * Math.cos(this.arg);
+        this.imaginary = this.abs * Math.sin(this.arg);
+    }
+
+    // Different Forms
+    fun getExponentialForm(): List {
+        return [this.mod(), this.arg()];
+    }
+
+    fun getStringForm(): String {
+        rString =  '' + this.real;
+        if (this.imaginary > 0){
+            rString = rString + '+' + this.imaginary + 'i';
+        } else if(this.imaginary < 0) {
+            rString = rString + this.imaginary + 'i';
+        }
+        return rString;
+    }
+
+    fun getPolarForm(): Map {
+        rMap = {};
+        rMap['real'] = Math.cos(this.arg);
+        rMap['imaginary'] = Math.sin(this.arg);
+        rMap['stringForm'] = '' + this.abs + '(cos(' + this.arg + ') + i sin(' + this.arg +'))';
+        return rMap;
+    }
+
+    // Functions
+    fun add(r : Number, i : Number):ComplexNumber{
+        return new ComplexNumber(this.real + r, this.imaginary + i);
+    }
+
+    fun add (x : ComplexNumber):ComplexNumber{
+        return new ComplexNumber(this.real + x.real, this.imaginary + x.imaginary);
+    }    
+
+    fun substract(r : Number, i : Number):ComplexNumber{
+        return new ComplexNumber(this.real - r, this.imaginary - i);
+    }
+
+    fun substract(x : ComplexNumber): ComplexNumber {
+        return new ComplexNumber(this.real - x.real, this.imaginary - x.imaginary);
+    }   
+
+    fun multiply(r: Number, i: Number): ComplexNumber {
+        realPart = this.real * r - this.imaginary * i;
+        imaginaryPart = this.real * i + this.imaginary * r;
+        return new ComplexNumber(realPart, imaginaryPart);
+    }
+
+    fun multiply(x: ComplexNumber): ComplexNumber {
+        realPart = this.real * x.real - this.imaginary * x.imaginary;
+        imaginaryPart = this.real * x.imaginary + this.imaginary * x.real;
+        return new ComplexNumber(realPart, imaginaryPart);
+    }  
+
+    fun scale(x: Number) {
+        this.real = x * this.real;
+        this.imaginary = x * this.imaginary;
+    }
+
+    fun rotate(theta : Number) {
+        this.arg = this.arg + Math.toRadians(theta);
+        this.real = this.abs * Math.cos(this.arg);
+        this.imaginary = this.abs * Math.sin(this.arg); 
+    }
+
+    fun divide(r: Number, i: Number): ComplexNumber {
+        conjugate = new ComplexNumber(r, i).conjugate();
+        numerator =  this.multiply(conjugate.real, conjugate.imaginary);
+        denominator = new ComplexNumber(r, i).multiply(conjugate.real, conjugate.imaginary).real;
+        return new ComplexNumber(numerator.real/denominator, numerator.imaginary/denominator);
+    }
+
+    fun divide(x: ComplexNumber): ComplexNumber {
+        conjugate = x.conjugate();
+        numerator = this.multiply(conjugate.real, conjugate.imaginary);
+        denominator = x.multiply(conjugate.real, conjugate.imaginary).real;
+        return new ComplexNumber(numerator.real / denominator, numerator.imaginary / denominator);
+    }
+
+    fun conjugate(): ComplexNumber {
+        return new ComplexNumber(this.real, -(this. imaginary));
+    }
+
+    fun mod(): Number {
+        return Math.sqrt(this.real * this.real + this.imaginary * this.imaginary);
+    }
+
+    fun arg(): Number {
+        return Math.arctan(this.imaginary/this.real);
+    }
+
+    fun sq(): ComplexNumber {
+        return this.multiply(this.real, this.imaginary);
+    }
+
+    fun sqrt(): ComplexNumber {
+        a = this.real;
+        b = this.imaginary;
+        real = Math.sqrt((Math.sqrt(a*a + b*b) + a)/2);
+        imaginary = Math.sqrt((Math.sqrt(a*a + b*b) - a)/2);
+        return new ComplexNumber(real, imaginary);
+    }
+
+    fun setReal(x: Number) {
+        this.real = x;
+        this.abs = this.mod();
+        this.arg = this.arg();
+    }
+
+    fun setImaginary(x: Number) {
+        this.imaginary = x;
+        this.abs = this.mod();
+        this.arg = this.arg();
+    }
+
+    fun exponent(x: Number): ComplexNumber {
+        newArg =  this.arg * x;
+        newAbs = this.abs ^ x; 
+        return new ComplexNumber([newAbs, newArg]);
+    }
+
+    fun log(): ComplexNumber {
+        return new ComplexNumber(Math.log(this.real), this.arg);        
+    }
+    
+    fun toString() {
+        return this.getStringForm();
+    }
+
+    // Operators
+    operator + (other: Number | ComplexNumber) {
+        if(other.instanceOf(Number.type)){
+            return this.add(other, 0);
+        }
+        return this.add(other);
+    }
+
+    operator - (other: Number | ComplexNumber) {
+        if(other.instanceOf(Number.type)){
+            return this.substract(other, 0);
+        }
+        return this.substract(other);
+    }
+
+    operator * (other: Number | ComplexNumber) {
+        if(other.instanceOf(Number.type)){
+            return this.multiply(other, 0);
+        }
+        return this.multiply(other);
+    }
+
+    operator / (other: Number | ComplexNumber) {
+        if(other.instanceOf(Number.type)){
+            return this.multiply(1 / other, 0);
+        }
+        return this.divide(other);
+    }
+
+    operator ^ (other: Number){
+        return this.exponent(other);
+    }
+
+    operator == (other){
+        return other.instanceOf(ComplexNumber.type) && this.real == other.real && this.imaginary ==  other.imaginary;
+    }
+
+    static fun complex(r: Number, i: Number): ComplexNumber {
+        return new ComplexNumber(r, i);
+    }
+
+    /**
+     * Takes a string in the form of any complex number.
+     * Examples: -10+i, 0-9.8i, +19.1i
+     */
+    static fun fromString(string: String): ComplexNumber {
+        // Imaginary only
+        match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)?i$");
+        if (!match.isEmpty()) {
+            i = ComplexNumber.numberOf(match[2]);
+            if (match[1] == "-") {
+                i = -i;
+            }
+            return new ComplexNumber(0, i);
+        }
+        // Real only
+        match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)$");
+        if (!match.isEmpty()) {
+            r = match[2].toNumber();
+            if (match[1] == "-") {
+                r = -r;
+            }
+            return new ComplexNumber(r, 0);
+        }
+        // Complex
+        match = string.findAll("^([-+]?)(\\d*?\\.?\\d+)([-+])(\\d*?\\.?\\d+)?i$");
+        if (!match.isEmpty()) {
+            _, realSign, real, imaginarySign, imaginary = match;
+            real = real.toNumber();
+            if (realSign == "-") {
+                real = -real;
+            }
+            imaginary = ComplexNumber.numberOf(imaginary);
+            if (imaginarySign == "-") {
+                imaginary = -imaginary;
+            }
+            return new ComplexNumber(real, imaginary);
+        }
+        throw new Error("Cannort convert " + string + " to a complex number");
+    }
+
+    static fun numberOf(string: String) {
+        if (len(string) == "") {
+            return 1;
+        }
+        return string.toNumber();
+    }
+}
