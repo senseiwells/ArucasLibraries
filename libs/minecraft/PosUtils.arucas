@@ -186,15 +186,15 @@ enum Direction {
 
 class PosWithFun : Pos{
     //Extended PosWithFun class
-    var x;
-    var y;
-    var z;
+    var x : Number;
+    var y : Number;
+    var z : Number;
     PosWithFun(x : Number, y : Number, z : Number) : super(x,y,z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
-    PosWithFun(pos : Pos) : super(0, 0, 0){
-        if (pos.instanceOf(List.type) && len(pos) == 3){
-            pos = PosWithFun.getPos(pos);
-        }
+    PosWithFun(pos : Pos) : super(pos.getX(), pos.getY(), pos.getZ()) {
         this.x = pos.getX();
         this.y = pos.getY();
         this.z = pos.getZ();
@@ -313,15 +313,30 @@ class PosWithFun : Pos{
 }
 class PosWithDirection : Pos{
     // Utility class that holds Position and Direction information
+    var x : Number;
+    var y : Number;
+    var z : Number;
     var direction = Direction.NONE;
     PosWithDirection(x, y, z) : super(x,y,z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
     PosWithDirection(x, y, z, direction): super(x,y,z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.direction = direction;
     }
     PosWithDirection(pos : Pos): super(pos.getX(), pos.getY(), pos.getZ()) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
     PosWithDirection(pos, direction): super(pos.getX(), pos.getY(), pos.getZ()){
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.direction = direction;
     }
     fun getX(){
