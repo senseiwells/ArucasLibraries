@@ -1,4 +1,9 @@
+import UnsupportedError from util.Errors;
 import StringBuilder from util.StringUtils;
+
+fun unsupported(message: String) {
+    throw new UnsupportedError(message);
+}
 
 // Function that creates a new node
 // cannot be accessed outside this file
@@ -23,11 +28,33 @@ newNode = null;
     };
 }
 
+interface Stack {
+    fun isEmpty();
+
+    fun push(value);
+
+    fun pop();
+
+    fun peek();
+}
+
+interface Queue {
+    fun isEmpty();
+
+    fun enqueue(value);
+
+    fun dequeue();
+
+    fun front();
+
+    fun end();
+}
+
 /**
  * Stack data strucutre using linked nodes
  * FIFO with basic methods
  */
-class LinkedStack {
+class LinkedStack: Stack {
     var current;
 
     /**
@@ -119,7 +146,7 @@ class LinkedStack {
  * Queue data strucutre using linked nodes
  * FILO with basic methods
  */
-class LinkedQueue {
+class LinkedQueue: Queue {
     /**
      * The node that is at the
      * front of the queue
@@ -228,5 +255,39 @@ class LinkedQueue {
             }
         }
         return (builder + "}").toString();
+    }
+}
+
+class ImmutableList: List {
+    fun set(object: Object, index: Number) unsupported("Cannot set in an immutable list");
+    
+    fun remove(index: Number) unsupported("Cannot remove from an immutable list");
+    
+    fun append(object: Object) unsupported("Cannot append to an immutable list");
+    
+    fun prepend(object: Object) unsupported("Cannot prepend to an immutable list");
+    
+    fun insert(object: Object, index: Number) unsupported("Cannot insert to an immutable list");
+
+    fun addAll(collection: Collection) unsupported("Cannot add all to an immutable list");
+
+    fun removeAll(collection: Collection) unsupported("Cannot remove all from an immutable list");
+
+    fun retainAll(collection: Collection) unsupported("Cannot retain all from an immutable list");
+
+    fun clear() unsupported("Cannot clear an immutable list");
+
+    fun sort() unsupported("Cannot sort an immutable list");
+
+    fun sort(comparator: Function) unsupported("Cannot sort an immutable list");
+
+    fun reverse() unsupported("Cannot reverse an immutable list");
+
+    fun shuffle() unsupported("Cannot shuffle an immutable list");
+
+    fun copy() this;
+
+    fun copyMutable() {
+        return [].addAll(this);
     }
 }
