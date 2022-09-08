@@ -230,3 +230,52 @@ class LinkedQueue {
         return (builder + "}").toString();
     }
 }
+
+class DefaultedMap : Map {
+    var defaultValue = null;
+    DefaultedMap(items) : super() {
+        foreach (item : items){
+            this.put(item, this.defaultValue);
+        }
+    }
+    DefaultedMap(items, defaultValue) : super() {
+        this.defaultValue = defaultValue;
+        foreach (item : items){
+            this.put(item, this.defaultValue);
+        }
+    }
+    fun addAll(values){
+        if (values.instanceOf(Map.type)){
+            super.addAll(values);
+        }
+        else if (values.instanceOf(Collection.type)){
+            foreach (item : values){
+                this.put(item, this.defaultValue);
+            }
+        }
+        else {
+            super.addAll(values);
+        }
+    }
+    fun addAll(values, specificValue){
+        if (values.instanceOf(Map.type)){
+            super.addAll(values);
+        }
+        else if (values.instanceOf(Collection.type)){
+            foreach (item : values){
+                this.put(item, specificValue);
+            }
+        }
+        else {
+            super.addAll(values);
+        }
+    }
+    fun put(key){
+        return this.put(key, this.defaultValue);
+    }
+    fun poll(){
+        if (!this.isEmpty())
+            return this.getKeys().get(0);
+    }
+}
+
