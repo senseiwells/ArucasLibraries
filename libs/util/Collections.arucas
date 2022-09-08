@@ -254,7 +254,7 @@ class DefaultedMap : Map {
             }
         }
         else {
-            super.addAll(values);
+            super.putAll(new DefaultedMap(values, this.defaultValue));
         }
     }
     fun addAll(values, specificValue){
@@ -267,7 +267,7 @@ class DefaultedMap : Map {
             }
         }
         else {
-            super.addAll(values);
+            super.putAll(new DefaultedMap(values, specificValue));
         }
     }
     fun put(key){
