@@ -1,0 +1,10 @@
+/**
+ * This error is generally for methods that
+ * have been inherited by a child but are
+ * not supported by it.
+ */
+class UnsupportedError: Error {
+    UnsupportedError(): super();
+
+    UnsupportedError(message: String): super(message);
+}
