@@ -1,0 +1,420 @@
+//Check Argument has Unique names, prevent client crash
+import FormatUtil from util.FormatUtils;
+import * from Minecraft;
+client = MinecraftClient.getClient();
+//functions for argParse
+fun checkArguments(iterable){
+    argNames = Set.of();
+    foreach( i : iterable){
+        if  (argNames.contains(i)){
+            throw new Error("Arguments name should have unique names!");
+        }
+        argNames.add(i);
+    }
+}
+
+//Very handy command builder
+//lambda as fun(){something;}
+//LinearCommand([ArgList], lambda).build() to get 'built' one, .debugBuild() to get 'string' format, .process() to process and register command.
+//new LinearCommand([['eDemiBolt'], ['x', 'Integer'],['y', 'Integer'],['z', 'Integer'], ['direction', 'Enum', Direction.type]], demiBoltTask).process();
+
+class FILOStack {
+    var asList;
+    FILOStack(fromList){
+        this.asList = [];
+        this.asList.addAll(fromList.copy());
+    }
+    fun popLast(){
+        pointer = len(this.asList);
+        if(pointer == 0){
+            return null;
+        }
+        val = this.asList.get(pointer - 1);
+        this.asList.remove(pointer - 1);
+        return val;
+    }
+    fun pop(){
+        pointer = 0;
+        if(pointer == len(this.asList)){
+            return null;
+        }
+        val = this.asList.get(pointer);
+        this.asList.remove(pointer);
+        return val;
+    }
+    fun hasItems(){
+        return !this.asList.isEmpty();
+    }
+}
+fun tryPredicateAndMerge(iterable, predicate, modifyFunction){
+    retVal = [];
+    foreach ( i : iterable){
+        defaultVal = false;
+        try {
+            defaultVal = predicate(i);
+        }
+        catch (ignored) {
+            continue;
+        }
+        retVal.append(modifyFunction(i));
+    }
+    return retVal;
+}
+
+lambdaItems = fun (obj){
+    return obj.asItemStack() != null;
+};
+lambdaItemGetId = fun (obj){
+    return obj.asItemStack().getId();
+};
+
+lambdaBlock = fun (obj){
+    return obj.asBlock() != null;
+};
+lambdaBlockGetId = fun (obj){
+    return obj.asBlock().getId();
+};
+
+class DefaultSuggester {
+    static var ITEMS = tryPredicateAndMerge(Material.ALL, lambdaItems, lambdaItemGetId);
+    static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId);
+    static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
+    static var HORIZONTAL = ['north', 'east', 'south', 'west'];
+    static var BIOMES = ['THE_VOID', 'PLAINS', 'SUNFLOWER_PLAINS', 'SNOWY_PLAINS', 'ICE_SPIKES', 'DESERT', 'SWAMP', 'MANGROVE_SWAMP', 'FOREST', 'FLOWER_FOREST', 'BIRCH_FOREST', 'DARK_FOREST', 'OLD_GROWTH_BIRCH_FOREST', 'OLD_GROWTH_PINE_TAIGA', 'OLD_GROWTH_SPRUCE_TAIGA', 'TAIGA', 'SNOWY_TAIGA', 'SAVANNA', 'SAVANNA_PLATEAU', 'WINDSWEPT_HILLS', 'WINDSWEPT_GRAVELLY_HILLS', 'WINDSWEPT_FOREST', 'WINDSWEPT_SAVANNA', 'JUNGLE', 'SPARSE_JUNGLE', 'BAMBOO_JUNGLE', 'BADLANDS', 'ERODED_BADLANDS', 'WOODED_BADLANDS', 'MEADOW', 'GROVE', 'SNOWY_SLOPES', 'FROZEN_PEAKS', 'JAGGED_PEAKS', 'STONY_PEAKS', 'RIVER', 'FROZEN_RIVER', 'BEACH', 'SNOWY_BEACH', 'STONY_SHORE', 'WARM_OCEAN', 'LUKEWARM_OCEAN', 'DEEP_LUKEWARM_OCEAN', 'OCEAN', 'DEEP_OCEAN', 'COLD_OCEAN', 'DEEP_COLD_OCEAN', 'FROZEN_OCEAN', 'DEEP_FROZEN_OCEAN', 'MUSHROOM_FIELDS', 'DRIPSTONE_CAVES', 'LUSH_CAVES', 'DEEP_DARK', 'NETHER_WASTES', 'WARPED_FOREST', 'CRIMSON_FOREST', 'SOUL_SAND_VALLEY', 'BASALT_DELTAS', 'THE_END', 'END_HIGHLANDS', 'END_MIDLANDS', 'SMALL_END_ISLANDS', 'END_BARRENS'];
+    static fun getAvailableProperties(propName) {
+        immutableMap = {
+            'lit' : ['true', 'false'],
+            'facing' : ['up', 'down', 'north', 'east', 'south', 'west'],
+            'face' : ['wall', 'ceiling', 'floor'],
+            'powered' : ['true', 'false'],
+            'waterlogged' : ['true', 'false'],
+            'open' : ['true', 'false'],
+            'half' : ['top', 'down'],
+            'axis' : ['x','y','z'],
+            'extended' : ['true', 'false'],
+            'delay' : ['0','1','2','3'],
+            'locked' : ['true','false'],
+            'shape' : ['east_west', 'north_south', 'ascending_west', 'ascending_east', 'ascending_north', 'ascending_south'],
+            'mode' : ['subtract', 'compare'],
+            'persistent' : ['true', 'false']
+        };
+        retVal = [];
+        if (immutableMap.get(propName) != null){
+            return immutableMap.get(propName);
+        }
+        return [];
+    }
+}
+
+class PropertySuggester {
+    //suggests properties from block, last index should be block
+    static fun getProperties(args...){
+        if(len(args) == 0){
+            throw new Error("Length of the args was 0!");
+        }
+        blockName = args.get(len(args) - 1);
+        try {
+            block = Material.of(blockName).asBlock();
+            prop = block.getBlockProperties();
+            return prop.getKeys();
+        }
+        catch (error){
+            return ["None"];
+        }
+    }
+    static fun getPropertyValues(args...){
+        if(len(args) <= 0){
+            throw new Error("Length of the args was 0!");
+        }
+        blockName = args.get(len(args) - 2);
+        propertyName = args.get(len(args) - 1);
+        canSuggest = DefaultSuggester.getAvailableProperties(propertyName);
+        if (!canSuggest.isEmpty()){
+            return canSuggest;
+        }
+        try {
+            block = Material.of(blockName).asBlock();
+            prop = block.getBlockProperties();
+            return [prop.get(propertyName)];
+        }
+        catch (error){
+            return ["None"];
+        }
+    }
+    static fun parseValue(property){
+        if (property.lowercase() == 'true'){
+            return true;
+        }
+        if (property.lowercase() == 'false'){
+            return false;
+        }
+        try {
+            numbervalue = property.toNumber();
+            return numbervalue;
+        }
+        catch (exception){
+            //ignored
+        }
+        return property;
+    }
+}
+
+class LinearCommand{
+    var waitingQueue;
+    var lambda;
+    var argSet = [];
+    var command;
+    var innerDebug = '';
+    var innerMap = {};
+    var innerScope;
+    var recursionCount;
+    LinearCommand(arguments, lambda){
+        // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
+        checkArguments(arguments);
+        this.argSet = arguments.copy();
+        this.innerDebug = '';
+        this.waitingQueue = new FILOStack(arguments);
+        this.lambda = lambda;
+        this.recursionCount = 0;
+    }
+    LinearCommand(queue, lambda, innerScope, recursionCount){
+        // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
+        this.waitingQueue = queue;// inherits queue
+        this.lambda = lambda;
+        this.innerDebug = '';
+        this.innerScope = innerScope;
+        this.recursionCount = recursionCount;
+        if (recursionCount > 15){
+            throwRuntimeError("Argument count maximum is set to 15");
+        }
+    }
+    LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug){
+        // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
+        this.waitingQueue = queue;// inherits queue
+        this.lambda = lambda;
+        this.innerScope = innerScope;
+        this.innerDebug = innerDebug;
+        this.recursionCount = recursionCount;
+        if (recursionCount > 15){
+            throwRuntimeError("Argument count maximum is set to 15");
+        }
+    }
+    LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug, innerMap){
+        // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
+        this.waitingQueue = queue;// inherits queue
+        this.lambda = lambda;
+        this.innerScope = innerScope;
+        this.innerDebug = innerDebug;
+        this.innerMap = innerMap;
+        this.recursionCount = recursionCount;
+        if (recursionCount > 15){
+            throwRuntimeError("Argument count maximum is set to 15");
+        }
+    }
+    fun build(){
+        current = this.waitingQueue.popLast();
+        if (current == null){
+            return this.innerScope;
+        }
+        //we got something as List anyway.
+        tempCommand = '';
+        if (len(current) == 1){
+            tempCommand = CommandBuilder.literal(current.get(0));
+        }
+        else if (len(current) == 2) {
+            tempCommand = CommandBuilder.argument(current.get(0), current.get(1));
+        }
+        else if (len(current) == 3){
+            //suggest args
+            tempCommand = CommandBuilder.argument(current.get(0), current.get(1), current.get(2));
+        }
+        else if (len(current) > 3){ //won't process in linear build
+            throwRuntimeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+        }
+
+        newInnerScope = null;
+        if (this.innerScope != null){
+            newInnerScope = tempCommand.then(this.innerScope);
+        }
+        else {
+            newInnerScope = tempCommand;
+        }
+        if (this.lambda != null){
+            newInnerScope = newInnerScope.executes(this.lambda); //Terminal execution
+        }
+        return new LinearCommand(this.waitingQueue, null, newInnerScope, this.recursionCount + 1).build();
+    }
+    fun debugBuild(){
+        current = this.waitingQueue.popLast();
+        if (current == null){
+            return this.innerDebug;
+        }
+        //we got something as List anyway.
+        tempCommand = '';
+        if (len(current) == 1){
+            tempCommand = 'CommandBuilder.literal(' + current.get(0) + ')';
+        }
+        else if (len(current) == 2) {
+            tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ')';
+        }
+        else if (len(current > 3)) {
+            throwRuntimeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+        }
+        else if (len(current) == 3){
+            //suggest args
+            tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ',' + current.get(2)+')';
+        }
+        newInnerDebug = '';
+        if (this.innerDebug != ''){
+            newInnerDebug = tempCommand + '.then('+ this.innerDebug + ')';
+        }
+        else {
+            newInnerDebug = tempCommand;
+
+        }
+        if (this.lambda != null){
+            newInnerDebug = newInnerDebug + '.executes(lambda)';
+        }
+        return (new LinearCommand(this.waitingQueue, null, null, this.recursionCount + 1, newInnerDebug)).debugBuild();
+    }
+    fun internalMapBuild(){
+        current = this.waitingQueue.pop(); //this time we parse sequentially
+        if (current == null){ //its end of loop
+            if (this.lambda == null){
+                throwRuntimeError("Command does not execute anything");
+            }
+            retVal = {"" : this.lambda};
+            if(retVal.isEmpty()){
+                throw new Error("Return value of final lambda was empty");
+            }
+            return retVal;
+        }
+        tempArg = '';
+        if (len(current) == 1){
+            //literal
+            tempArg = current.get(0);
+        }
+        else if (len(current) == 2 || len(current) == 3 || len(current) == 4){
+            tempArg = "<"+ current.get(0) +">";
+        }
+        else {
+            throwRuntimeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+        }
+        innerBuilt = new LinearCommand(this.waitingQueue, this.lambda, null, this.recursionCount + 1, '', {}).internalMapBuild();
+        if(innerBuilt.isEmpty()){
+            throw new Error("Return value of was empty");
+        }
+        str = FormatUtil.showMap(innerBuilt);
+        //try alternative
+        retVal = {};
+        retVal.put(tempArg, innerBuilt);
+        //retVal = {tempArg : innerBuilt};
+        if(retVal.isEmpty()){
+            throw new Error("Built inner scope but failed to input in map");
+        }
+        return retVal;
+    }
+    fun internalGetArgMap(){
+        if (len(this.argSet) == 0){
+            return null;
+        }
+        argMap = {};
+        foreach ( args : this.argSet){
+            if (len(args) == 1){
+                continue;
+            }
+            else if (len(args) == 2){
+                //expect Name, Type
+                argMap.put(args.get(0), {"type" : args.get(1)});
+
+            }
+            else if (len(args) == 3){
+                if(args.get(1).lowercase() == 'enum'){
+                    argMap.put(args.get(0), {"type" : args.get(1), 'enum' : args.get(2)});
+                }
+                else if (Type.of(args.get(2)).getName() == 'List'){
+                    //suggests;
+                    argMap.put(args.get(0), {"type" : args.get(1), "suggests" : args.get(2).copy()});
+                }
+                else {
+                    //suggester
+                    argMap.put(args.get(0), {"type" : args.get(1), "suggester" : args.get(2)});
+                }
+            }
+            else if (len(args) == 4){
+                //minmax
+                argMap.put(args.get(0), {"type" : args.get(1), "min" : args.get(2), "max" : args.get(3)});
+            }
+        }
+        return argMap;
+    }
+    fun shouldProcessAsMap(){
+        foreach ( args : this.argSet){
+            if (len(args) == 3){
+                if(args.get(1).lowercase() == 'enum'){
+                    return true;
+                }
+                if (Type.of(args.get(2)).getName() == 'List'){
+                    continue;
+                }
+                else {
+                    //suggester
+                    return true;
+                }
+            }
+            else if (len(args) == 4){
+                //minmax
+                if (args.get(1) != 'Integer'){
+                    throwRuntimeError("4 arguments is for Min / Max argument but type was not Integer.");
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    fun processMapCommand(){
+        name = this.waitingQueue.pop().get(0);
+        if(Type.of(name).getName() != 'String'){
+            throwRuntimeError("Expected name : <String>  in map, but given name : " + name);
+        }
+        subcommands = this.internalMapBuild();
+        arguments = this.internalGetArgMap();
+        map = {
+                    "name" : name,
+                    "subcommands": subcommands,
+                    "arguments" : arguments
+                };
+        if(map.isEmpty()){
+            throw new Error("What is happening now?");
+        }
+        client.addCommand(
+            CommandBuilder.fromMap(
+                map
+            )
+        );
+    }
+    fun getMap(){
+        name = this.waitingQueue.pop().get(0);
+        if(Type.of(name).getName() != 'String'){
+            throwRuntimeError("Expected name : <String>  in map, but given name : " + name);
+        }
+        subcommands = this.internalMapBuild();
+        arguments = this.internalGetArgMap();
+        map = {
+                    "name" : name,
+                    "subcommands": subcommands,
+                    "arguments" : arguments
+                };
+        if(map.isEmpty()){
+            throw new Error("What is happening now?");
+        }
+        return map;
+    }
+    fun process(){
+        if (this.shouldProcessAsMap()){
+            this.processMapCommand();
+            return;
+        }
+        client.addCommand(this.build());
+    }
+}

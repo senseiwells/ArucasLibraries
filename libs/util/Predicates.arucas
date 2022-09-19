@@ -1,8 +1,8 @@
 class Predicate{
     static fun all(predicates...){
         return fun (value){
-            foreach(pred : predicates){
-                if(!pred(value)){
+            foreach (pred : predicates) {
+                if (!pred(value)) {
                     return false;
                 }
             }
@@ -11,7 +11,7 @@ class Predicate{
     }
     static fun any(predicates...){
         return fun (value){
-            foreach(pred : predicates){
+            foreach (pred : predicates) {
                 if(pred(value)){
                     return true;
                 }
