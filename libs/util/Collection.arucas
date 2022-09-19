@@ -1,94 +1,143 @@
-/* Native, implemented in Java
- * This class is similar to Java streams, allowing for easy modifications of collections.
- * Import with 'import Collector from util.Collection'
+/**
+ * This class should not be used, it serves only for
+ * compatability with older scripts that used this API.
+ * Instead you should just use the correct methods on the collection.
  */
 class Collector {
+    var list;
+
+    Collector(collection: Collection) {
+        this.list = [];
+        foreach (value : collection) {
+            this.list.append(value);
+        }
+    }
+
     /*
      * If there are values in the collector that are collections they will be expanded, 
      * collections inside collections are not flattened, you would have to call this method again
      * Returns - Collector: a new Collector with the expanded values
      */
-    fun flatten();
+    fun flatten(): Collector {
+        return Collector.of(this.list.flatten());
+    }
 
     /*
      * This filters the collection using the predicate
      * Parameter - Function (predicate): a function that takes a value and returns Boolean, true if it should be kept, false if not
      * Returns - Collector: the filtered collection
-     * Throws - Error: Predicate must return Boolean
      */
-    fun filter(predicate);
+    fun filter(predicate: Function): Collector {
+        return Collector.of(this.list.filter(predicate));
+    }
 
     /*
      * This puts all the values in the collector into a set and returns it
      * Returns - Set: a set with all the values in the collector
      */
-    fun toSet();
+    fun toSet(): Set {
+        set = Set.of();
+        foreach (value : this.list) {
+            set.add(value);
+        }
+        return set;
+    }
 
     /*
      * This iterates over all the values in the Collector and calls the passed in function with each value
      * Parameter - Function (function): a function that takes a value and returns nothing
      * Returns - Collector: the Collector
      */
-    fun forEach(function);
+    fun forEach(function: Function): Collector {
+        foreach (value : this.list) {
+            function(value);
+        }
+        return this;
+    }
 
     /*
      * This checks if none of the values in the collection match the predicate
      * Parameter - Function (predicate): a function that takes a value and returns Boolean, true if it matches, false if not
      * Returns - Boolean: true if none of the values match the predicate, false if not
-     * Throws - Error: Predicate must return Boolean
      */
-    fun noneMatch(predicate);
+    fun noneMatch(predicate: Function): Boolean {
+        foreach (value : this.list) {
+            if (predicate(value)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /*
      * This puts all the values in the collector into a list and returns it
      * Returns - List: a list with all the values in the collector
      */
-    fun toList();
+    fun toList(): List {
+        return this.list.copy();
+    }
 
     /*
      * This maps the values in Collector to a new value
      * Parameter - Function (mapper): a function that takes a value and returns a new value
      * Returns - Collector: a new Collector with the mapped values
      */
-    fun map(mapper);
+    fun map(mapper: Function): Collector {
+        return Collector.of(this.list.map(mapper));
+    }
 
     /*
      * This checks if all the values in the collection match the predicate
      * Parameter - Function (predicate): a function that takes a value and returns Boolean, true if it matches, false if not
      * Returns - Boolean: true if all the values match the predicate, false if not
-     * Throws - Error: Predicate must return Boolean
      */
-    fun allMatch(predicate);
+    fun allMatch(predicate: Function): Boolean {
+        foreach (value : this.list) {
+            if (!predicate(value)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /*
      * This checks if any of the values in the collection match the predicate
      * Parameter - Function (predicate): a function that takes a value and returns Boolean, true if it matches, false if not
      * Returns - Boolean: true if any of the values match the predicate, false if not
-     * Throws - Error: Predicate must return Boolean
      */
-    fun anyMatch(predicate);
+    fun anyMatch(predicate: Function): Boolean {
+        foreach (value : this.list) {
+            if (predicate(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /*
      * This creates a collector for a collection
      * Parameter - Value (value...): the values you want to evaluate
      * Returns - Collector: the collector
      */
-    static fun of(value...);
+    static fun of(values...): Collector {
+        return new Collector(values);
+    }
 
     /*
      * This creates a collector for a collection
      * Parameter - Collection (collection): the collection of values you want to evaluate
      * Returns - Collector: the collector
-     * Throws - Error: ... is not a collection
      */
-    static fun of(collection);
+    static fun of(collection: Collection): Collector {
+        return new Collector(collection);
+    }
 
     /*
      * This checks if the value is a collection
      * Parameter - Value (value): the value you want to check
      * Returns - Boolean: true if the value is a collection
      */
-    static fun isCollection(value);
+    static fun isCollection(value): Boolean {
+        return value.instanceOf(Collection.type);
+    }
 }
-
-
