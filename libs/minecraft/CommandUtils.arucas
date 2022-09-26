@@ -1,6 +1,7 @@
 //Check Argument has Unique names, prevent client crash
 import FormatUtil from util.FormatUtils;
 import * from Minecraft;
+import LinkedStack from util.Collections;
 client = MinecraftClient.getClient();
 //functions for argParse
 fun checkArguments(iterable){
@@ -18,9 +19,9 @@ fun checkArguments(iterable){
 //LinearCommand([ArgList], lambda).build() to get 'built' one, .debugBuild() to get 'string' format, .process() to process and register command.
 //new LinearCommand([['eDemiBolt'], ['x', 'Integer'],['y', 'Integer'],['z', 'Integer'], ['direction', 'Enum', Direction.type]], demiBoltTask).process();
 
-class FILOStack {
+class Deque {
     var asList;
-    FILOStack(fromList){
+    Deque(fromList){
         this.asList = [];
         this.asList.addAll(fromList.copy());
     }
@@ -68,21 +69,17 @@ lambdaItemGetId = fun (obj){
     return obj.asItemStack().getId();
 };
 
-lambdaBlock = fun (obj){
+fun lambdaBlock(obj){
     return obj.asBlock() != null;
 };
-lambdaBlockGetId = fun (obj){
+fun lambdaBlockGetId(obj){
     return obj.asBlock().getId();
 };
 
 class DefaultSuggester {
     static var ITEMS = tryPredicateAndMerge(Material.ALL, lambdaItems, lambdaItemGetId);
     static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId);
-    static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
-    static var HORIZONTAL = ['north', 'east', 'south', 'west'];
-    static var BIOMES = ['THE_VOID', 'PLAINS', 'SUNFLOWER_PLAINS', 'SNOWY_PLAINS', 'ICE_SPIKES', 'DESERT', 'SWAMP', 'MANGROVE_SWAMP', 'FOREST', 'FLOWER_FOREST', 'BIRCH_FOREST', 'DARK_FOREST', 'OLD_GROWTH_BIRCH_FOREST', 'OLD_GROWTH_PINE_TAIGA', 'OLD_GROWTH_SPRUCE_TAIGA', 'TAIGA', 'SNOWY_TAIGA', 'SAVANNA', 'SAVANNA_PLATEAU', 'WINDSWEPT_HILLS', 'WINDSWEPT_GRAVELLY_HILLS', 'WINDSWEPT_FOREST', 'WINDSWEPT_SAVANNA', 'JUNGLE', 'SPARSE_JUNGLE', 'BAMBOO_JUNGLE', 'BADLANDS', 'ERODED_BADLANDS', 'WOODED_BADLANDS', 'MEADOW', 'GROVE', 'SNOWY_SLOPES', 'FROZEN_PEAKS', 'JAGGED_PEAKS', 'STONY_PEAKS', 'RIVER', 'FROZEN_RIVER', 'BEACH', 'SNOWY_BEACH', 'STONY_SHORE', 'WARM_OCEAN', 'LUKEWARM_OCEAN', 'DEEP_LUKEWARM_OCEAN', 'OCEAN', 'DEEP_OCEAN', 'COLD_OCEAN', 'DEEP_COLD_OCEAN', 'FROZEN_OCEAN', 'DEEP_FROZEN_OCEAN', 'MUSHROOM_FIELDS', 'DRIPSTONE_CAVES', 'LUSH_CAVES', 'DEEP_DARK', 'NETHER_WASTES', 'WARPED_FOREST', 'CRIMSON_FOREST', 'SOUL_SAND_VALLEY', 'BASALT_DELTAS', 'THE_END', 'END_HIGHLANDS', 'END_MIDLANDS', 'SMALL_END_ISLANDS', 'END_BARRENS'];
-    static fun getAvailableProperties(propName) {
-        immutableMap = {
+    static var PROPERTIES_MAP = {
             'lit' : ['true', 'false'],
             'facing' : ['up', 'down', 'north', 'east', 'south', 'west'],
             'face' : ['wall', 'ceiling', 'floor'],
@@ -98,6 +95,11 @@ class DefaultSuggester {
             'mode' : ['subtract', 'compare'],
             'persistent' : ['true', 'false']
         };
+    static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
+    static var HORIZONTAL = ['north', 'east', 'south', 'west'];
+    static var BIOMES = ['THE_VOID', 'PLAINS', 'SUNFLOWER_PLAINS', 'SNOWY_PLAINS', 'ICE_SPIKES', 'DESERT', 'SWAMP', 'MANGROVE_SWAMP', 'FOREST', 'FLOWER_FOREST', 'BIRCH_FOREST', 'DARK_FOREST', 'OLD_GROWTH_BIRCH_FOREST', 'OLD_GROWTH_PINE_TAIGA', 'OLD_GROWTH_SPRUCE_TAIGA', 'TAIGA', 'SNOWY_TAIGA', 'SAVANNA', 'SAVANNA_PLATEAU', 'WINDSWEPT_HILLS', 'WINDSWEPT_GRAVELLY_HILLS', 'WINDSWEPT_FOREST', 'WINDSWEPT_SAVANNA', 'JUNGLE', 'SPARSE_JUNGLE', 'BAMBOO_JUNGLE', 'BADLANDS', 'ERODED_BADLANDS', 'WOODED_BADLANDS', 'MEADOW', 'GROVE', 'SNOWY_SLOPES', 'FROZEN_PEAKS', 'JAGGED_PEAKS', 'STONY_PEAKS', 'RIVER', 'FROZEN_RIVER', 'BEACH', 'SNOWY_BEACH', 'STONY_SHORE', 'WARM_OCEAN', 'LUKEWARM_OCEAN', 'DEEP_LUKEWARM_OCEAN', 'OCEAN', 'DEEP_OCEAN', 'COLD_OCEAN', 'DEEP_COLD_OCEAN', 'FROZEN_OCEAN', 'DEEP_FROZEN_OCEAN', 'MUSHROOM_FIELDS', 'DRIPSTONE_CAVES', 'LUSH_CAVES', 'DEEP_DARK', 'NETHER_WASTES', 'WARPED_FOREST', 'CRIMSON_FOREST', 'SOUL_SAND_VALLEY', 'BASALT_DELTAS', 'THE_END', 'END_HIGHLANDS', 'END_MIDLANDS', 'SMALL_END_ISLANDS', 'END_BARRENS'];
+    static fun getAvailableProperties(propName) {
+        immutableMap = DefaultSuggester.PROPERTIES_MAP;
         retVal = [];
         if (immutableMap.get(propName) != null){
             return immutableMap.get(propName);
@@ -173,7 +175,7 @@ class LinearCommand{
         checkArguments(arguments);
         this.argSet = arguments.copy();
         this.innerDebug = '';
-        this.waitingQueue = new FILOStack(arguments);
+        this.waitingQueue = new Deque(arguments);
         this.lambda = lambda;
         this.recursionCount = 0;
     }
@@ -185,7 +187,7 @@ class LinearCommand{
         this.innerScope = innerScope;
         this.recursionCount = recursionCount;
         if (recursionCount > 15){
-            throwRuntimeError("Argument count maximum is set to 15");
+            throw new Error("Argument count maximum is set to 15");
         }
     }
     LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug){
@@ -196,7 +198,7 @@ class LinearCommand{
         this.innerDebug = innerDebug;
         this.recursionCount = recursionCount;
         if (recursionCount > 15){
-            throwRuntimeError("Argument count maximum is set to 15");
+            throw new Error("Argument count maximum is set to 15");
         }
     }
     LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug, innerMap){
@@ -208,7 +210,7 @@ class LinearCommand{
         this.innerMap = innerMap;
         this.recursionCount = recursionCount;
         if (recursionCount > 15){
-            throwRuntimeError("Argument count maximum is set to 15");
+            throw new Error("Argument count maximum is set to 15");
         }
     }
     fun build(){
@@ -229,7 +231,7 @@ class LinearCommand{
             tempCommand = CommandBuilder.argument(current.get(0), current.get(1), current.get(2));
         }
         else if (len(current) > 3){ //won't process in linear build
-            throwRuntimeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+            throw new Error("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
         }
 
         newInnerScope = null;
@@ -258,7 +260,7 @@ class LinearCommand{
             tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ')';
         }
         else if (len(current > 3)) {
-            throwRuntimeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+            throw new Error("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
         }
         else if (len(current) == 3){
             //suggest args
@@ -281,7 +283,7 @@ class LinearCommand{
         current = this.waitingQueue.pop(); //this time we parse sequentially
         if (current == null){ //its end of loop
             if (this.lambda == null){
-                throwRuntimeError("Command does not execute anything");
+                throw new Error("Command does not execute anything");
             }
             retVal = {"" : this.lambda};
             if(retVal.isEmpty()){
@@ -298,7 +300,7 @@ class LinearCommand{
             tempArg = "<"+ current.get(0) +">";
         }
         else {
-            throwRuntimeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+            throw new Error("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
         }
         innerBuilt = new LinearCommand(this.waitingQueue, this.lambda, null, this.recursionCount + 1, '', {}).internalMapBuild();
         if(innerBuilt.isEmpty()){
@@ -332,7 +334,7 @@ class LinearCommand{
                 if(args.get(1).lowercase() == 'enum'){
                     argMap.put(args.get(0), {"type" : args.get(1), 'enum' : args.get(2)});
                 }
-                else if (Type.of(args.get(2)).getName() == 'List'){
+                else if (args.get(2).instanceOf(List.type)){
                     //suggests;
                     argMap.put(args.get(0), {"type" : args.get(1), "suggests" : args.get(2).copy()});
                 }
@@ -354,7 +356,7 @@ class LinearCommand{
                 if(args.get(1).lowercase() == 'enum'){
                     return true;
                 }
-                if (Type.of(args.get(2)).getName() == 'List'){
+                if (args.get(2).instanceOf(List.type)){
                     continue;
                 }
                 else {
@@ -365,7 +367,7 @@ class LinearCommand{
             else if (len(args) == 4){
                 //minmax
                 if (args.get(1) != 'Integer'){
-                    throwRuntimeError("4 arguments is for Min / Max argument but type was not Integer.");
+                    throw new Error("4 arguments is for Min / Max argument but type was not Integer.");
                 }
                 return true;
             }
@@ -374,8 +376,8 @@ class LinearCommand{
     }
     fun processMapCommand(){
         name = this.waitingQueue.pop().get(0);
-        if(Type.of(name).getName() != 'String'){
-            throwRuntimeError("Expected name : <String>  in map, but given name : " + name);
+        if(!name.instanceOf(String.type)){
+            throw new Error("Expected name : <String>  in map, but given name : " + name);
         }
         subcommands = this.internalMapBuild();
         arguments = this.internalGetArgMap();
@@ -395,8 +397,8 @@ class LinearCommand{
     }
     fun getMap(){
         name = this.waitingQueue.pop().get(0);
-        if(Type.of(name).getName() != 'String'){
-            throwRuntimeError("Expected name : <String>  in map, but given name : " + name);
+        if(!name.instanceOf(String.type)){
+            throw new Error("Expected name : <String>  in map, but given name : " + name);
         }
         subcommands = this.internalMapBuild();
         arguments = this.internalGetArgMap();
