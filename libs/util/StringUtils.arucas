@@ -76,3 +76,108 @@ class StringBuilder {
         return this.string;
     }
 }
+fun repeatStr(string, count) {
+    retVal = '';
+    while (count > 0) {
+        retVal = retVal+ string;
+        count--;
+    }
+    return retVal;
+}
+class StringUtil{
+    /**
+    * StringUtil that shows nested Maps and Lists contents
+    */
+    static fun showMap(map) {
+        if (FormatUtil.checkArgs(map)) {
+            return "" + map;
+        }
+        retVal = '{';
+        foreach ( keys : map.getKeys()) {
+            if (map.get(keys).instanceOf(Map.type)) {
+                retVal = retVal + '\n' + '"'+ keys + '"'+ " : " + FormatUtil.showMap(map.get(keys), 1) + ",";
+            }
+            else if (map.get(keys).instanceOf(List.type)) {
+                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + FormatUtil.showList(map.get(keys),1) + ",";
+            }
+            else {
+                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + map.get(keys) + ",";
+            }
+        }
+        return retVal + '\n}';
+    }
+    static fun showMap(map, indent) {
+        if (FormatUtil.checkArgs(map)) {
+            return "" + map;
+        }
+        retVal = '{';
+        foreach ( keys : map.getKeys()) {
+            if (map.get(keys).instanceOf(Map.type)) {
+                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"'+ keys + '"'+ " : " + FormatUtil.showMap(map.get(keys), indent+1) + ",";
+            }
+            else if (map.get(keys).instanceOf(List.type)) {
+                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + FormatUtil.showList(map.get(keys), indent+1) + ",";
+            }
+            else {
+                retVal = retVal +  '\n'+ repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + map.get(keys) + ",";
+            }
+        }
+        return retVal +'\n'+ repeatStr('    ' , indent) + '}';
+    }
+    static fun showList(list) {
+        if (FormatUtil.checkArgs(list)) {
+            return "" + list;
+        }
+        retVal = '[';
+        foreach ( items : list) {
+            if (items.instanceof(Map.type)) {
+                retVal = retVal + '\n' + FormatUtil.showMap(items) + ",";
+            }
+            else if (items.instanceof(List.type)) {
+                retVal = retVal + '\n' + FormatUtil.showList(items) + ",";
+            }
+            else {
+                retVal = retVal + '\n' + items + ",";
+            }
+        }
+        return retVal + '\n]';
+    }
+    static fun showList(list, indent) {
+        if (FormatUtil.checkArgs(list)) {
+            return "" + list;
+        }
+        retVal = repeatStr('    ' , indent) + '[';
+        foreach ( items : list) {
+            if (items.instanceof(Map.type)) {
+                retVal = retVal + '\n' + repeatStr('    ' , indent+1) +FormatUtil.showMap(items) + ",";
+            }
+            else if (items.instanceof(List.type)) {
+                retVal = retVal + '\n' + repeatStr('    ' , indent+1) + FormatUtil.showList(items) + ",";
+            }
+            else {
+                retVal = retVal + '\n' + repeatStr('    ' , indent+1) + items + ",";
+            }
+        }
+        return retVal +'\n'+ repeatStr('    ' , indent) + ']';
+    }
+    static fun checkArgs(iterable) {
+        if (iterable.instanceOf(Map.type)) {
+            foreach (item : iterable.getValues()) {
+                if (item.instanceOf(Map.type) || item.instanceOf(List.type)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (iterable.instanceOf(List.type)) {
+            foreach (item : iterable) {
+                type = Type.of(item).getName();
+                if (item.instanceOf(Map.type) || item.instanceOf(List.type)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return true;
+    }
+}
