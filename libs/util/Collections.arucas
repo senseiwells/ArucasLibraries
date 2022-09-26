@@ -233,49 +233,61 @@ class LinkedQueue {
 
 class DefaultedMap : Map {
     var defaultValue = null;
-    DefaultedMap(items) : super() {
-        foreach (item : items){
-            this.put(item, this.defaultValue);
-        }
+
+    DefaultedMap() : super() {}
+
+    DefaultedMap(defaultValue) : super() {
+        this.defaultValue = defaultValue;
     }
+
     DefaultedMap(items, defaultValue) : super() {
         this.defaultValue = defaultValue;
-        foreach (item : items){
+        foreach (item : items) {
             this.put(item, this.defaultValue);
         }
     }
-    fun addAll(values){
-        if (values.instanceOf(Map.type)){
-            super.addAll(values);
-        }
-        else if (values.instanceOf(Collection.type)){
-            foreach (item : values){
+
+    static fun createFrom(iterable : Iterable, defaultValue) {
+        map = new DefaultedMap(defaultValue);
+        map.addAll(iterable);
+        return map;
+    }
+
+    fun addAll(values) {
+        if (values.instanceOf(Iterable.type)) {
+            foreach (item : values) {
                 this.put(item, this.defaultValue);
             }
         }
         else {
-            super.putAll(new DefaultedMap(values, this.defaultValue));
+            throw new Error("Type of values was not Iterable");
         }
     }
-    fun addAll(values, specificValue){
-        if (values.instanceOf(Map.type)){
-            super.addAll(values);
-        }
-        else if (values.instanceOf(Collection.type)){
-            foreach (item : values){
+    fun addAll(values, specificValue) {
+        if (values.instanceOf(Iterable.type)) {
+            foreach (item : values) {
                 this.put(item, specificValue);
             }
         }
         else {
-            super.putAll(new DefaultedMap(values, specificValue));
+            throw new Error("Type of values was not Iterable");
         }
     }
-    fun put(key){
+    fun put(key) {
         return this.put(key, this.defaultValue);
     }
-    fun poll(){
+
+    fun poll() {
         if (!this.isEmpty())
             return this.getKeys().get(0);
+        return null;
+    }
+
+    fun get(ptr) {
+        value = super.get(ptr);
+        if (value == null) {
+            return this.defaultValue
+        }
     }
 }
 
