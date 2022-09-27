@@ -147,7 +147,10 @@ class LinearCommand{
         checkArguments(arguments);
         this.argSet = arguments.copy();
         this.innerDebug = '';
-        this.waitingQueue = Deque.fromIterable(arguments);
+        this.waitingQueue = new Deque();
+        foreach (values : arguments){
+            this.waitingQueue.enqueue(values);
+        }
         this.lambda = lambda;
         this.recursionCount = 0;
     }
