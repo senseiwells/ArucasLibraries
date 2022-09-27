@@ -3,150 +3,146 @@ import * from minecraft.MinecraftUtils;
 import * from util.Collections;
 class InventoryUtil {
     static var TOOLS = ['axe', 'shovel', 'pickaxe', 'hoe'];
-    var player;
-    var debug = false;
-    var selectedSlot = null;
-    var preserveDurability = false;
-    var pointer = 0;
-    var hotbarSlotCache = {};
+    static var debug = false;
+    static var selectedSlot = null;
+    static var preserveDurability = false;
+    static var pointer = 0;
+    static var hotbarSlotCache = {};
     //class InventoryUtil does not offer static method, instead, it offers player-related options based on binded player entity
     //Please never use setSeletedSlot outside! or, use sync() to refresh selected slot!
     //This class is stable against server sync, will not suffer against server packets.
-    InventoryUtil(player){
-        this.player = player;
-    }
-    fun sync(){
+    static fun sync() {
         __docstr__ = 'Syncs selected slot and remove cached slot information';
-        this.selectedSlot = this.player.getCurrentSlot();
-        this.hotbarSlotCache = {};
+        InventoryUtil.selectedSlot = Player.get().getCurrentSlot();
+        InventoryUtil.hotbarSlotCache = {};
     }
-    fun optionalSelectedSlot(){
+    static fun optionalSelectedSlot() {
         __docstr__ = 'Get cached selected slot, or sync and get selected slot.';
-        if (this.selectedSlot == null){
-            this.selectedSlot = this.player.getCurrentSlot();
+        if (InventoryUtil.selectedSlot == null) {
+            InventoryUtil.selectedSlot = Player.get().getCurrentSlot();
         }
-        return this.selectedSlot;
+        return InventoryUtil.selectedSlot;
     }
-    fun isInHotbar(itemString){
+    static fun isInHotbar(itemString) {
         __docstr__ = 'Returns if item was in hotbar.';
-        foreach(i : range(9)){
-            if(this.player.getItemForSlot(i + 36).getId().contains(itemString)){
+        foreach(i : range(9)) {
+            if(Player.get().getItemForSlot(i + 36).getId().contains(itemString)) {
                 return i;
             }
         }
         return null;
     }
-    fun cacheItem(slotNum, itemName, itemCount){
+    static fun cacheItem(slotNum, itemName, itemCount) {
         __docstr__ = 'caches item';
-        this.hotbarSlotCache.put(slotNum, {'id' : itemName, 'Count' : 1});
+        InventoryUtil.hotbarSlotCache.put(slotNum, {'id' : itemName, 'Count' : 1});
     }
-    fun getCachedSlot(itemArgs...){
+    static fun getCachedSlot(itemArgs...) {
         __docstr__ = 'Get cached slot or allocate new slot.';
         itemCount = -1;
         itemString = itemArgs.get(0);
-        if (len(itemArgs) > 1){
+        if (len(itemArgs) > 1) {
             itemCount = itemArgs.get(1);
         }
-        foreach (i : this.hotbarSlotCache.getKeys()){
-            if (this.hotbarSlotCache.get(i).get('id') == itemString){
-                if (itemCount > -1){
-                    this.hotbarSlotCache.get(i).put('Count', itemCount);
+        foreach (i : InventoryUtil.hotbarSlotCache.getKeys()) {
+            if (InventoryUtil.hotbarSlotCache.get(i).get('id') == itemString) {
+                if (itemCount > -1) {
+                    InventoryUtil.hotbarSlotCache.get(i).put('Count', itemCount);
                 }
                 return i;
             }
         }
-        ptr = this.updatePointer();
-        this.hotbarSlotCache.put(ptr, {'id' : itemString, 'Count' : itemCount});
+        ptr = InventoryUtil.updatePointer();
+        InventoryUtil.hotbarSlotCache.put(ptr, {'id' : itemString, 'Count' : itemCount});
         return ptr;
     }
-    fun isCachedItem(itemString){
+    static fun isCachedItem(itemString) {
         __docstr__ = 'Returns if item was in selected slot.';
-        selectedSlot = this.optionalSelectedSlot();
-        if (this.hotbarSlotCache.get(selectedSlot) != null && this.hotbarSlotCache.get(selectedSlot).get('id') == itemString ){
+        selectedSlot = InventoryUtil.optionalSelectedSlot();
+        if (InventoryUtil.hotbarSlotCache.get(selectedSlot) != null && InventoryUtil.hotbarSlotCache.get(selectedSlot).get('id') == itemString ) {
             return true;
         }
         return false;
     }
-    fun updatePointer(){
-        if (this.hotbarSlotCache.get(this.pointer) == null){
-            return this.pointer;
+    static fun updatePointer() {
+        if (InventoryUtil.hotbarSlotCache.get(InventoryUtil.pointer) == null) {
+            return InventoryUtil.pointer;
         }
-        if (this.pointer == 8){
-            this.pointer = 0;
+        if (InventoryUtil.pointer == 8) {
+            InventoryUtil.pointer = 0;
             return 0;
         }
-        this.pointer++;
-        return this.pointer;
+        InventoryUtil.pointer++;
+        return InventoryUtil.pointer;
     }
-    fun sendDebugMessage(string){
-        if (this.debug){
-            this.player.message(string);
+    static fun sendDebugMessage(string) {
+        if (InventoryUtil.debug) {
+            Player.get().message(string);
         }
     }
-    fun swapToItem(itemString){
-        if (this.isCachedItem(itemString)){
-            this.sendDebugMessage("Already had item " + itemString +" in current slot " + this.optionalSelectedSlot());
+    static fun swapToItem(itemString) {
+        if (InventoryUtil.isCachedItem(itemString)) {
+            InventoryUtil.sendDebugMessage("Already had item " + itemString +" in current slot " + InventoryUtil.optionalSelectedSlot());
             return true;
         }
         if (itemString == "air") {
-            this.swapToTool("pickaxe");
+            InventoryUtil.swapToTool("pickaxe");
             return true;
         }
-        foreach(i : range(9)){
-            if(this.player.getItemForSlot(i + 36).getId() == itemString){
-                this.setSelectedSlot(i);
-                this.sendDebugMessage("Changed to hotbar slot " + i + " for "+ itemString);
+        foreach(i : range(9)) {
+            if(Player.get().getItemForSlot(i + 36).getId() == itemString) {
+                InventoryUtil.setSelectedSlot(i);
+                InventoryUtil.sendDebugMessage("Changed to hotbar slot " + i + " for "+ itemString);
                 return true;
             }
         }
-        slot = this.player.getSlotFor(Material.of(itemString));
+        slot = Player.get().getSlotFor(Material.of(itemString));
         retVal = false;
         if (slot == null) {
-            if (this.player.getGamemode() == 'creative'){
-                this.sendDebugMessage("Clicked creative slot");
-                this.player.clickCreativeStack(ItemStack.of(Material.of(itemString)), 36 + this.optionalSelectedSlot());
-                this.setSelectedSlot(this.optionalSelectedSlot());
-                this.cacheItem(slot - 36, itemString);
+            if (Player.get().getGamemode() == 'creative') {
+                InventoryUtil.sendDebugMessage("Clicked creative slot");
+                Player.get().clickCreativeStack(ItemStack.of(Material.of(itemString)), 36 + InventoryUtil.optionalSelectedSlot());
+                InventoryUtil.setSelectedSlot(InventoryUtil.optionalSelectedSlot());
+                InventoryUtil.cacheItem(slot - 36, itemString);
                 return true;
             }
         }
         if (slot != null) {
             if (0 <= slot-36 && slot-36  <= 8) {
-                this.setSelectedSlot(slot-36);
-                this.sendDebugMessage("Changed to hotbar slot " + (slot - 36) + " for "+ itemString);
-                this.cacheItem(slot - 36, itemString);
+                InventoryUtil.setSelectedSlot(slot-36);
+                InventoryUtil.sendDebugMessage("Changed to hotbar slot " + (slot - 36) + " for "+ itemString);
+                InventoryUtil.cacheItem(slot - 36, itemString);
                 return true;
             }
             else {
-                this.player.clickSlot(slot, this.getCachedSlot(itemString), 'swap');
-                this.setSelectedSlot(this.getCachedSlot(itemString));
-                this.sendDebugMessage("Swapped with slot " + slot + " and "+ this.getCachedSlot(itemString) + " for "+ itemString);
+                Player.get().clickSlot(slot, InventoryUtil.getCachedSlot(itemString), 'swap');
+                InventoryUtil.setSelectedSlot(InventoryUtil.getCachedSlot(itemString));
+                InventoryUtil.sendDebugMessage("Swapped with slot " + slot + " and "+ InventoryUtil.getCachedSlot(itemString) + " for "+ itemString);
                 return true;
             }
         }
         return null;
     }
-    fun setSelectedSlot(slotNum){
-        if (slotNum < 0 || slotNum > 9){
+    static fun setSelectedSlot(slotNum) {
+        if (slotNum < 0 || slotNum > 9) {
             throw new Error('Selected slot number should be between 0 and 8');
         }
-        this.selectedSlot = slotNum;
-        this.player.setSelectedSlot(slotNum);
+        InventoryUtil.selectedSlot = slotNum;
+        Player.get().setSelectedSlot(slotNum);
     }
-    fun checkItem(itemString){
+    static fun checkItem(itemString) {
         __docstr__ = 'Checks if player has item or can take item';
-        if (this.player.getGamemode() == 'creative'){
+        if (Player.get().getGamemode() == 'creative') {
             return true;
         }
-        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString){
+        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString) {
             return true;
         }
-        foreach(i : range(9)){
-            if(this.player.getItemForSlot(i + 36).getId() == itemString){
+        foreach(i : range(9)) {
+            if(Player.get().getItemForSlot(i + 36).getId() == itemString) {
                 return true;
             }
         }
-        slot = this.player.getSlotFor(Material.of(itemString));
+        slot = Player.get().getSlotFor(Material.of(itemString));
         retVal = false;
         if (slot == null) {
             return false;
@@ -161,126 +157,126 @@ class InventoryUtil {
         }
     }
     // Swaps to pickaxe.
-    fun swapToPickaxe(){
-        return this.swapToTool('pickaxe');
+    static fun swapToPickaxe() {
+        return InventoryUtil.swapToTool('pickaxe');
     }
     //toolSwitch
-    fun toolSwitch(block : Block){
+    static fun toolSwitch(block : Block) {
         speeds = {};
-        foreach (itemName : InventoryUtils.TOOLS){
-            speeds.put(this.player.getBlockBreakingSpeed(ItemStack.of(Material.of('netherite_' + itemName)), block), itemName);
+        foreach (itemName : InventoryUtils.TOOLS) {
+            speeds.put(Player.get().getBlockBreakingSpeed(ItemStack.of(Material.of('netherite_' + itemName)), block), itemName);
         }
         value = speeds.getKeys().sort()[len(speeds.getKeys())-1];
-        if (value < 1){
+        if (value < 1) {
             return false;
         }
-        return this.swapToTool(speeds.get(value));
+        return InventoryUtil.swapToTool(speeds.get(value));
     }
-    fun _preserveTools(slotNum){
-        //intended for private access as carpet-stype functions
-        if (this.preserveDurability){
-            stack = this.player.getItemForSlot(slotNum);
+    static fun _preserveTools(slotNum) {
+        //intended for private access as carpet-stype static functions
+        if (InventoryUtil.preserveDurability) {
+            stack = Player.get().getItemForSlot(slotNum);
             dur = stack.getDurability();
-            if (dur == 0 || stack.getNbt().get('Damage') == null){
+            if (dur == 0 || stack.getNbt().get('Damage') == null) {
                 return false;
             }
             return stack.getNbt().get('Damage') + 7 >= dur;
         }
         return false;
     }
-    fun removeFromHotbar(hotbarNum){
-        foreach (i : range(9, 36)){
-            if (this.player.isPlayerSlot(i)){
-                if (this._preserveTools(i)){
+    static fun removeFromHotbar(hotbarNum) {
+        foreach (i : range(9, 36)) {
+            if (Player.get().isPlayerSlot(i)) {
+                if (InventoryUtil._preserveTools(i)) {
                     continue;
                 }
-                this.player.clickSlot(i, hotbarNum, 'swap');
+                Player.get().clickSlot(i, hotbarNum, 'swap');
                 return true;
             }
         }
         return false;
     }
-    fun swapToTool(itemName){
-        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains(itemName)){
-            if (this._preserveTools(this.optionalSelectedSlot() + 36)){
-                this.removeFromHotbar(this.optionalSelectedSlot());
+    static fun swapToTool(itemName) {
+        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains(itemName)) {
+            if (InventoryUtil._preserveTools(InventoryUtil.optionalSelectedSlot() + 36)) {
+                InventoryUtil.removeFromHotbar(InventoryUtil.optionalSelectedSlot());
             }
             else {
-                this.sendDebugMessage("Already had "+itemName+" in current slot");
+                InventoryUtil.sendDebugMessage("Already had "+itemName+" in current slot");
                 return true;
             }
         }
         slot = null;
         materials = null;
-         switch (itemName){
+         switch (itemName) {
             case 'shovel' -> materials = MaterialUtils.getShovels();
             case 'pickaxe' -> materials =MaterialUtils.getPickaxes();
             case 'axe' -> materials =MaterialUtils.getAxes();
             case 'hoe' -> materials =MaterialUtils.getHoes();
         }
-        foreach (items : materials){
-            foreach(i : range(9)){
-                if(this.player.getItemForSlot(i + 36).getMaterial() == items && !this._preserveTools(i)){
-                    this.setSelectedSlot(i);
-                    this.sendDebugMessage("Changed to slot " + i + " for "+ itemName);
+        foreach (items : materials) {
+            foreach(i : range(9)) {
+                if(Player.get().getItemForSlot(i + 36).getMaterial() == items && !InventoryUtil._preserveTools(i)) {
+                    InventoryUtil.setSelectedSlot(i);
+                    InventoryUtil.sendDebugMessage("Changed to slot " + i + " for "+ itemName);
                     return true;
                 }
             }
         }
         found = null;
-        foreach (items : materials){
-            slots = this.player.getAllSlotsFor(ItemStack.of(items));
-            foreach (slot : slots){
-                if (slot != null &&!this._preserveTools(slot)){
+        foreach (items : materials) {
+            slots = Player.get().getAllSlotsFor(ItemStack.of(items));
+            foreach (slot : slots) {
+                if (slot != null &&!InventoryUtil._preserveTools(slot)) {
                     found = slot;
                     break;
                 }
             }
-            if (found != null){
+            if (found != null) {
                 break;
             }
         }
         slot = found;
         if (slot != null) {
             if (0 <= slot-36 && slot-36  <= 8) {
-                this.sendDebugMessage("Selected slot "+ (slot - 36) + " for "+ itemName);
-                this.setSelectedSlot(slot-36);
+                InventoryUtil.sendDebugMessage("Selected slot "+ (slot - 36) + " for "+ itemName);
+                InventoryUtil.setSelectedSlot(slot-36);
                 return true;
             }
             else {
-                this.player.clickSlot(slot, this.getCachedSlot(itemName), 'swap');
-                this.setSelectedSlot(this.getCachedSlot(itemName));
-                //preslot = this.player.getSwappableHotbarSlot();
-                this.sendDebugMessage("Swapped with slot "+ slot+ " and "+ this.getCachedSlot(itemName) + " for "+ itemName);
-                //this.player.swapPlayerSlotWithHotbar(slot);
-                //this.setSelectedSlot(preslot);
+                Player.get().clickSlot(slot, InventoryUtil.getCachedSlot(itemName), 'swap');
+                InventoryUtil.setSelectedSlot(InventoryUtil.getCachedSlot(itemName));
+                //preslot = Player.get().getSwappableHotbarSlot();
+                InventoryUtil.sendDebugMessage("Swapped with slot "+ slot+ " and "+ InventoryUtil.getCachedSlot(itemName) + " for "+ itemName);
+                //Player.get().swapPlayerSlotWithHotbar(slot);
+                //InventoryUtil.setSelectedSlot(preslot);
                 return true;
             }
         }
         if (slot == null) {
-            if (this.player.getGamemode() == 'creative'){
-                preslot = this.player.getSwappableHotbarSlot();
+            if (Player.get().getGamemode() == 'creative') {
+                preslot = Player.get().getSwappableHotbarSlot();
                 //deprecated
-                this.player.clickCreativeStack(ItemStack.of(Material.of("netherite_" + itemName)), 36 + preslot);
-                this.setSelectedSlot(preslot);
+                Player.get().clickCreativeStack(ItemStack.of(Material.of("netherite_" + itemName)), 36 + preslot);
+                InventoryUtil.setSelectedSlot(preslot);
                 return true;
             }
         }
         return false;
     }
 
-    fun checkPickaxe(){
+    static fun checkPickaxe() {
         __docstr__ = 'Checks if player has item or can take item';
-        if(this.player.getGamemode() == 'creative'){
+        if(Player.get().getGamemode() == 'creative') {
             return true;
         }
-        if (this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains("pickaxe")){
+        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains("pickaxe")) {
             return true;
         }
         slot = null;
-        foreach (picks : MaterialUtils.getPickaxes()){
-            slot = this.player.getSlotFor(picks);
-            if (slot != null){
+        foreach (picks : MaterialUtils.getPickaxes()) {
+            slot = Player.get().getSlotFor(picks);
+            if (slot != null) {
                 break;
             }
         }
@@ -290,19 +286,19 @@ class InventoryUtil {
         print('Pickaxe Item was not found');
         return false;
     }
-    fun assertItem(itemString){
+    static fun assertItem(itemString) {
         __docstr__ = 'Throws assertion error when item swap fails';
-        this.swapToItem(itemString);
-        if (!this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId() == itemString){
+        InventoryUtil.swapToItem(itemString);
+        if (!Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString) {
             throw new Error("Assertion failed : player is not holding pickaxe!");
         }
         return true;
     }
 
-    fun assertTool(){
+    static fun assertTool() {
         __docstr__ = 'Tries swapping to pickaxe, throws assertion error when it fails';
-        this.swapToPickaxe();
-        if (!this.player.getItemForSlot(this.optionalSelectedSlot() + 36).getId().contains('pickaxe')){
+        InventoryUtil.swapToPickaxe();
+        if (!Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains('pickaxe')) {
             throw new Error("Assertion failed : player is not holding pickaxe!");
         }
         return true;
