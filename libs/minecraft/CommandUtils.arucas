@@ -147,7 +147,7 @@ class LinearCommand{
         checkArguments(arguments);
         this.argSet = arguments.copy();
         this.innerDebug = '';
-        this.waitingQueue = new Deque(arguments);
+        this.waitingQueue = Deque.fromIterable(arguments);
         this.lambda = lambda;
         this.recursionCount = 0;
     }
@@ -186,10 +186,10 @@ class LinearCommand{
         }
     }
     fun build(){
-        current = this.waitingQueue.pop();
-        if (current == null){
+        if (this.waitingQueue.isEmpty()){
             return this.innerScope;
         }
+        current = this.waitingQueue.pop();
         //we got something as List anyway.
         tempCommand = '';
         if (len(current) == 1){
@@ -219,10 +219,10 @@ class LinearCommand{
         return new LinearCommand(this.waitingQueue, null, newInnerScope, this.recursionCount + 1).build();
     }
     fun debugBuild(){
-        current = this.waitingQueue.pop();
-        if (current == null){
+        if (this.waitingQueue.isEmpty()){
             return this.innerDebug;
         }
+        current = this.waitingQueue.pop();
         //we got something as List anyway.
         tempCommand = '';
         if (len(current) == 1){
@@ -252,8 +252,7 @@ class LinearCommand{
         return (new LinearCommand(this.waitingQueue, null, null, this.recursionCount + 1, newInnerDebug)).debugBuild();
     }
     fun internalMapBuild(){
-        current = this.waitingQueue.dequeue(); //this time we parse sequentially
-        if (current == null){ //its end of loop
+        if (this.waitingQueue.isEmpty()){ //its end of loop
             if (this.lambda == null){
                 throw new Error("Command does not execute anything");
             }
@@ -263,6 +262,7 @@ class LinearCommand{
             }
             return retVal;
         }
+        current = this.waitingQueue.dequeue(); //this time we parse sequentially
         tempArg = '';
         if (len(current) == 1){
             //literal
@@ -347,6 +347,9 @@ class LinearCommand{
         return false;
     }
     fun processMapCommand(){
+        if (this.waitingQueue.isEmpty()){
+            throw new Error("Cannot construct map based command from empty arguments");
+        }
         name = this.waitingQueue.dequeue().get(0);
         if(!name.instanceOf(String.type)){
             throw new Error("Expected name : <String>  in map, but given name : " + name);
@@ -368,6 +371,9 @@ class LinearCommand{
         );
     }
     fun getMap(){
+        if (this.waitingQueue.isEmpty()){
+            throw new Error("Cannot construct map based command from empty arguments");
+        }
         name = this.waitingQueue.dequeue().get(0);
         if(!name.instanceOf(String.type)){
             throw new Error("Expected name : <String>  in map, but given name : " + name);
