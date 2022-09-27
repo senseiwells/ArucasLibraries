@@ -440,6 +440,8 @@ class Deque: Collection, Stack, Queue {
  * List that cannot be modified.
  */
 class ImmutableList: List {
+    static var EMPTY = ImmutableList.of();
+
     ImmutableList(values: Iterable): super() {
         foreach (value : values) {
             super.append(value);
@@ -480,8 +482,69 @@ class ImmutableList: List {
         return [].addAll(this);
     }
 
-    static fun of(values...) {
+    operator [] (index, value) {
+        return this.set(value, index);
+    }
+
+    static fun of(values...): ImmutableList {
         return new ImmutableList(values);
     }
 }
 
+class ImmutableSet: Set {
+    static var EMPTY = ImmutableSet.of();
+
+    ImmutableSet(values: Iterable): super() {
+        foreach (value : values) {
+            super.add(value);
+        }
+    }
+
+    fun add(value: Object) unsupported("Cannot add to an immutable set");
+
+    fun addAll(collection: Collection) unsupported("Cannot add to an immutable set");
+
+    fun remove(value: Object) unsupported("Cannot remove from an immutable set");
+
+    fun removeAll(collection: Collection) unsupported("Cannot remove from an immutable set");
+
+    fun clear() unsupported("Cannot clear an immutable set");
+
+    static fun of(values...): ImmutableSet {
+        return new ImmutableSet(values);
+    }
+}
+
+class ImmutableMap: Map {
+    static var EMPTY = ImmutableMap.of();
+
+    ImmutableMap(map: Map): super() {
+        super.putAll(map);
+    }
+
+    fun clear() unsupported("Cannot clear an immutable map");
+
+    fun put(key, value) unsupported("Cannot put into an immutable map");
+
+    fun putAll(map) unsupported("Cannot put into an immutable map");
+
+    fun putIfAbsent(key, value) unsupported("Cannot put into an immutable map");
+
+    fun remove(key) unsupported("Cannot remove from an immutable map");
+
+    operator [] (index, value) {
+        return this.put(index, value);
+    }
+
+    static fun of(args...): ImmutableMap {
+        size = len(args);
+        if (Math.mod(size, 2) != 0) {
+            throw new Error("Expected even amount of arguments; (key, value) pairs");
+        }
+        map = {};
+        for (local i = 0; i < size; i++) {
+            map[args[i]] = args[i++];
+        }
+        return new ImmutableMap(map);
+    }
+}
