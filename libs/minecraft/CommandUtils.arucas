@@ -1,7 +1,7 @@
 //Check Argument has Unique names, prevent client crash
-import FormatUtil from util.FormatUtils;
+import StringUtil from util.StringUtils;
 import * from Minecraft;
-import LinkedStack from util.Collections;
+import Deque from util.Collections;
 client = MinecraftClient.getClient();
 //functions for argParse
 fun checkArguments(iterable){
@@ -19,34 +19,6 @@ fun checkArguments(iterable){
 //LinearCommand([ArgList], lambda).build() to get 'built' one, .debugBuild() to get 'string' format, .process() to process and register command.
 //new LinearCommand([['eDemiBolt'], ['x', 'Integer'],['y', 'Integer'],['z', 'Integer'], ['direction', 'Enum', Direction.type]], demiBoltTask).process();
 
-class Deque {
-    var asList;
-    Deque(fromList){
-        this.asList = [];
-        this.asList.addAll(fromList.copy());
-    }
-    fun popLast(){
-        pointer = len(this.asList);
-        if(pointer == 0){
-            return null;
-        }
-        val = this.asList.get(pointer - 1);
-        this.asList.remove(pointer - 1);
-        return val;
-    }
-    fun pop(){
-        pointer = 0;
-        if(pointer == len(this.asList)){
-            return null;
-        }
-        val = this.asList.get(pointer);
-        this.asList.remove(pointer);
-        return val;
-    }
-    fun hasItems(){
-        return !this.asList.isEmpty();
-    }
-}
 fun tryPredicateAndMerge(iterable, predicate, modifyFunction){
     retVal = [];
     foreach ( i : iterable){
@@ -214,7 +186,7 @@ class LinearCommand{
         }
     }
     fun build(){
-        current = this.waitingQueue.popLast();
+        current = this.waitingQueue.pop();
         if (current == null){
             return this.innerScope;
         }
@@ -247,7 +219,7 @@ class LinearCommand{
         return new LinearCommand(this.waitingQueue, null, newInnerScope, this.recursionCount + 1).build();
     }
     fun debugBuild(){
-        current = this.waitingQueue.popLast();
+        current = this.waitingQueue.pop();
         if (current == null){
             return this.innerDebug;
         }
@@ -280,7 +252,7 @@ class LinearCommand{
         return (new LinearCommand(this.waitingQueue, null, null, this.recursionCount + 1, newInnerDebug)).debugBuild();
     }
     fun internalMapBuild(){
-        current = this.waitingQueue.pop(); //this time we parse sequentially
+        current = this.waitingQueue.dequeue(); //this time we parse sequentially
         if (current == null){ //its end of loop
             if (this.lambda == null){
                 throw new Error("Command does not execute anything");
@@ -306,7 +278,7 @@ class LinearCommand{
         if(innerBuilt.isEmpty()){
             throw new Error("Return value of was empty");
         }
-        str = FormatUtil.showMap(innerBuilt);
+        str = StringUtil.showMap(innerBuilt);
         //try alternative
         retVal = {};
         retVal.put(tempArg, innerBuilt);
@@ -375,7 +347,7 @@ class LinearCommand{
         return false;
     }
     fun processMapCommand(){
-        name = this.waitingQueue.pop().get(0);
+        name = this.waitingQueue.dequeue().get(0);
         if(!name.instanceOf(String.type)){
             throw new Error("Expected name : <String>  in map, but given name : " + name);
         }
@@ -396,7 +368,7 @@ class LinearCommand{
         );
     }
     fun getMap(){
-        name = this.waitingQueue.pop().get(0);
+        name = this.waitingQueue.dequeue().get(0);
         if(!name.instanceOf(String.type)){
             throw new Error("Expected name : <String>  in map, but given name : " + name);
         }
