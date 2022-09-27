@@ -179,4 +179,17 @@ enum Direction {
     static fun getHorizontalDirections(){
         return [Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH];
     }
+
+    static fun getVerticalDirections(){
+        return [Direction.UP, Direction.DOWN];
+    }
+
+    static fun getDirectionsFromAxis(string){
+            switch(string.lowercase()) {
+                case "x" -> return [Direction.EAST, Direction.WEST];
+                case "y" -> return [Direction.UP, Direction.DOWN];
+                case "z" -> return [Direction.SOUTH, Direction.NORTH];
+            }
+            return [Direction.NONE];
+    }
 }
