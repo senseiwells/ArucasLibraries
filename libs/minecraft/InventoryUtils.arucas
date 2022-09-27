@@ -129,33 +129,7 @@ class InventoryUtil {
         InventoryUtil.selectedSlot = slotNum;
         Player.get().setSelectedSlot(slotNum);
     }
-    static fun checkItem(itemString) {
-        __docstr__ = 'Checks if player has item or can take item';
-        if (Player.get().getGamemode() == 'creative') {
-            return true;
-        }
-        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString) {
-            return true;
-        }
-        foreach(i : range(9)) {
-            if(Player.get().getItemForSlot(i + 36).getId() == itemString) {
-                return true;
-            }
-        }
-        slot = Player.get().getSlotFor(Material.of(itemString));
-        retVal = false;
-        if (slot == null) {
-            return false;
-        }
-        else {
-            if (0 <= slot-36 && slot-36  <= 8) {
-                return true;
-            }
-            else {
-                return true;
-            }
-        }
-    }
+
     // Swaps to pickaxe.
     static fun swapToPickaxe() {
         return InventoryUtil.swapToTool('pickaxe');
@@ -265,41 +239,69 @@ class InventoryUtil {
         return false;
     }
 
-    static fun checkPickaxe() {
+    static fun checkItem(itemString) {
         __docstr__ = 'Checks if player has item or can take item';
+        if (Player.get().getGamemode() == 'creative') {
+            return true;
+        }
+        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString) {
+            return true;
+        }
+        foreach(i : range(9)) {
+            if(Player.get().getItemForSlot(i + 36).getId() == itemString) {
+                return true;
+            }
+        }
+        slot = Player.get().getSlotFor(Material.of(itemString));
+        return slot != null;
+    }
+
+    static fun checkTool(toolName) {
+        __docstr__ = 'Checks if player has item or can take item';
+        toolName = 'pickaxe';
+        if (len(args) > 0){
+            toolName = args.get(0);
+        }
         if(Player.get().getGamemode() == 'creative') {
             return true;
         }
-        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains("pickaxe")) {
+        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains(toolName)) {
             return true;
         }
+         switch (itemName) {
+            case 'shovel' -> materials = MaterialUtils.getShovels();
+            case 'pickaxe' -> materials =MaterialUtils.getPickaxes();
+            case 'axe' -> materials =MaterialUtils.getAxes();
+            case 'hoe' -> materials =MaterialUtils.getHoes();
+        }
         slot = null;
-        foreach (picks : MaterialUtils.getPickaxes()) {
-            slot = Player.get().getSlotFor(picks);
+        foreach (mats : materials) {
+            slot = Player.get().getSlotFor(mats);
             if (slot != null) {
                 break;
             }
         }
-        if (slot != null) {
-            return true;
-        }
-        print('Pickaxe Item was not found');
-        return false;
+        return slot != null;
     }
+
     static fun assertItem(itemString) {
         __docstr__ = 'Throws assertion error when item swap fails';
         InventoryUtil.swapToItem(itemString);
-        if (!Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString) {
+        if (Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() != itemString) {
             throw new Error("Assertion failed : player is not holding pickaxe!");
         }
         return true;
     }
 
-    static fun assertTool() {
-        __docstr__ = 'Tries swapping to pickaxe, throws assertion error when it fails';
-        InventoryUtil.swapToPickaxe();
-        if (!Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains('pickaxe')) {
-            throw new Error("Assertion failed : player is not holding pickaxe!");
+    static fun assertTool(args...) {
+        __docstr__ = 'Tries swapping to tool, throws assertion error when it fails';
+        toolName = 'pickaxe';
+        if (len(args) > 0){
+            toolName = args.get(0);
+        }
+        InventoryUtil.swapToTool(toolName);
+        if (!Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId().contains(toolName)) {
+            throw new Error("Assertion failed : player is not holding "+ toolName + "!");
         }
         return true;
     }
