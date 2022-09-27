@@ -88,33 +88,45 @@ class Box{
         ex = 0;
         ey = 0;
         ez = 0;
-        foreach (xloc : [0,1]){
-            foreach (yloc : [0,1]){
-                foreach (zloc : [0,1]){
-                    if (xloc == 0){
+        foreach (lambdaSetXlocs :
+            [
+                fun(){
                         sx = this.pos1.getX();
                         ex = midpoint.getX();
-                    }
-                    else {
+                }
+            ,
+                fun(){
                         sx = midpoint.getX()+1;
                         ex = this.pos2.getX();
-                    }
-                    if (yloc == 0){
+                }
+            ]) {
+            foreach (lambdaSetYlocs :
+                [
+                    fun(){
                         sy = this.pos1.getY();
                         ey = midpoint.getY();
                     }
-                    else {
+                ,
+                    fun(){
                         sy = midpoint.getY()+1;
                         ey = this.pos2.getY();
                     }
-                    if (zloc == 0){
-                        sz = this.pos1.getZ();
-                        ez = midpoint.getZ();
-                    }
-                    else {
-                        sz = midpoint.getZ()+1;
-                        ez = this.pos2.getZ();
-                    }
+                ]) {
+                foreach (lambdaSetZlocs :
+                    [
+                        fun(){
+                            sz = this.pos1.getZ();
+                            ez = midpoint.getZ();
+                        }
+                    ,
+                        fun(){
+                            sz = midpoint.getZ()+1;
+                            ez = this.pos2.getZ();
+                        }
+                    ]) {
+                    lambdaSetXlocs();
+                    lambdaSetYlocs();
+                    lambdaSetZlocs();
                     arr = new DivideArea(sx, sy, sz, ex, ey, ez);
                     ret.append(arr);
                 }
