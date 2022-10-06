@@ -571,22 +571,14 @@ class DefaultedMap: Map {
         return map;
     }
 
-    fun addAll(values) {
-        if (values.instanceOf(Iterable.type)) {
-            foreach (item : values) {
-                this.put(item, this.defaultValue);
-            }
-        } else {
-            throw new Error("Type of values was not Iterable");
+    fun addAll(values : Iterable) {
+        foreach (item : values) {
+            this.put(item, this.defaultValue);
         }
     }
-    fun addAll(values, specificValue) {
-        if (values.instanceOf(Iterable.type)) {
-            foreach (item : values) {
-                this.put(item, specificValue);
-            }
-        } else {
-            throw new Error("Type of values was not Iterable");
+    fun addAll(values : Iterable, specificValue : Object) {
+        foreach (item : values) {
+            this.put(item, specificValue);
         }
     }
     
