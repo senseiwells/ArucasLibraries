@@ -1,0 +1,104 @@
+import AssertionError from util.Errors;
+import ImmutableList from util.Collections;
+
+/**
+ * Miscilaneous methods that don't fit into other categories.
+ */
+class Util {
+    Util() {
+        throw Error();
+    }
+
+    /**
+     * Checks whether two objects are the same object.
+     */
+    static fun referenceEquality(first: Object, second: Object): Boolean {
+        return first.uniqueHash() == second.uniqueHash();
+    }
+}
+
+class Assert {
+    Assert() {
+        throw Error();
+    }
+
+    static fun assert(condition: Boolean) {
+        Assert.assert(condition, "Condition was false");
+    }
+
+    static fun assert(condition: Boolean, message: String) {
+        if (!condition) {
+            throw new AssertionError(message);
+        }
+    }
+
+    static fun assertEquals(first: Object, second: Object): Boolean {
+        Auxilary.assertEquals(first, second, first.toString() + " was not equal to " + second);
+    }
+
+    static fun assertEquals(first: Object, second: Object, message: String) {
+        if (first != second) {
+            throw new AssertionError(message);
+        }
+    }
+
+    static fun assertThrows(type: Type, block: Function) {
+        if (!type.inheritsFrom(Error.type)) {
+            throw new Error(type.toString() + " does not inherit type Error");
+        }
+        try {
+            block();
+        } catch (error) {
+            if (error.instanceOf(type)) {
+                return;
+            }
+            throw new AssertionError("An incorrect error was thrown: " + error);
+        }
+        throw new AssertionError("No error was thrown");
+    }
+}
+
+class VarArgs {
+    var arguments: ImmutableList;
+    var size: Number;
+
+    VarArgs(args: Iterable) {
+        this.arguments = new ImmutableList(args);
+        this.size = this.arguments.size();
+    }
+
+    fun get(index: Number): Object {
+        if (index >= this.size) {
+            throw new Error("Index out of bounds");
+        }
+        return this.arguments.get(i);
+    }
+
+    fun get(index: Number, type: Type): Object {
+        value = this.get(index);
+        if (!value.instanceOf(type)) {
+            throw new Error("Value was of an invalid type");
+        }
+        return value;
+    }
+
+    fun getOrDefault(index: Number, type: Type, defaultValue: Object): Object {
+        value = this.get(index);
+        if (value.instanceOf(type)) {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    fun getOrElse(index: Number, type: Type, supplier: Function): Object {
+        value = this.get(index);
+        if (value.instanceOf(type)) {
+            return value;
+        }
+        return supplier();
+    }
+
+    fun is(index: Number, type: Type): Boolean {
+        return this.get(index).instanceOf(type);
+    }
+}

@@ -60,6 +60,8 @@ interface Stack {
     fun pop();
 
     fun peek();
+
+    fun contains(object);
 }
 
 interface Queue {
@@ -72,6 +74,8 @@ interface Queue {
     fun front();
 
     fun end();
+
+    fun contains(object);
 }
 
 /**
@@ -150,6 +154,15 @@ class LinkedStack: Collection, Stack {
 
     fun iterator(): Iterator {
         return newNodeIterator(this.current);
+    }
+
+    fun contains(object): Boolean {
+        foreach (element : this) {
+            if (element == object) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -285,6 +298,15 @@ class LinkedQueue: Collection, Queue {
         return newNodeIterator(this.head);
     }
 
+    fun contains(object): Boolean {
+        foreach (element : this) {
+            if (element == object) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Converts the queue to a list,
      * with the start of the queue being first
@@ -409,6 +431,10 @@ class Deque: Collection, Stack, Queue {
      */
     fun reverseIterator(): Iterator {
         return this.list.copy().reverse().iterator();
+    }
+
+    fun contains(object): Boolean {
+        return this.list.contains(object);
     }
 
     fun throwIfEmpty(message: String) {
@@ -546,5 +572,58 @@ class ImmutableMap: Map {
             map[args[i]] = args[i++];
         }
         return new ImmutableMap(map);
+    }
+}
+
+class DefaultedMap: Map {
+    var defaultValue = null;
+
+    DefaultedMap(): super();
+
+    DefaultedMap(defaultValue): super() {
+        this.defaultValue = defaultValue;
+    }
+
+    DefaultedMap(items, defaultValue) : super() {
+        this.defaultValue = defaultValue;
+        foreach (item : items) {
+            this.put(item, this.defaultValue);
+        }
+    }
+
+    static fun createFrom(iterable : Iterable, defaultValue) {
+        map = new DefaultedMap(defaultValue);
+        map.addAll(iterable);
+        return map;
+    }
+
+    fun addAll(values : Iterable) {
+        foreach (item : values) {
+            this.put(item, this.defaultValue);
+        }
+    }
+    fun addAll(values : Iterable, specificValue : Object) {
+        foreach (item : values) {
+            this.put(item, specificValue);
+        }
+    }
+    
+    fun put(key) {
+        return this.put(key, this.defaultValue);
+    }
+
+    fun poll() {
+        if (!this.isEmpty()) {
+            return this.getKeys().get(0);
+        }
+        return null;
+    }
+
+    fun get(key) {
+        value = super.get(key);
+        if (value == null) {
+            return this.defaultValue
+        }
+        return value;
     }
 }
