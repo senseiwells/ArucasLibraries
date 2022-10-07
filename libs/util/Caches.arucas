@@ -1,0 +1,75 @@
+import Assert from util.Auxilary;
+import AsymmetricBiMap from util.Collections;
+/*
+*   Class Cache - basic Cache object that removes items sequentially
+*/
+class Cache : Map {
+    var map : Map;
+    var MAX_SIZE : Number = 16;
+    Cache() : super() {
+        this.map = {};
+    }
+    Cache(MAX_SIZE : Number) : super() {
+        Assert.assert(MAX_SIZE > 0);
+        this.map = {};
+        this.MAX_SIZE = MAX_SIZE;
+    }
+    fun put(key, value) {
+        if (!this.containsKey(key)) {
+            super.put(key, value);
+            this.checkMAX_SIZE();
+        }
+        else {
+            super.put(key, value);
+        }
+    }
+    fun checkMAX_SIZE() {
+        if (len(this) <= this.MAX_SIZE) return;
+        keySet = this.getKeys();
+        while (len(this) > this.MAX_SIZE) {
+            this.remove(keySet.get(0));
+            keySet.remove(0);
+        }
+    }
+    fun clear() {
+        this.map.clear();
+        this.clear();
+    }
+}
+/**
+*   LFU(Least Frequently Used) Cache : counts references for objects, clears by count.
+*/
+class LFUCache : Cache {
+    static fun countRef(k, presentValue) {
+        return presentValue + 1;
+    }
+    var references : AsymmetricBiMap;
+    LFUCache() : super() {
+        this.references = AsymmetricBiMap.create();
+    }
+    LFUCache(MAX_SIZE : Number) : super(MAX_SIZE) {
+        this.references = AsymmetricBiMap.create();
+    }
+
+    fun put(key, value) {
+        this.references.computeIfPresent(key, 1, LFUCache.countRef);
+        super.put(key, value);
+    }
+    fun checkMAX_SIZE() {
+        if (len(this) <= this.MAX_SIZE) return;
+        refs = this.references.inverse();
+        keySet = refs.getKeys().sort();
+        while (len(this) > this.MAX_SIZE) {
+            foreach (refKeys : keySet) {
+                foreach (vals : refs.get(refKeys)) {
+                    this.remove(vals);
+                    if (len(this) <= this.MAX_SIZE) return;
+                }
+            }
+        }
+    }
+    fun clear() {
+        this.references.clear();
+        this.clear();
+    }
+}
