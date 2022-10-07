@@ -1,0 +1,107 @@
+import AssertionError from util.Errors;
+class Assert {
+
+    /**
+    * static function Assert.assert : asserts condition as pure Boolean, throws error when condition is false.
+    * static fun assert(conds: Boolean, message? : String) -> asserts condition, throws error when condition is false, can provide custom error message as optional 2nd argument.
+    * example : Assert.assert(1 == 2); -> throws AssertionError
+    * example : assert = Assert.assert; assert(true == true);-> does not throw anything
+    * example : assert = Assert.assert; assert(3);-> throws Error("Mismatching argument...") because condition was not Boolean
+    */
+
+    static fun assert(conds...) {
+        if (!VarArgs.getOrDefault(conds, 0, true, Boolean.type)) throw new AssertionError(VarArgs.getOrDefault(conds, 1, "Condition was False", String.type));
+    }
+}
+class VarArgs {
+    var arguments : Iterable;
+
+    var defaults : Iterable;
+
+    /**
+    * class VarArgs(arguments, fallback) : provides simple defaulted list-like container.
+    * example fun varargs(a...) {vars = VarArgs(a, [1, 2, 3, 4]); b = vars.get(2);} -> b will find a, if it fails then finds from [1,2,3,4].
+    */
+
+    VarArgs(args...) {
+        this.arguments = args.get(0);
+        this.defaults = args.get(1);
+    }
+
+    fun get(i : Number) {
+        if (i >= len(this.arguments)) {
+            return this.defaults.get(i);
+        }
+        return this.arguments.get(i);
+    }
+
+    /**
+    * Static functions with precise argument check
+    */
+    static fun IS_TYPE(arg) {return arg.instanceOf(Type.type);}
+
+    static fun ASSERT_TYPES(arg) {
+        i = 0;
+        foreach (type : arg) {
+            if (!type.instanceOf(Type.type)) {
+                return i;
+            }
+            i++;
+        }
+        return null;
+    }
+
+    /**
+    *   VarArgs.getOrDefault(Iterable args, Number(int) ord, Object defaultValue, Null|Type|Iterable(Type) type) -> returns object / fallbacks to defaultValue / throws Error for type mismatch.
+    */
+    static fun getOrDefault(args : Iterable, ord : Number, defaultValue : Object, typeUnion) {
+        typeCandidates = null;
+        if (VarArgs.IS_TYPE(typeUnion)) {
+            typeCandidates = [typeUnion];
+        }
+        else if (typeUnion.instanceOf(Iterable.type)) {
+            typeErrorPos = VarArgs.ASSERT_TYPES(typeUnion);
+            if (typeErrorPos != null) {
+                throw new Error("Mismatching argument type at position 3, Expected Iterable(Type), Present : Iterable(Non-Type argument at local position + " + typeErrorPos+")");
+            }
+        }
+        else if (typeUnion != null) {
+            throw new Error("Mismatching argument type at position 3, Expected Null|Type|Iterable(Type), Present : " + Type.of(typeUnion).getName());
+        }
+        if (len(args) <= ord) {
+            return defaultValue;
+        }
+        object = args.get(ord);
+        if (typeCandidates != null) {
+            foreach (types : typeCandidates) {
+                if (object.instanceOf(types)) {
+                    return object;
+                }
+            }
+            typeStrings = typeCandidates.map(fun(a) {return a.getName();});
+            throw new Error("Mismatching argument type at position "+ ord + " , Expected : AnyOf"+ typeStrings + ", Present : "+ Type.of(args.get(ord)).getName());
+        }
+        return object;
+    }
+
+    /**
+    *   VarArgs.getOrDefault(Iterable args, Number(int) ord, Object defaultValue) -> returns object / fallbacks to defaultValue
+    */
+    static fun getOrDefault(args : Iterable, ord : Number, defaultValue : Object) {
+        return VarArgs.getOrDefault(args , ord , defaultValue, null);
+    }
+
+    /**
+    *   VarArgs.getOrDefault(Iterable args, Number(int) ord) -> returns object or null
+    */
+    static fun getOrDefault(args : Iterable, ord : Number) {
+        return VarArgs.getOrDefault(args , ord , null, null);
+    }
+
+    /**
+    *   VarArgs.get(Iterable args, Number(int) ord) -> (equals to VarArgs.getOrDefault) returns object or null
+    */
+    static fun get(args : Iterable, ord : Number) {
+        return VarArgs.getOrDefault(args , ord , null, null);
+    }
+}
