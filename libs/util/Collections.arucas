@@ -60,6 +60,8 @@ interface Stack {
     fun pop();
 
     fun peek();
+
+    fun contains(object);
 }
 
 interface Queue {
@@ -72,6 +74,8 @@ interface Queue {
     fun front();
 
     fun end();
+
+    fun contains(object);
 }
 
 /**
@@ -150,6 +154,15 @@ class LinkedStack: Collection, Stack {
 
     fun iterator(): Iterator {
         return newNodeIterator(this.current);
+    }
+
+    fun contains(object): Boolean {
+        foreach (element : this) {
+            if (element == object) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -285,6 +298,15 @@ class LinkedQueue: Collection, Queue {
         return newNodeIterator(this.head);
     }
 
+    fun contains(object): Boolean {
+        foreach (element : this) {
+            if (element == object) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Converts the queue to a list,
      * with the start of the queue being first
@@ -409,6 +431,10 @@ class Deque: Collection, Stack, Queue {
      */
     fun reverseIterator(): Iterator {
         return this.list.copy().reverse().iterator();
+    }
+
+    fun contains(object): Boolean {
+        return this.list.contains(object);
     }
 
     fun throwIfEmpty(message: String) {

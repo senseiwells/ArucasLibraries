@@ -1,3 +1,6 @@
+import Stack, LinkedStack from util.Collections;
+import Util from util.Auxilary;
+
 /**
  * Builder class for strings, allowing for
  * mutable strings that can be appended to
@@ -76,109 +79,107 @@ class StringBuilder {
         return this.string;
     }
 }
-class StringUtil{
-    /**
-    * StringUtil that shows nested Maps and Lists contents
-    */
-    static fun repeatStr(string, count) {
-        retVal = '';
-        while (count > 0) {
-            retVal = retVal+ string;
-            count--;
-        }
-        return retVal;
+
+class CollectionFormatter {
+    var stack: Stack;
+    var indent: String;
+
+    CollectionFormatter(indent: String) {
+        this.stack = new LinkedStack();
+        this.indent = indent;
     }
 
-    static fun showMap(map) {
-        if (StringUtil.checkArgs(map)) {
-            return "" + map;
-        }
-        retVal = '{';
-        foreach ( keys : map.getKeys()) {
-            if (map.get(keys).instanceOf(Map.type)) {
-                retVal = retVal + '\n' + '"'+ keys + '"'+ " : " + StringUtil.showMap(map.get(keys), 1) + ",";
-            }
-            else if (map.get(keys).instanceOf(List.type)) {
-                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + StringUtil.showList(map.get(keys),1) + ",";
-            }
-            else {
-                retVal = retVal + '\n' +'"' + keys + '"'+ " : " + map.get(keys) + ",";
-            }
-        }
-        return retVal + '\n}';
+    fun getIndent() {
+        return StringUtil.repeat(this.indent, this.stack.size());
     }
-    static fun showMap(map, indent) {
-        if (StringUtil.checkArgs(map)) {
-            return "" + map;
+
+    fun pretty(object: Object): String {
+        if (object.instanceOf(Map.type)) {
+            return StringUtil.prettyMap(object);
+        } else if (object.instanceOf(List.type)) {
+            return StringUtil.prettyCollection(object, "[", "]");
+        } else if(object.instanceOf(Set.type)) {
+            return StringUtil.prettyCollection(object, "<", ">");
+        } else if (object.instanceOf(Collection.type)) {
+            return StringUtil.prettyCollection(object, Type.of(object).getName() + "{", "}");
+        } else {
+            return object.toString();
         }
-        retVal = '{';
-        foreach ( keys : map.getKeys()) {
-            if (map.get(keys).instanceOf(Map.type)) {
-                retVal = retVal +  '\n'+ StringUtil.repeatStr('    ' , indent+1) +'"'+ keys + '"'+ " : " + StringUtil.showMap(map.get(keys), indent+1) + ",";
-            }
-            else if (map.get(keys).instanceOf(List.type)) {
-                retVal = retVal +  '\n'+ StringUtil.repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + StringUtil.showList(map.get(keys), indent+1) + ",";
-            }
-            else {
-                retVal = retVal +  '\n'+ StringUtil.repeatStr('    ' , indent+1) +'"' + keys + '"'+ " : " + map.get(keys) + ",";
-            }
-        }
-        return retVal +'\n'+ StringUtil.repeatStr('    ' , indent) + '}';
     }
-    static fun showList(list) {
-        if (StringUtil.checkArgs(list)) {
-            return "" + list;
+
+    fun prettyCollection(collection: Collection, prefix: String, suffix: String): String {
+        if (this.checkInStack(collection)) {
+            return prefix + "..." + suffix;
         }
-        retVal = '[';
-        foreach ( items : list) {
-            if (items.instanceof(Map.type)) {
-                retVal = retVal + '\n' + StringUtil.showMap(items) + ",";
+
+        builder = new StringBuilder(prefix);
+        this.stack.push(collection);
+        innerIndent = this.getIndent();
+
+        iter = collection.iterator();
+        while (iter.hasNext()) {
+            builder + innerIndent + this.pretty(iter.next())
+            if (iter.hasNext()) {
+                builder + ",";
             }
-            else if (items.instanceof(List.type)) {
-                retVal = retVal + '\n' + StringUtil.showList(items) + ",";
-            }
-            else {
-                retVal = retVal + '\n' + items + ",";
-            }
+            builder + "\n";
         }
-        return retVal + '\n]';
+        this.stack.pop();
+
+        builder + this.getIndent() + suffix;
+        return builder.toString();
     }
-    static fun showList(list, indent) {
-        if (StringUtil.checkArgs(list)) {
-            return "" + list;
+
+    fun prettyMap(map: Map): String {
+        if (this.checkInStack(map)) {
+            return "{...}"
         }
-        retVal = StringUtil.repeatStr('    ' , indent) + '[';
-        foreach ( items : list) {
-            if (items.instanceof(Map.type)) {
-                retVal = retVal + '\n' + StringUtil.repeatStr('    ' , indent+1) +StringUtil.showMap(items) + ",";
+
+        builder = new StringBuilder("{");
+        this.stack.push(map);
+        innerIndent = this.getIndent();
+
+        iter = map.iterator();
+        while (iter.hasNext()) {
+            key = iter.next();
+            value = map[key];
+            builder + innerIndent + this.pretty(key) + ": " + this.pretty(value);
+            if (iter.hasNext()) {
+                builder + ",";
             }
-            else if (items.instanceof(List.type)) {
-                retVal = retVal + '\n' + StringUtil.repeatStr('    ' , indent+1) + StringUtil.showList(items) + ",";
-            }
-            else {
-                retVal = retVal + '\n' + StringUtil.repeatStr('    ' , indent+1) + items + ",";
-            }
+            builder + "\n";
         }
-        return retVal +'\n'+ StringUtil.repeatStr('    ' , indent) + ']';
+        this.stack.pop();
+
+        builder + this.getIndent() + "}";
+        return builder.toString();
     }
-    static fun checkArgs(iterable) {
-        if (iterable.instanceOf(Map.type)) {
-            foreach (item : iterable.getValues()) {
-                if (item.instanceOf(Map.type) || item.instanceOf(List.type)) {
-                    return false;
-                }
+
+    fun checkInStack(collection: Collection): Boolean {
+        foreach (element : this.stack) {
+            if (Util.referenceEquality(element, collection)) {
+                return true;
             }
-            return true;
         }
-        if (iterable.instanceOf(List.type)) {
-            foreach (item : iterable) {
-                type = Type.of(item).getName();
-                if (item.instanceOf(Map.type) || item.instanceOf(List.type)) {
-                    return false;
-                }
-            }
-            return true;
+        return false;
+    }
+}
+
+class StringUtil {
+    static fun repeat(string: String, count: Number): String {
+        builder = new StringBuilder();
+        while (count > 0) {
+            builder.append(string);
+            count--;
         }
-        return true;
+        return builder.toString();
+    }
+
+    static fun pretty(object: Object): String {
+        return StringUtil.pretty(object, "    ");
+    }
+
+    static fun pretty(object: Object, indentation: String): String {
+        return new CollectionFormatter(indentation).pretty(object);
     }
 }

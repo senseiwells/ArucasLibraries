@@ -33,13 +33,13 @@ class Assert {
     }
 
     static fun assertEquals(first: Object, second: Object): Boolean {
-        if (first != second) {
-            throw new AssertionError(first.toString() + " was not equal to " + second);
-        }
+        Auxilary.assertEquals(first, second, first.toString() + " was not equal to " + second);
     }
 
-    static fun assertEquals() {
-
+    static fun assertEquals(first: Object, second: Object, message: String) {
+        if (first != second) {
+            throw new AssertionError(message);
+        }
     }
 
     static fun assertThrows(type: Type, block: Function) {
