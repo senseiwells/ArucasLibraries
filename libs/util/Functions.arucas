@@ -1,8 +1,9 @@
-class Predicate{
-    static var ALWAYS_TRUE = fun (value) true;
-    static var ALWAYS_FALSE = fun (value) false;
-    static fun all(predicates...){
-        return fun (value){
+ALWAYS_TRUE = fun (value) true;
+ALWAYS_FALSE = fun (value) false;
+
+class Predicate {
+    static fun all(predicates...) {
+        return fun (value) {
             foreach (pred : predicates) {
                 if (!pred(value)) {
                     return false;
@@ -11,35 +12,41 @@ class Predicate{
             return true;
         };
     }
-    static fun any(predicates...){
-        return fun (value){
+
+    static fun any(predicates...) {
+        return fun (value) {
             foreach (pred : predicates) {
-                if(pred(value)){
+                if (pred(value)) {
                     return true;
                 }
             }
             return false;
         };
     }
-    static fun and(a, b){
-        return fun (value){
+
+    static fun and(a: Function, b: Function){
+        return fun (value) {
             return a(value) && b(value);
         };
     }
-    static fun or(a,b){
-        return fun (value){
+
+    static fun or(a: Function, b: Function){
+        return fun (value) {
             return a(value) || b(value);
         };
     }
-    static fun xor(a,b){
-        return fun (value){
+
+    static fun xor(a: Function, b: Function) {
+        return fun (value) {
             return a(value) ~ b(value);
         };
     }
+
     static fun alwaysFalse(){
-        return Predicate.ALWAYS_FALSE;
+        return ALWAYS_FALSE;
     }
+
     static fun alwaysTrue(){
-        return Predicate.ALWAYS_TRUE;
+        return ALWAYS_TRUE;
     }
 }
