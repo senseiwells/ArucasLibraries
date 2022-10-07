@@ -8,3 +8,31 @@ class UnsupportedError: Error {
 
     UnsupportedError(message: String): super(message);
 }
+
+/**
+ * This error should be thrown when
+ * null is found when not expected.
+ */
+class NullError: Error {
+    NullError(): super();
+
+    NullError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when condition check returned false.
+ */
+class AssertionError: Error {
+    AssertionError(): super();
+
+    AssertionError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when argument was invalid.
+ */
+class IllegalArgumentError: Error {
+    IllegalArgumentError(): super();
+
+    IllegalArgumentError(message: String): super(message);
+}
