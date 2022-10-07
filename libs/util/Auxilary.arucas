@@ -104,17 +104,4 @@ class VarArgs {
     static fun get(args : Iterable, ord : Number) {
         return VarArgs.getOrDefault(args , ord , null, null);
     }
-
-    /**
-    *   VarArgs.getOrThrow(Iterable args, Number(int) ord, ?typeUnion) -> gets object / throws AssertionError when position is abscent.
-    */
-    static fun getOrThrow(arguments...) {
-        args = VarArgs.getOrDefault(arguments, 0, null, Iterable.type);
-        Assert.assert(args != null, "Mismatching argument type at position 0 : Expected : Iterable, Present : Absent");
-        ord = VarArgs.getOrDefault(arguments, 1, null, Number.type);
-        Assert.assert(ord != null, "Mismatching argument type at position 1 : Expected : Number, Present : Absent");
-        Assert.assert(len(arguments) > ord, "Argument at position "+ ord + " is missing!");
-        typeUnion = VarArgs.getOrDefault(arguments, 2);
-        return VarArgs.getOrDefault(args, ord, typeUnion);
-    }
 }
