@@ -1,6 +1,3 @@
-import Stack, LinkedStack from util.Collections;
-import Util from util.Auxilary;
-
 /**
  * Builder class for strings, allowing for
  * mutable strings that can be appended to
@@ -80,6 +77,9 @@ class StringBuilder {
     }
 }
 
+import Stack, LinkedStack from util.Collections;
+import Util from util.Auxilary;
+
 class CollectionFormatter {
     var stack: Stack;
     var indent: String;
@@ -95,13 +95,13 @@ class CollectionFormatter {
 
     fun pretty(object: Object): String {
         if (object.instanceOf(Map.type)) {
-            return StringUtil.prettyMap(object);
+            return this.prettyMap(object);
         } else if (object.instanceOf(List.type)) {
-            return StringUtil.prettyCollection(object, "[", "]");
+            return this.prettyCollection(object, "[", "]");
         } else if(object.instanceOf(Set.type)) {
-            return StringUtil.prettyCollection(object, "<", ">");
+            return this.prettyCollection(object, "<", ">");
         } else if (object.instanceOf(Collection.type)) {
-            return StringUtil.prettyCollection(object, Type.of(object).getName() + "{", "}");
+            return this.prettyCollection(object, Type.of(object).getName() + "{", "}");
         } else {
             return object.toString();
         }
@@ -112,13 +112,17 @@ class CollectionFormatter {
             return prefix + "..." + suffix;
         }
 
-        builder = new StringBuilder(prefix);
+        if (collection.isEmpty()) {
+            return prefix + suffix;
+        }
+
+        builder = new StringBuilder(prefix + "\n");
         this.stack.push(collection);
         innerIndent = this.getIndent();
 
         iter = collection.iterator();
         while (iter.hasNext()) {
-            builder + innerIndent + this.pretty(iter.next())
+            builder + innerIndent + this.pretty(iter.next());
             if (iter.hasNext()) {
                 builder + ",";
             }
@@ -132,10 +136,14 @@ class CollectionFormatter {
 
     fun prettyMap(map: Map): String {
         if (this.checkInStack(map)) {
-            return "{...}"
+            return "{...}";
         }
 
-        builder = new StringBuilder("{");
+        if (map.isEmpty()) {
+            return "{}";
+        }
+
+        builder = new StringBuilder("{\n");
         this.stack.push(map);
         innerIndent = this.getIndent();
 

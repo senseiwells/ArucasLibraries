@@ -82,12 +82,12 @@ class VarArgs {
         return value;
     }
 
-    fun getOrDefault(index: Number, type: Type, default: Object): Object {
+    fun getOrDefault(index: Number, type: Type, defaultValue: Object): Object {
         value = this.get(index);
         if (value.instanceOf(type)) {
             return value;
         }
-        return default;
+        return defaultValue;
     }
 
     fun getOrElse(index: Number, type: Type, supplier: Function): Object {
