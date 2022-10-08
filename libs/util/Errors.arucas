@@ -36,3 +36,34 @@ class IllegalArgumentError: Error {
 
     IllegalArgumentError(message: String): super(message);
 }
+
+/**
+ * This error is thrown when illegal access happens.
+ */
+class IllegalAccessError: Error {
+    IllegalAccessError(): super();
+
+    IllegalAccessError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when Type Error happens.
+ */
+class TypeError: Error {
+    TypeError(): super();
+
+    TypeError(message: String): super(message);
+
+    TypeError(arg1 : Type, arg2 : Type) : super("Expected type " + arg1.getName() + " does not match Given type "+ arg2.getName());
+}
+
+/**
+ * This error is thrown when Index Error happens.
+ */
+class IndexError: Error {
+    IndexError(): super();
+
+    IndexError(idx : Number) : super("Index " + idx + " is out of bounds! ");
+
+    IndexError(idx : Number, bounds : Number) : super("Index " + idx + " is out of bounds "+ bounds + "!");
+}
