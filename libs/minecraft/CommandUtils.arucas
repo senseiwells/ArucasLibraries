@@ -2,6 +2,7 @@
 import StringUtil from util.StringUtils;
 import * from Minecraft;
 import Deque from util.Collections;
+import ImmutableList, ImmutableMap from util.Collections;
 client = MinecraftClient.getClient();
 //functions for argParse
 fun checkArguments(iterable){
@@ -34,24 +35,10 @@ fun tryPredicateAndMerge(iterable, predicate, modifyFunction){
     return retVal;
 }
 
-lambdaItems = fun (obj){
-    return obj.asItemStack() != null;
-};
-lambdaItemGetId = fun (obj){
-    return obj.asItemStack().getId();
-};
-
-fun lambdaBlock(obj){
-    return obj.asBlock() != null;
-};
-fun lambdaBlockGetId(obj){
-    return obj.asBlock().getId();
-};
-
 class DefaultSuggester {
-    static var ITEMS = tryPredicateAndMerge(Material.ALL, lambdaItems, lambdaItemGetId);
-    static var BLOCKS= tryPredicateAndMerge(Material.ALL, lambdaBlock, lambdaBlockGetId);
-    static var PROPERTIES_MAP = {
+    static var ITEMS = new ImmutableList(tryPredicateAndMerge(Material.ALL, fun (obj) obj.asItemStack() != null, fun(obj) obj.asItemStack().getId() ));
+    static var BLOCKS= new ImmutableList(tryPredicateAndMerge(Material.ALL, fun (obj) obj.asBlock() != null, fun(obj) obj.asBlock().getId() ));
+    static var PROPERTIES_MAP = new ImmutableMap({
             'lit' : ['true', 'false'],
             'facing' : ['up', 'down', 'north', 'east', 'south', 'west'],
             'face' : ['wall', 'ceiling', 'floor'],
@@ -66,22 +53,22 @@ class DefaultSuggester {
             'shape' : ['east_west', 'north_south', 'ascending_west', 'ascending_east', 'ascending_north', 'ascending_south'],
             'mode' : ['subtract', 'compare'],
             'persistent' : ['true', 'false']
-        };
-    static var DIRECTIONS = ['up', 'down', 'north', 'east', 'south', 'west'];
-    static var HORIZONTAL = ['north', 'east', 'south', 'west'];
-    static var BIOMES = ['THE_VOID', 'PLAINS', 'SUNFLOWER_PLAINS', 'SNOWY_PLAINS', 'ICE_SPIKES', 'DESERT', 'SWAMP', 'MANGROVE_SWAMP', 'FOREST', 'FLOWER_FOREST', 'BIRCH_FOREST', 'DARK_FOREST', 'OLD_GROWTH_BIRCH_FOREST', 'OLD_GROWTH_PINE_TAIGA', 'OLD_GROWTH_SPRUCE_TAIGA', 'TAIGA', 'SNOWY_TAIGA', 'SAVANNA', 'SAVANNA_PLATEAU', 'WINDSWEPT_HILLS', 'WINDSWEPT_GRAVELLY_HILLS', 'WINDSWEPT_FOREST', 'WINDSWEPT_SAVANNA', 'JUNGLE', 'SPARSE_JUNGLE', 'BAMBOO_JUNGLE', 'BADLANDS', 'ERODED_BADLANDS', 'WOODED_BADLANDS', 'MEADOW', 'GROVE', 'SNOWY_SLOPES', 'FROZEN_PEAKS', 'JAGGED_PEAKS', 'STONY_PEAKS', 'RIVER', 'FROZEN_RIVER', 'BEACH', 'SNOWY_BEACH', 'STONY_SHORE', 'WARM_OCEAN', 'LUKEWARM_OCEAN', 'DEEP_LUKEWARM_OCEAN', 'OCEAN', 'DEEP_OCEAN', 'COLD_OCEAN', 'DEEP_COLD_OCEAN', 'FROZEN_OCEAN', 'DEEP_FROZEN_OCEAN', 'MUSHROOM_FIELDS', 'DRIPSTONE_CAVES', 'LUSH_CAVES', 'DEEP_DARK', 'NETHER_WASTES', 'WARPED_FOREST', 'CRIMSON_FOREST', 'SOUL_SAND_VALLEY', 'BASALT_DELTAS', 'THE_END', 'END_HIGHLANDS', 'END_MIDLANDS', 'SMALL_END_ISLANDS', 'END_BARRENS'];
+        });
+    static var DIRECTIONS = ImmutableList.of('up', 'down', 'north', 'east', 'south', 'west');
+    static var HORIZONTAL = ImmutableList.of('north', 'east', 'south', 'west');
+    static var BIOMES = ImmutableList.of('THE_VOID', 'PLAINS', 'SUNFLOWER_PLAINS', 'SNOWY_PLAINS', 'ICE_SPIKES', 'DESERT', 'SWAMP', 'MANGROVE_SWAMP', 'FOREST', 'FLOWER_FOREST', 'BIRCH_FOREST', 'DARK_FOREST', 'OLD_GROWTH_BIRCH_FOREST', 'OLD_GROWTH_PINE_TAIGA', 'OLD_GROWTH_SPRUCE_TAIGA', 'TAIGA', 'SNOWY_TAIGA', 'SAVANNA', 'SAVANNA_PLATEAU', 'WINDSWEPT_HILLS', 'WINDSWEPT_GRAVELLY_HILLS', 'WINDSWEPT_FOREST', 'WINDSWEPT_SAVANNA', 'JUNGLE', 'SPARSE_JUNGLE', 'BAMBOO_JUNGLE', 'BADLANDS', 'ERODED_BADLANDS', 'WOODED_BADLANDS', 'MEADOW', 'GROVE', 'SNOWY_SLOPES', 'FROZEN_PEAKS', 'JAGGED_PEAKS', 'STONY_PEAKS', 'RIVER', 'FROZEN_RIVER', 'BEACH', 'SNOWY_BEACH', 'STONY_SHORE', 'WARM_OCEAN', 'LUKEWARM_OCEAN', 'DEEP_LUKEWARM_OCEAN', 'OCEAN', 'DEEP_OCEAN', 'COLD_OCEAN', 'DEEP_COLD_OCEAN', 'FROZEN_OCEAN', 'DEEP_FROZEN_OCEAN', 'MUSHROOM_FIELDS', 'DRIPSTONE_CAVES', 'LUSH_CAVES', 'DEEP_DARK', 'NETHER_WASTES', 'WARPED_FOREST', 'CRIMSON_FOREST', 'SOUL_SAND_VALLEY', 'BASALT_DELTAS', 'THE_END', 'END_HIGHLANDS', 'END_MIDLANDS', 'SMALL_END_ISLANDS', 'END_BARRENS');
     static fun getAvailableProperties(propName) {
         immutableMap = DefaultSuggester.PROPERTIES_MAP;
-        retVal = [];
         if (immutableMap.get(propName) != null){
             return immutableMap.get(propName);
         }
-        return [];
+        return ImmutableList.EMPTY;
     }
 }
 
 class PropertySuggester {
     //suggests properties from block, last index should be block
+    static var NOTHING = ImmutableList.of("NONE");
     static fun getProperties(args...){
         if(len(args) == 0){
             throw new Error("Length of the args was 0!");
@@ -93,7 +80,7 @@ class PropertySuggester {
             return prop.getKeys();
         }
         catch (error){
-            return ["None"];
+            return PropertySuggester.NOTHING;
         }
     }
     static fun getPropertyValues(args...){
@@ -112,7 +99,7 @@ class PropertySuggester {
             return [prop.get(propertyName)];
         }
         catch (error){
-            return ["None"];
+            return PropertySuggester.NOTHING;
         }
     }
     static fun parseValue(property){
@@ -154,28 +141,8 @@ class LinearCommand{
         this.lambda = lambda;
         this.recursionCount = 0;
     }
-    LinearCommand(queue, lambda, innerScope, recursionCount){
-        // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
-        this.waitingQueue = queue;// inherits queue
-        this.lambda = lambda;
-        this.innerDebug = '';
-        this.innerScope = innerScope;
-        this.recursionCount = recursionCount;
-        if (recursionCount > 15){
-            throw new Error("Argument count maximum is set to 15");
-        }
-    }
-    LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug){
-        // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
-        this.waitingQueue = queue;// inherits queue
-        this.lambda = lambda;
-        this.innerScope = innerScope;
-        this.innerDebug = innerDebug;
-        this.recursionCount = recursionCount;
-        if (recursionCount > 15){
-            throw new Error("Argument count maximum is set to 15");
-        }
-    }
+    LinearCommand(queue, lambda, innerScope, recursionCount) : this(queue, lambda, innerScope, recursionCount, '', {});
+    LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug) : this(queue, lambda, innerScope, recursionCount, innerDebug, {});
     LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug, innerMap){
         // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
         this.waitingQueue = queue;// inherits queue
@@ -367,11 +334,7 @@ class LinearCommand{
         if(map.isEmpty()){
             throw new Error("What is happening now?");
         }
-        client.addCommand(
-            CommandBuilder.fromMap(
-                map
-            )
-        );
+        client.addCommand(map);
     }
     fun getMap(){
         if (this.waitingQueue.isEmpty()){
