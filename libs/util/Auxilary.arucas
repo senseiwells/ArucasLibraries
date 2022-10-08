@@ -73,7 +73,7 @@ class Assert {
 }
 
 /**
-*   class VarArgs : wraps variable arguments, offers .get(idx, type?), .getOrDefault(idx, type, defaultValue), .getOrElse(idx, type, supplier), .is(idx, type)
+*   class VarArgs : wraps variable arguments, offers .get(idx, type?), .getOrDefault(idx, defaultValue, type?), .getOrElse(idx, type, supplier), .is(idx, type)
 */
 
 class VarArgs {
@@ -105,21 +105,15 @@ class VarArgs {
         try {
             value = this.get(index);
         }
-        catch (IndexError error) {
-            return value;
+        catch (error) {
+            if (error.instanceOf(IndexError.type)) return value;
+            throw error;
         }
         return value;
     }
 
     fun getOrDefault(index: Number, defaultValue: Object, type: Type): Object {
-        value = defaultValue;
-        try {
-            value = this.get(index);
-        }
-        catch (error) {
-            if (error.instanceOf(IndexError.type)) return value;
-            throw error;
-        }
+        value = this.getOrDefault(index, defaultValue);
         if (!value.instanceOf(type)) {
             throw new TypeError(type, Type.of(value));
         }

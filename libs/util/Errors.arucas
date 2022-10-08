@@ -63,7 +63,7 @@ class TypeError: Error {
 class IndexError: Error {
     IndexError(): super();
 
-    IndexError(idx : Number) : super("Index " + idx + " is out of bounds! ");
+    IndexError(idx : Number) : super("Index " + idx + " is out of bounds!");
 
     IndexError(idx : Number, bounds : Number) : super("Index " + idx + " is out of bounds "+ bounds + "!");
 }
