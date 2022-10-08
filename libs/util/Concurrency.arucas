@@ -1,0 +1,145 @@
+import UnsupportedError from util.Errors;
+
+/** 
+ * This handles multiple tasks and get / merge / process... etc.
+ */
+class Futures {
+    var futures: List = [];
+
+    Futures(apply: Function, argSet: Iterable) {
+        foreach (arg : argSet) {
+            this.futures.append(new Task().then(fun() {
+                return apply(arg);
+            }).run())
+        }
+    }
+
+    Futures(tasks: Iterable) {
+        foreach (task : tasks) {
+            this.futures.append(task.run());
+        }
+    }
+
+    static fun ofFunctions(funcs...) {
+        tasks = [];
+        foreach (func : funcs) {
+            tasks.append(new Task().then(func));
+        }
+        return new Futures(tasks);
+    }
+    
+    fun anyOf(args...) {
+        block = true;
+        if (len(args) == 0) {
+            //default behavior, block thread
+            block = true;
+        } else {
+            block = args.get(0) == true;
+        }
+
+        while (true) {
+            foreach (future : this.futures) {
+                if (future.isComplete()) {
+                    return new Chain(future.get());
+                }
+            }
+            if (!block) {
+                return null;
+            }
+        }
+    }
+
+    fun allOf(args...) {
+        holder = [];
+        block = true;
+        if (len(args) == 0) {
+            //default behavior, block thread
+            block = true;
+        } else {
+            block = args.get(0) == true;
+        }
+
+        while (true) {
+            i = 0;
+            foreach (future : this.futures.copy()) {
+                if (future.isComplete()) {
+                    holder.append(future.await());
+                    this.futures.remove(i);
+                    i--;
+                }
+                i++;
+            }
+            if (!block || this.futures.isEmpty()) {
+                return new Chain(holder);
+            }
+        }
+    }
+
+    fun then(modifier) {
+        newFuture = [];
+        foreach (future : this.futures.copy()) {
+            newFuture.append(new Task().then(fun () modifier(future.await())));
+        }
+        return new Futures(newFuture);
+    }
+
+    fun join() {
+        result = [];
+        foreach (future : this.futures) {
+            result.addAll(future.await());
+        }
+        return result;
+    }
+
+    fun isComplete() {
+        foreach (future : this.futures) {
+            if (!future.isComplete()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    fun anyComplete() {
+        foreach (future : this.futures) {
+            if (future.isComplete()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    fun await() {
+        foreach (future : this.futures) {
+            future.await();
+        }
+    }
+
+    fun stop() {
+        throw new UnsupportedError("Futures.stop() is not implemented yet!");
+    }
+}
+
+/**
+ * Chain class to do chaining tasks...?
+ */
+class Chain {
+    var object;
+
+    Chain(object) {
+        this.object = object;
+    }
+
+    fun then(modifier) {
+        return new Chain(new Task().then(fun() modifier(object)).run());
+    }
+
+    fun get() {
+        if (this.object.instanceOf(Future.type) ) {
+            return this.object.await();
+        } else if (this.object.instanceOf(Chain.type)) {
+            return this.object.get();
+        }
+        return this.object;
+    }
+}

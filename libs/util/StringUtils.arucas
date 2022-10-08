@@ -76,3 +76,118 @@ class StringBuilder {
         return this.string;
     }
 }
+
+import Stack, LinkedStack from util.Collections;
+import Util from util.Auxilary;
+
+class CollectionFormatter {
+    var stack: Stack;
+    var indent: String;
+
+    CollectionFormatter(indent: String) {
+        this.stack = new LinkedStack();
+        this.indent = indent;
+    }
+
+    fun getIndent() {
+        return StringUtil.repeat(this.indent, this.stack.size());
+    }
+
+    fun pretty(object: Object): String {
+        if (object.instanceOf(Map.type)) {
+            return this.prettyMap(object);
+        } else if (object.instanceOf(List.type)) {
+            return this.prettyCollection(object, "[", "]");
+        } else if(object.instanceOf(Set.type)) {
+            return this.prettyCollection(object, "<", ">");
+        } else if (object.instanceOf(Collection.type)) {
+            return this.prettyCollection(object, Type.of(object).getName() + "{", "}");
+        } else {
+            return object.toString();
+        }
+    }
+
+    fun prettyCollection(collection: Collection, prefix: String, suffix: String): String {
+        if (this.checkInStack(collection)) {
+            return prefix + "..." + suffix;
+        }
+
+        if (collection.isEmpty()) {
+            return prefix + suffix;
+        }
+
+        builder = new StringBuilder(prefix + "\n");
+        this.stack.push(collection);
+        innerIndent = this.getIndent();
+
+        iter = collection.iterator();
+        while (iter.hasNext()) {
+            builder + innerIndent + this.pretty(iter.next());
+            if (iter.hasNext()) {
+                builder + ",";
+            }
+            builder + "\n";
+        }
+        this.stack.pop();
+
+        builder + this.getIndent() + suffix;
+        return builder.toString();
+    }
+
+    fun prettyMap(map: Map): String {
+        if (this.checkInStack(map)) {
+            return "{...}";
+        }
+
+        if (map.isEmpty()) {
+            return "{}";
+        }
+
+        builder = new StringBuilder("{\n");
+        this.stack.push(map);
+        innerIndent = this.getIndent();
+
+        iter = map.iterator();
+        while (iter.hasNext()) {
+            key = iter.next();
+            value = map[key];
+            builder + innerIndent + this.pretty(key) + ": " + this.pretty(value);
+            if (iter.hasNext()) {
+                builder + ",";
+            }
+            builder + "\n";
+        }
+        this.stack.pop();
+
+        builder + this.getIndent() + "}";
+        return builder.toString();
+    }
+
+    fun checkInStack(collection: Collection): Boolean {
+        foreach (element : this.stack) {
+            if (Util.referenceEquality(element, collection)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class StringUtil {
+    static fun repeat(string: String, count: Number): String {
+        builder = new StringBuilder();
+        while (count > 0) {
+            builder.append(string);
+            count--;
+        }
+        return builder.toString();
+    }
+
+    static fun pretty(object: Object): String {
+        return StringUtil.pretty(object, "    ");
+    }
+
+    static fun pretty(object: Object, indentation: String): String {
+        return new CollectionFormatter(indentation).pretty(object);
+    }
+}
