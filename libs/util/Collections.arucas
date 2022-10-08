@@ -793,10 +793,11 @@ class MultiBiMap : BiMap {
     * put(k, v, ?r) replaces existing value.
     **/
     fun put(args...) {
-        vars = new VarArgs(args);
-        key = vars.get(0);
-        value = vars.get(1);
-        replace = vars.getOrDefault(2, MultiBiMap.DEFAULT);
+        if (len(args) < 2) throw new AssertionError("Argument length for MultiBiMap.put() should be at least 2!");
+        key = args.get(0);
+        value = args.get(1);
+        replace = MultiBiMap.DEFAULT;
+        if (len(args) >= 3) replace = args.get(2);
         if (replace != MultiBiMap.DEFAULT) {
             this.remove(key, replace);
         }
