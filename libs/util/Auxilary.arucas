@@ -2,26 +2,34 @@ import AssertionError from util.Errors;
 import ImmutableList from util.Collections;
 
 /**
- * Miscilaneous methods that don't fit into other categories.
+ * Miscilaneous methods that dont fit into other categories.
  */
-class Util {
-    Util() {
+
+class References {
+    References() {
         throw Error();
     }
 
     /**
      * Checks whether two objects are the same object.
      */
-    static fun referenceEquality(first: Object, second: Object): Boolean {
+    static fun equals(first: Object, second: Object): Boolean {
         return first.uniqueHash() == second.uniqueHash();
     }
 }
+
+/**
+*   class Assert offers static methods .assert(cond, message?), .assertEquals(obj, obj, message?), .assertThrows(errorType, testFunction)
+*/
 
 class Assert {
     Assert() {
         throw Error();
     }
 
+    /**
+     * Checks if condition is true.
+     */
     static fun assert(condition: Boolean) {
         Assert.assert(condition, "Condition was false");
     }
@@ -32,6 +40,9 @@ class Assert {
         }
     }
 
+    /**
+     * Checks if argument A is equal to B.
+     */
     static fun assertEquals(first: Object, second: Object): Boolean {
         Auxilary.assertEquals(first, second, first.toString() + " was not equal to " + second);
     }
@@ -42,6 +53,9 @@ class Assert {
         }
     }
 
+    /**
+     * Checks if function B throws error A.
+     */
     static fun assertThrows(type: Type, block: Function) {
         if (!type.inheritsFrom(Error.type)) {
             throw new Error(type.toString() + " does not inherit type Error");
@@ -57,6 +71,10 @@ class Assert {
         throw new AssertionError("No error was thrown");
     }
 }
+
+/**
+*   class VarArgs : wraps variable arguments, offers .get(idx, type?), .getOrDefault(idx, type, defaultValue), .getOrElse(idx, type, supplier), .is(idx, type)
+*/
 
 class VarArgs {
     var arguments: ImmutableList;
