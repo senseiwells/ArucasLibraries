@@ -12,7 +12,7 @@ fun getMinPos(startPos : Pos, otherPos : Pos) {
     return new Pos(Math.min(startPos.getX(), otherPos.getX()),Math.min(startPos.getY(), otherPos.getY()),Math.min(startPos.getZ(), otherPos.getZ()) );
 }
 fun getMaxPos(startPos : Pos, otherPos : Pos) {
-    return new Pos(Math.max(thisstartPos.getX(), otherPos.getX()),Math.max(startPos.getY(), otherPos.getY()),Math.max(startPos.getZ(), otherPos.getZ()) );
+    return new Pos(Math.max(startPos.getX(), otherPos.getX()),Math.max(startPos.getY(), otherPos.getY()),Math.max(startPos.getZ(), otherPos.getZ()) );
 }
 
 class Box{

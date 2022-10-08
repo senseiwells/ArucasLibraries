@@ -1,5 +1,10 @@
 import * from Minecraft;
+import ImmutableList from util.Collections;
 enum Axis {
+    static var AXIS_X = ImmutableList.of(Direction.EAST, Direction.WEST);
+    static var AXIS_Y = ImmutableList.of(Direction.UP, Direction.DOWN);
+    static var AXIS_Z = ImmutableList.of(Direction.SOUTH, Direction.NORTH);
+    static var NOTHING = ImmutableList.of(Direction.NONE);
     X,
     Y,
     Z,
@@ -13,7 +18,9 @@ enum Direction {
     WEST(-1, 0, 0, Axis.X),
     EAST(1, 0, 0, Axis.X),
     NONE(0, 0, 0, Axis.NONE); //Actual ordinals of minecraft directions.
-
+    static var ALL = ImmutableList.of(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
+    static var HORIZONTAL = ImmutableList.of(Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
+    static var VERTICAL = ImmutableList.of(Direction.UP, Direction.DOWN);
     var vector;
     var axis;
     Direction(x, y, z, axis) {
@@ -173,23 +180,23 @@ enum Direction {
         return Direction.NONE;
     }
     static fun getAllDirections(){
-        return [Direction.UP, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH];
+        return Direction.ALL;
     }
 
     static fun getHorizontalDirections(){
-        return [Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH];
+        return Direction.HORIZONTAL;
     }
 
     static fun getVerticalDirections(){
-        return [Direction.UP, Direction.DOWN];
+        return Direction.VERTICAL;
     }
 
     static fun getDirectionsFromAxis(string){
             switch(string.lowercase()) {
-                case "x" -> return [Direction.EAST, Direction.WEST];
-                case "y" -> return [Direction.UP, Direction.DOWN];
-                case "z" -> return [Direction.SOUTH, Direction.NORTH];
+                case "x" -> return Axis.AXIS_X;
+                case "y" -> return Axis.AXIS_Y;
+                case "z" -> return Axis.AXIS_Z;
             }
-            return [Direction.NONE];
+            return Axis.NOTHING;
     }
 }
