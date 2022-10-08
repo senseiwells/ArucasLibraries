@@ -29,26 +29,25 @@ class Transformation /* T */: VectorConvertible {
         }
     }
 
-    Transformation(dismantler: Function, factory: Function): super(dismantler, factory) {
-    }
+    Transformation(dismantler: Function, factory: Function): super(dismantler, factory);
 
-    fun dismantleList(list: List): List{
+    fun dismantleList(list: List): List {
         returnList = [];
-        foreach(item:list){
+        foreach (item:list) {
             returnList.append(this.dismantler(item));
         }
         return returnList;
     }
 
-    fun assambleList(list: List): List{
+    fun assambleList(list: List): List {
         returnList = [];
-        foreach(item:list){
+        foreach (item:list) {
             returnList.append(this.factory(item));
         }
         return returnList;
     }
     
-    fun getPoints(){
+    fun getPoints(): List {
         return this.assambleList(this.coordinates);
     }
 
@@ -73,7 +72,7 @@ class Transformation /* T */: VectorConvertible {
 
         rotatedCoordinates = [];
         returnCoordinates = [];
-        foreach(coordinate : this.coordinates){
+        foreach (coordinate : this.coordinates) {
             rot = Transformation.rotate(coordinate, centre, amount, axis);
 
             rotatedCoordinates.append(rot);
@@ -221,7 +220,7 @@ class PerlinNoise /* T */: VectorConvertible {
         this.dismantler = dismantler;
     }
 
-    fun calculatePerlinValue(pos /* T */){
+    fun calculatePerlinValue(pos /* T */): Number {
         posX, posY, posZ = this.dismantler(pos);
         fPosX = Math.floor(posX);
         fPosY = Math.floor(posY);
@@ -236,14 +235,14 @@ class PerlinNoise /* T */: VectorConvertible {
             if (!this.vectorGrid.containsKey(x)) {
                 this.vectorGrid[x] = {};
             }
-            for (j = 0; j < 2; j++){
+            for (j = 0; j < 2; j++) {
                 y = fPosY + j;
                 if (!this.vectorGrid[x].containsKey(y)) {
                     this.vectorGrid[x][y] = {};
                 }
-                for (k = 0; k < 2; k++){
+                for (k = 0; k < 2; k++) {
                     z = fPosZ + k;
-                    if(!this.vectorGrid[x][y].containsKey(z)){
+                    if (!this.vectorGrid[x][y].containsKey(z)) {
                         angle1 = Math.toRadians(random(360));
                         angle2 = Math.toRadians(random(360));
                         this.vectorGrid[x][y][z] = [Math.cos(angle1), Math.sin(angle1), Math.sin(angle2)];
@@ -255,9 +254,9 @@ class PerlinNoise /* T */: VectorConvertible {
         }
 
         dotProductList = [];
-        for (i = 0; i < 2; i++){
-            for(j = 0; j < 2; j++){
-                for(k = 0; k < 2; k++){
+        for (i = 0; i < 2; i++) {
+            for (j = 0; j < 2; j++) {
+                for (k = 0; k < 2; k++) {
                     x = fPosX + i;
                     y = fPosY + j;
                     z = fPosZ + k;
@@ -268,7 +267,7 @@ class PerlinNoise /* T */: VectorConvertible {
         }
 
         interpolationLevel1 = [];
-        for (i = 0; i < 8; i = i + 2){
+        for (i = 0; i < 8; i = i + 2) {
             interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], diffPosZ));
         }
         interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], diffPosY);
@@ -277,7 +276,7 @@ class PerlinNoise /* T */: VectorConvertible {
     }
 
     // 2d Noise
-    fun calculatePerlinValue(inputX: Number, inputZ: Number){
+    fun calculatePerlinValue(inputX: Number, inputZ: Number): Number {
         fPosX = Math.floor(inputX);
         fPosZ = Math.floor(inputZ);
         diffPosX = inputX - fPosX;
@@ -312,11 +311,11 @@ class PerlinNoise /* T */: VectorConvertible {
         return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
     }
 
-    fun interpolate(number1: Number, number2: Number, weight: Number) {
+    fun interpolate(number1: Number, number2: Number, weight: Number): Number {
         return number1 + this.fadeFunction(weight) * (number2 - number1);
     }
 
-    fun fadeFunction(number: Number){
+    fun fadeFunction(number: Number): Number {
         return (6 * number ^ 5) - (15 * number ^ 4) + (10 * number ^ 3);
     }
 }
@@ -366,9 +365,9 @@ class BezierCurve /* T */: Transformation {
         }
     }
     
-    fun generatePoints(resolution: Number) {
+    fun generatePoints(resolution: Number): List {
         coordinates = [];
-        for (t = 0; t < 1; t = t + (1/resolution)){
+        for (t = 0; t < 1; t = t + (1 / resolution)){
             coordinates.append(this.getPoint(t));
         }
         this.coordinates = this.dismantleList(coordinates);
@@ -376,7 +375,7 @@ class BezierCurve /* T */: Transformation {
     }
 
 
-    static fun generatePoints(posList: List, resolution: Number){
+    static fun generatePoints(posList: List, resolution: Number): BezierCurve {
         return new BezierCurve(posList).generatePoints(resolution);
     }
 }
@@ -513,25 +512,25 @@ class Vec2d {
     // I would avoid using the following:
     // mutating objects like this may be undesirable
 
-    fun set(v: Vec2d) {
+    fun set(v: Vec2d): Vec2d {
         this.x = v.x;
         this.y = v.y;
         return this;
     }
 
-    fun setX(x: Number) {
+    fun setX(x: Number): Vec2d {
         this.x = x;
         return this;
     }
 
-    fun setY(y: Number) {
+    fun setY(y: Number): Vec2d {
         this.y = y;
         return this;
     }
 
     // End
 
-    fun add(v) {
+    fun add(v): Vec2d {
         x = this.x + v.x;
         y = this.y + v.y;
         return new Vec2d(x, y);
@@ -540,25 +539,25 @@ class Vec2d {
     /**
      * Angle in radians to positive x-axis between -pi and pi
      */
-    fun angle() {
+    fun angle(): Number {
         return Math.arctan(this.y / this.x);
     }
 
-    fun cross(v: Vec2d) {
+    fun cross(v: Vec2d): Number {
         return this.x * v.y - this.y * v.x;
     }
 
-    fun distanceTo(v) {
+    fun distanceTo(v): Number {
         return Math.sqrt(this.distanceToSquared(v));
     }
 
-    fun distanceToSquared (v) {
+    fun distanceToSquared(v): Number {
         dx = this.x - v.x;
         dy = this.y - v.y;
         return dx * dx + dy * dy;
     }
 
-    fun divide(v) {
+    fun divide(v): Vec2d {
         if (v.x == 0 || v.y == 0) {
             return this;
         }
@@ -566,42 +565,42 @@ class Vec2d {
         return new Vec2d(this.x / v.x, this.y / v.y);
     }
 
-    fun divideScalar(s) {
+    fun divideScalar(s): Vec2d {
         if (s == 0) {
             return this;
         }
         return this.multiplyScalar(1 / s);
     }
 
-    fun dot(v) {
+    fun dot(v): Number {
         return this.x * v.x + this.y * v.y;
     }
 
-    fun length() {
+    fun length(): Number {
         return Math.sqrt(this.lengthSq());
     }
 
-    fun lengthSq() {
+    fun lengthSq(): Number {
         return this.x * this.x + this.y * this.y;
     }
 
-    fun multiply(v) {
+    fun multiply(v): Vec2d {
         x = this.x * v.x;
         y = this.y * v.y;
         return new Vec2d(x, y);
     }
 
-    fun multiplyScalar(s) {
+    fun multiplyScalar(s): Vec2d {
         x = this.x * s;
         y = this.y * s;
         return new Vec2d(x, y);
     }
 
-    fun negate() {
+    fun negate(): Vec2d {
         return this.multiplyScalar(-1);
     }
 
-    fun normalize() {
+    fun normalize(): Vec2d {
         l = this.length();
         if (l == 0) {
             return this;
@@ -613,7 +612,7 @@ class Vec2d {
     /*
      * Angle in radians
      */
-    fun rotateAround(centre, angle) {
+    fun rotateAround(centre, angle): Vec2d {
         cos = Math.cos(angle);
         sin = Math.sin(angle);
 
@@ -628,17 +627,17 @@ class Vec2d {
     /**
      * Returns new Vector
      */
-    fun setLength(length: Number) {
+    fun setLength(length: Number): Vec2d {
         return this.normalize().multiplyScalar(length);
     }
 
-    fun sub(v: Vec2d) {
+    fun sub(v: Vec2d): Vec2d {
         x = this.x - v.x;
         y = this.y - v.y;
         return new Vec2d(x, y);
     }
 
-    fun floor() {
+    fun floor(): Vec2d {
         return new Vec2d(Math.floor(this.x), Math.floor(this.y));
     }
 
@@ -653,15 +652,15 @@ class Vec2d {
         return 31 * (31 * this.x + this.y);
     }
     
-    fun toString() {
+    fun toString(): String {
         return "[" + this.x + ", " + this.y + "]";
     }
 
-    fun copy() {
+    fun copy(): Vec2d {
         return new Vec2d(this.x, this.y);
     }
     
-    operator [] (index: Number){
+    operator [] (index: Number): Number {
         if (index == 0) {
             return this.x;
         } else if (index == 1) {
@@ -671,15 +670,15 @@ class Vec2d {
         }
     }
 
-    operator == (other) {
+    operator == (other): Boolean {
         return this.equals(other);
     }
 
-    static fun zeroVector() {
+    static fun zeroVector(): Vec2d {
         return Vec2d.fromScalar(0);
     }
 
-    static fun fromScalar(s: Number) {
+    static fun fromScalar(s: Number): Vec2d {
         return new Vec2d(s, s);
     }
 
@@ -691,12 +690,12 @@ class Vec2d {
     /**
      * -pi to pi
      */
-    static fun angleBetween(v1, v2) {
+    static fun angleBetween(v1: Vec2d, v2: Vec2d): Number {
         // -2pi to 2pi
         between = v1.angle() - v2.angle();
         if (between > Math.pi) {
             between = between - 2 * Math.pi;
-        } else if (between <= - Math.pi) {
+        } else if (between <= -Math.pi) {
             between = between + 2 * Math.pi;
         }
         return between;
@@ -710,14 +709,14 @@ class ComplexNumber {
     var abs;
 
     // "Constructors"
-    ComplexNumber(r: Number, i :Number){
+    ComplexNumber(r: Number, i :Number) {
         this.real = r;
         this.imaginary = i;
         this.arg = Math.arctan(i / r);
         this.abs = Math.sqrt(r * r + i * i);
     }
 
-    ComplexNumber(polar: List){
+    ComplexNumber(polar: List) {
         this.abs, this.arg = polar;
         this.real = this.abs * Math.cos(this.arg);
         this.imaginary = this.abs * Math.sin(this.arg);
@@ -742,20 +741,20 @@ class ComplexNumber {
         rMap = {};
         rMap['real'] = Math.cos(this.arg);
         rMap['imaginary'] = Math.sin(this.arg);
-        rMap['stringForm'] = '' + this.abs + '(cos(' + this.arg + ') + i sin(' + this.arg +'))';
+        rMap['stringForm'] = '' + this.abs + '(cos(' + this.arg + ') + i sin(' + this.arg + '))';
         return rMap;
     }
 
     // Functions
-    fun add(r : Number, i : Number):ComplexNumber{
+    fun add(r: Number, i: Number): ComplexNumber {
         return new ComplexNumber(this.real + r, this.imaginary + i);
     }
 
-    fun add (x : ComplexNumber):ComplexNumber{
+    fun add(x: ComplexNumber): ComplexNumber {
         return new ComplexNumber(this.real + x.real, this.imaginary + x.imaginary);
     }    
 
-    fun substract(r : Number, i : Number):ComplexNumber{
+    fun substract(r: Number, i: Number): ComplexNumber {
         return new ComplexNumber(this.real - r, this.imaginary - i);
     }
 
@@ -879,12 +878,12 @@ class ComplexNumber {
         return this.divide(other);
     }
 
-    operator ^ (other: Number){
+    operator ^ (other: Number) {
         return this.exponent(other);
     }
 
-    operator == (other){
-        return other.instanceOf(ComplexNumber.type) && this.real == other.real && this.imaginary ==  other.imaginary;
+    operator == (other) {
+        return other.instanceOf(ComplexNumber.type) && this.real == other.real && this.imaginary == other.imaginary;
     }
 
     static fun complex(r: Number, i: Number): ComplexNumber {
@@ -932,7 +931,7 @@ class ComplexNumber {
     }
 
     static fun numberOf(string: String) {
-        if (len(string) == "") {
+        if (string == "") {
             return 1;
         }
         return string.toNumber();
