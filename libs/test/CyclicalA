@@ -1,0 +1,11 @@
+import ClassB from test.CyclicalB;
+
+class ClassA {
+    fun callB() {
+        return ClassB.callA();
+    }
+
+    fun final() {
+        return 10;
+    }
+}
