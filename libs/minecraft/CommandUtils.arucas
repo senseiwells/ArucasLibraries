@@ -1,11 +1,10 @@
 //Check Argument has Unique names, prevent client crash
-import StringUtil from util.StringUtils;
 import * from Minecraft;
 import Deque from util.Collections;
 import ImmutableList, ImmutableMap from util.Collections;
-client = MinecraftClient.getClient();
+
 //functions for argParse
-fun checkArguments(iterable){
+fun checkArguments(iterable : Iterable){
     argNames = Set.of();
     foreach( i : iterable){
         if  (argNames.contains(i)){
@@ -16,11 +15,11 @@ fun checkArguments(iterable){
 }
 
 //Very handy command builder
-//lambda as fun(){something;}
+//lambda as fun(){something;} or predefined as fun lambda(args...) {something;}
 //LinearCommand([ArgList], lambda).build() to get 'built' one, .debugBuild() to get 'string' format, .process() to process and register command.
 //new LinearCommand([['eDemiBolt'], ['x', 'Integer'],['y', 'Integer'],['z', 'Integer'], ['direction', 'Enum', Direction.type]], demiBoltTask).process();
 
-fun tryPredicateAndMerge(iterable, predicate, modifyFunction){
+fun tryPredicateAndMerge(iterable : Iterable, predicate, modifyFunction){
     retVal = [];
     foreach ( i : iterable){
         defaultVal = false;
@@ -57,7 +56,7 @@ class DefaultSuggester {
     static var DIRECTIONS = ImmutableList.of('up', 'down', 'north', 'east', 'south', 'west');
     static var HORIZONTAL = ImmutableList.of('north', 'east', 'south', 'west');
     static var BIOMES = ImmutableList.of('THE_VOID', 'PLAINS', 'SUNFLOWER_PLAINS', 'SNOWY_PLAINS', 'ICE_SPIKES', 'DESERT', 'SWAMP', 'MANGROVE_SWAMP', 'FOREST', 'FLOWER_FOREST', 'BIRCH_FOREST', 'DARK_FOREST', 'OLD_GROWTH_BIRCH_FOREST', 'OLD_GROWTH_PINE_TAIGA', 'OLD_GROWTH_SPRUCE_TAIGA', 'TAIGA', 'SNOWY_TAIGA', 'SAVANNA', 'SAVANNA_PLATEAU', 'WINDSWEPT_HILLS', 'WINDSWEPT_GRAVELLY_HILLS', 'WINDSWEPT_FOREST', 'WINDSWEPT_SAVANNA', 'JUNGLE', 'SPARSE_JUNGLE', 'BAMBOO_JUNGLE', 'BADLANDS', 'ERODED_BADLANDS', 'WOODED_BADLANDS', 'MEADOW', 'GROVE', 'SNOWY_SLOPES', 'FROZEN_PEAKS', 'JAGGED_PEAKS', 'STONY_PEAKS', 'RIVER', 'FROZEN_RIVER', 'BEACH', 'SNOWY_BEACH', 'STONY_SHORE', 'WARM_OCEAN', 'LUKEWARM_OCEAN', 'DEEP_LUKEWARM_OCEAN', 'OCEAN', 'DEEP_OCEAN', 'COLD_OCEAN', 'DEEP_COLD_OCEAN', 'FROZEN_OCEAN', 'DEEP_FROZEN_OCEAN', 'MUSHROOM_FIELDS', 'DRIPSTONE_CAVES', 'LUSH_CAVES', 'DEEP_DARK', 'NETHER_WASTES', 'WARPED_FOREST', 'CRIMSON_FOREST', 'SOUL_SAND_VALLEY', 'BASALT_DELTAS', 'THE_END', 'END_HIGHLANDS', 'END_MIDLANDS', 'SMALL_END_ISLANDS', 'END_BARRENS');
-    static fun getAvailableProperties(propName) {
+    static fun getAvailableProperties(propName : String) {
         immutableMap = DefaultSuggester.PROPERTIES_MAP;
         if (immutableMap.get(propName) != null){
             return immutableMap.get(propName);
@@ -67,8 +66,8 @@ class DefaultSuggester {
 }
 
 class PropertySuggester {
-    //suggests properties from block, last index should be block
     static var NOTHING = ImmutableList.of("NONE");
+    //suggests properties from block, last index should be block
     static fun getProperties(args...){
         if(len(args) == 0){
             throw new Error("Length of the args was 0!");
@@ -83,6 +82,7 @@ class PropertySuggester {
             return PropertySuggester.NOTHING;
         }
     }
+    //suggests properties from block, -1 index = property, -2 index = block
     static fun getPropertyValues(args...){
         if(len(args) <= 0){
             throw new Error("Length of the args was 0!");
@@ -102,7 +102,7 @@ class PropertySuggester {
             return PropertySuggester.NOTHING;
         }
     }
-    static fun parseValue(property){
+    static fun parseValue(property : String){
         if (property.lowercase() == 'true'){
             return true;
         }
@@ -141,9 +141,9 @@ class LinearCommand{
         this.lambda = lambda;
         this.recursionCount = 0;
     }
-    LinearCommand(queue, lambda, innerScope, recursionCount) : this(queue, lambda, innerScope, recursionCount, '', {});
-    LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug) : this(queue, lambda, innerScope, recursionCount, innerDebug, {});
-    LinearCommand(queue, lambda, innerScope, recursionCount, innerDebug, innerMap){
+    LinearCommand(queue : Deque, lambda, innerScope, recursionCount) : this(queue, lambda, innerScope, recursionCount, '', {});
+    LinearCommand(queue : Deque, lambda, innerScope, recursionCount, innerDebug) : this(queue, lambda, innerScope, recursionCount, innerDebug, {});
+    LinearCommand(queue : Deque, lambda, innerScope, recursionCount, innerDebug, innerMap){
         // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
         this.waitingQueue = queue;// inherits queue
         this.lambda = lambda;
@@ -248,7 +248,6 @@ class LinearCommand{
         if(innerBuilt.isEmpty()){
             throw new Error("Return value of was empty");
         }
-        str = StringUtil.showMap(innerBuilt);
         //try alternative
         retVal = {};
         retVal.put(tempArg, innerBuilt);
@@ -334,7 +333,7 @@ class LinearCommand{
         if(map.isEmpty()){
             throw new Error("What is happening now?");
         }
-        client.addCommand(map);
+        MinecraftClient.get().addCommand(map);
     }
     fun getMap(){
         if (this.waitingQueue.isEmpty()){
@@ -361,6 +360,6 @@ class LinearCommand{
             this.processMapCommand();
             return;
         }
-        client.addCommand(this.build());
+        MinecraftClient.get().addCommand(this.build());
     }
 }
