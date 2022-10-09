@@ -1,5 +1,36 @@
 //Source : https://www.webucator.com/article/python-color-constants-module/
-enum Colors {
+interface RGBColor {
+    fun getR();
+    fun getG();
+    fun getB();
+    fun getHexCode();
+}
+
+class VarColor : RGBColor {
+    var R: Number;
+    var G: Number;
+    var B: Number;
+    var hexcode: Number;
+    VarColor(r : Number,g : Number,b : Number) {
+        this.R = r;
+        this.G = g;
+        this.B = b;
+        this.hexcode = b+ 256 * g + 65536 * r;
+    }
+    static fun fromHexCode(code : Number) {
+        b = Math.mod(code, 256);
+        code = (code - b) / 256;
+        g = Math.mod(code, 256);
+        code = (code - g) / 256;
+        r = Math.mod(code, 256);
+        return new VarColor(r, g, b);
+    }
+    fun getR() return this.R;
+    fun getG() return this.G;
+    fun getB() return this.B;
+    fun getHexCode() return this.hexcode;
+}
+enum Colors : RGBColor {
     ALICEBLUE(240,248,255),
 	ANTIQUEWHITE(250,235,215),
 	AQUA(0,255,255),
@@ -166,15 +197,18 @@ enum Colors {
 	WHITE(255,255,255),
 	WHITESMOKE(245,245,245),
 	YELLOW(255,255,0);
-    var R;
-    var G;
-    var B;
-    var hexcode;
-
-    Colors(r,g,b){
+    var R: Number;
+    var G: Number;
+    var B: Number;
+    var hexcode: Number;
+    Colors(r : Number,g : Number,b : Number) {
         this.R = r;
         this.G = g;
         this.B = b;
         this.hexcode = b+ 256 * g + 65536 * r;
     }
+    fun getR() return this.R;
+    fun getG() return this.G;
+    fun getB() return this.B;
+    fun getHexCode() return this.hexcode;
 }
