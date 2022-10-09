@@ -78,7 +78,7 @@ class StringBuilder {
 }
 
 import Stack, LinkedStack from util.Collections;
-import Util from util.Auxilary;
+import References from util.Auxilary;
 
 class CollectionFormatter {
     var stack: Stack;
@@ -165,7 +165,7 @@ class CollectionFormatter {
 
     fun checkInStack(collection: Collection): Boolean {
         foreach (element : this.stack) {
-            if (Util.referenceEquality(element, collection)) {
+            if (References.equals(element, collection)) {
                 return true;
             }
         }
