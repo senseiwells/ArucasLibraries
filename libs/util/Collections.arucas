@@ -187,7 +187,7 @@ class LinkedStack: Collection, Stack {
     fun toString(): String {
         // Prevents cyclical import
         import StringBuilder from util.StringUtils;
-
+        
         builder = new StringBuilder("Stack{");
         current = this.current;
         while (current != null) {
@@ -611,7 +611,7 @@ class DefaultedMap: Map {
             this.put(item, specificValue);
         }
     }
-
+    
     fun put(key) {
         return this.put(key, this.defaultValue);
     }
