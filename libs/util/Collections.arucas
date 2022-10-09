@@ -622,7 +622,7 @@ class DefaultedMap: Map {
     fun get(key) {
         value = super.get(key);
         if (value == null) {
-            return this.defaultValue
+            return this.defaultValue;
         }
         return value;
     }
