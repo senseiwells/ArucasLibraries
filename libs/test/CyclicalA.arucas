@@ -1,11 +1,11 @@
 import ClassB from test.CyclicalB;
 
 class ClassA {
-    fun callB() {
+    static fun callB() {
         return ClassB.callA();
     }
 
-    fun final() {
+    static fun final() {
         return 10;
     }
 }
