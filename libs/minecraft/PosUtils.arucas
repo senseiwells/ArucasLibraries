@@ -1,11 +1,37 @@
 import * from Minecraft;
 import ImmutableList from util.Collections;
 
+DIRECTION_ALL = null;
+DIRECTION_HORIZONTAL = null;
+DIRECTION_VERTICAL = null;
+DIRECTION_X = null;
+DIRECTION_Y = null;
+DIRECTION_Z = null;
+DIRECTION_NONE = null;
+
+
 enum Axis {
     X,
     Y,
     Z,
     NONE;
+    static fun directionsOf(axis : String | Axis){
+        if (axis.instanceOf(Axis.type)) {
+            axis = axis.getName();
+        }
+        switch (axis.lowercase()) {
+            case "x" -> return DIRECTION_X;
+            case "y" -> return DIRECTION_Y;
+            case "z" -> return DIRECTION_Z;
+        }
+        return DIRECTION_NONE;
+    }
+    static fun of(direction){ //this should be String | Direction
+        if (direction.instanceOf(Direction.type)) {
+            return direction.axis;
+        }
+        return Direction.fromString(direction).axis;
+    }
 }
 
 enum Direction {
@@ -72,7 +98,7 @@ enum Direction {
     }
 
     fun unitVec(){
-        return this.vector.copy();
+        return this.asVector();
     }
 
     fun getX() {
@@ -100,7 +126,7 @@ enum Direction {
     }
 
     fun multiply(value){
-        return this.vector.multiply(value);
+        return this.mult(value);
     }
 
     static fun getEntityFacingFirst(entity) {
@@ -184,15 +210,6 @@ enum Direction {
 
     static fun getVerticalDirections(){
         return Direction_VERTICAL;
-    }
-
-    static fun getDirectionsFromAxis(string){
-            switch(string.lowercase()) {
-                case "x" -> return DIRECTION_X;
-                case "y" -> return DIRECTION_Y;
-                case "z" -> return DIRECTION_Z;
-            }
-            return DIRECTION_NONE;
     }
 }
 
