@@ -1,6 +1,5 @@
-// ./src/test/resources/code/test.arucas
-
 import UnsupportedError from util.Errors;
+import StringBuilder from util.StringUtils;
 
 fun unsupported(message: String) {
     throw new UnsupportedError(message);
@@ -185,9 +184,6 @@ class LinkedStack: Collection, Stack {
      * Returns - String: the string representation
      */
     fun toString(): String {
-        // Prevents cyclical import
-        import StringBuilder from util.StringUtils;
-        
         builder = new StringBuilder("Stack{");
         current = this.current;
         while (current != null) {
@@ -200,8 +196,6 @@ class LinkedStack: Collection, Stack {
         return (builder + "}").toString();
     }
 }
-
-import StringBuilder from util.StringUtils;
 
 /**
  * Queue data strucutre using linked nodes

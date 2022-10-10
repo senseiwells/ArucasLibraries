@@ -1,12 +1,14 @@
 import LineShape, Pos from Minecraft;
 
 class LineManager {
-    var lines = [];
-    var r; var g; var b;
-    var opacity;
-    var renderThroughBlocks;
+    var lines: List = [];
+    var r: Number; 
+    var g: Number; 
+    var b: Number;
+    var opacity: Number;
+    var renderThroughBlocks: Boolean;
 
-    LineManager(r, g, b, opacity, rtb) {
+    LineManager(r: Number, g: Number, b: Number, opacity: Number, rtb: Boolean) {
         this.r = r; this.g = g; this.b = b;
         this.opacity = opacity;
         this.renderThroughBlocks = rtb;
@@ -19,7 +21,7 @@ class LineManager {
         this.lines.clear();
     }
 
-    fun addPosition(x1,y1,z1, x2,y2,z2) {
+    fun addPosition(x1: Number, y1: Number, z1: Number, x2: Number, y2: Number, z2: Number) {
         startPoint = new Pos(x1, y1, z1);
         endPoint = new Pos(x2, y2, z2);
 
@@ -32,7 +34,7 @@ class LineManager {
         this.lines.append(line);
     }
 
-    fun addPosition(startPoint, endPoint) {
+    fun addPosition(startPoint: Pos, endPoint: Pos) {
         line = new LineShape(startPoint, endPoint);
         line.setColour(this.r, this.g, this.b);
         line.setOpacity(this.opacity);
@@ -40,20 +42,20 @@ class LineManager {
         this.lines.append(line);
     }
 
-    fun render(){
-        foreach(line : this.lines){
+    fun render() {
+        foreach (line : this.lines) {
             line.render();
         }
     }
 
     fun stopRendering(){
-        foreach(line : this.lines){
+        foreach (line : this.lines) {
             line.stopRendering();
         }
     }
 
-    fun update(){
-        foreach(line : this.lines){
+    fun update() {
+        foreach (line : this.lines) {
             line.setColour(this.r, this.g, this.b);
             line.setOpacity(this.opacity);
             line.setRenderThroughBlocks(this.renderThroughBlocks);
@@ -62,129 +64,118 @@ class LineManager {
 }
 
 class Curve {
-    var posList;
+    var posList: List;
     var closed = false;
     var lineManager;
-    
-    Curve(posList){
+
+    Curve(posList: List) {
         this.posList = posList;
-        this.lineManager = new LineManager(255,255,255,255,false);
+        this.lineManager = new LineManager(255, 255, 255, 255, false);
         this.generateLines();
     }
 
-    fun closed(){
+    fun closed() {
         this.closed = true;
     }
     
-    fun open(){
+    fun open() {
         this.closed = false;
     }
 
-    fun generateLines(){
+    fun generateLines() {
         this.lineManager.clearLines();
-        for(i = 0; i < len(this.posList);i++){
-            if(i == len(this.posList)-1){
-                if(this.closed){
-                    this.lineManager.addPosition(this.posList[i],this.posList[0]);
+        for (i = 0; i < len(this.posList); i++) {
+            if (i == len(this.posList) - 1) {
+                if (this.closed) {
+                    this.lineManager.addPosition(this.posList[i], this.posList[0]);
                 }
-            }
-            else{
-            this.lineManager.addPosition(this.posList[i],this.posList[i+1]);
+            } else {
+                this.lineManager.addPosition(this.posList[i], this.posList[i + 1]);
             }
         }
     }
 
-    fun render(){
+    fun render() {
         this.lineManager.render();
     }
 
-    fun stopRendering(){
+    fun stopRendering() {
         this.lineManager.stopRendering();
     }
 
-    fun setRGB(r,g,b){
+    fun setRGB(r: Number, g: Number, b: Number) {
         this.lineManager.r = r;
         this.lineManager.g = g;
         this.lineManager.b = b;
         this.lineManager.update();
     }
 
-    fun setRed(r){
+    fun setRed(r: Number) {
         this.lineManager.r = r;
         this.lineManager.update();
     }
 
-    fun setGreen(g){
+    fun setGreen(g: Number) {
         this.lineManager.g = g;
         this.lineManager.update();
     }
 
-    fun setBlue(b){
+    fun setBlue(b: Number) {
         this.lineManager.b = b;
         this.lineManager.update();
     }
 
-    fun getRGB(){
-        return [this.lineManager.r,this.lineManager.g,this.lineManager.b];
+    fun getRGB(): List {
+        return [this.lineManager.r, this.lineManager.g, this.lineManager.b];
     }
 
-    fun getRed(){
+    fun getRed(): Number {
         return this.lineManager.r;
     }
 
-    fun getGreen(){
+    fun getGreen(): Number {
         return this.lineManager.g;
     }
 
-    fun getBlue(){
+    fun getBlue(): Number {
         return this.lineManager.b;
     }
 
-    fun setOpacity(opacity){
+    fun setOpacity(opacity: Number) {
         this.lineManager.opacity = opacity;
         this.lineManager.update();
     }
 
-    fun getOpacity(){
+    fun getOpacity(): Number {
         return this.lineManager.opacity;
     }
 
-    fun getRGBAList(){
-        return[this.lineManager.r,this.lineManager.g,this.lineManager.b,this.lineManager.opacity];
+    fun getRGBAList(): List {
+        return [this.lineManager.r,this.lineManager.g,this.lineManager.b,this.lineManager.opacity];
     }
 
-    fun setRenderThroughBlocks(rtb){
+    fun setRenderThroughBlocks(rtb: Boolean) {
         this.lineManager.renderThroughBlocks = rtb;
         this.lineManager.update();
     }
 
-    fun shouldRenderThroughBlocks(){
+    fun shouldRenderThroughBlocks(): Boolean {
         return this.lineManager.renderThroughBlocks;
     }
 
-    static fun generateLines(posList){
-        lineManager = new LineManager(255,255,255,255,false);
-        for(i = 0; i < len(posList);i++){
-            if(i == len(posList)-1){
-                lineManager.addPosition(posList[i],posList[0]);
-            }
-            else{
-                lineManager.addPosition(posList[i],posList[i+1]);
-            }
-        }
-        lineManager.render();
+    static fun generateLines(posList: List) {
+        Curve.generateLines(posList, true);
     }
     
     static fun generateLines(posList, closed){
-        lineManager = new LineManager(255,255,255,255,false);
-        for(i = 0; i < len(posList);i++){
-            if(i == len(posList)-1){
-                if(closed){
+        lineManager = new LineManager(255, 255, 255, 255, false);
+        for (i = 0; i < len(posList); i++) {
+            if (i == len(posList) - 1) {
+                if (closed) {
                     lineManager.addPosition(posList[i],posList[0]);
                 }
-            }
-            else{
-                lineManager.addPosition(posList[i],posList[i+1]);
+            } else {
+                lineManager.addPosition(posList[i],posList[i + 1]);
             }
         }
         lineManager.render();
