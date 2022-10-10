@@ -1,15 +1,13 @@
 import * from Minecraft;
 import ImmutableList from util.Collections;
+
 enum Axis {
-    static var AXIS_X = ImmutableList.of(Direction.EAST, Direction.WEST);
-    static var AXIS_Y = ImmutableList.of(Direction.UP, Direction.DOWN);
-    static var AXIS_Z = ImmutableList.of(Direction.SOUTH, Direction.NORTH);
-    static var NOTHING = ImmutableList.of(Direction.NONE);
     X,
     Y,
     Z,
     NONE;
 }
+
 enum Direction {
     DOWN(0, -1, 0, Axis.Y),
     UP(0, 1, 0, Axis.Y),
@@ -18,9 +16,6 @@ enum Direction {
     WEST(-1, 0, 0, Axis.X),
     EAST(1, 0, 0, Axis.X),
     NONE(0, 0, 0, Axis.NONE); //Actual ordinals of minecraft directions.
-    static var ALL = ImmutableList.of(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
-    static var HORIZONTAL = ImmutableList.of(Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
-    static var VERTICAL = ImmutableList.of(Direction.UP, Direction.DOWN);
     var vector;
     var axis;
     Direction(x, y, z, axis) {
@@ -180,23 +175,34 @@ enum Direction {
         return Direction.NONE;
     }
     static fun getAllDirections(){
-        return Direction.ALL;
+        return DIRECTION_ALL;
     }
 
     static fun getHorizontalDirections(){
-        return Direction.HORIZONTAL;
+        return Direction_HORIZONTAL;
     }
 
     static fun getVerticalDirections(){
-        return Direction.VERTICAL;
+        return Direction_VERTICAL;
     }
 
     static fun getDirectionsFromAxis(string){
             switch(string.lowercase()) {
-                case "x" -> return Axis.AXIS_X;
-                case "y" -> return Axis.AXIS_Y;
-                case "z" -> return Axis.AXIS_Z;
+                case "x" -> return DIRECTION_X;
+                case "y" -> return DIRECTION_Y;
+                case "z" -> return DIRECTION_Z;
             }
-            return Axis.NOTHING;
+            return DIRECTION_NONE;
     }
+}
+
+{
+    DIRECTION_ALL = ImmutableList.of(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
+    DIRECTION_HORIZONTAL = ImmutableList.of(Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
+    DIRECTION_VERTICAL = ImmutableList.of(Direction.UP, Direction.DOWN);
+
+    DIRECTION_X = ImmutableList.of(Direction.EAST, Direction.WEST);
+    DIRECTION_Y = ImmutableList.of(Direction.UP, Direction.DOWN);
+    DIRECTION_Z = ImmutableList.of(Direction.SOUTH, Direction.NORTH);
+    DIRECTION_NONE = ImmutableList.of(Direction.NONE);
 }
