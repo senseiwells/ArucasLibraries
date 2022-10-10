@@ -3,12 +3,12 @@ import * from util.AdvancedMath;
 POS_DISMANTLER = fun(pos) [pos.getX(), pos.getY(), pos.getZ()];
 POS_FACTORY = fun(x, y, z) new Pos(x, y, z); 
 
-class AdvancedMath{
+class AdvancedMath {
     static fun newPerlinNoise() {
         return new PerlinNoise(POS_DISMANTLER);
     }
 
-    static fun newCircle(centre,radius) {
+    static fun newCircle(centre, radius) {
         return AdvancedMath.newCircleArc(centre, radius, 0, 2 * Math.pi);
     }
 

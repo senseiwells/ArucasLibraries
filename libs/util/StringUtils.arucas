@@ -1,3 +1,6 @@
+import Stack, LinkedStack from util.Collections;
+import Util from util.Auxilary;
+
 /**
  * Builder class for strings, allowing for
  * mutable strings that can be appended to
@@ -76,9 +79,6 @@ class StringBuilder {
         return this.string;
     }
 }
-
-import Stack, LinkedStack from util.Collections;
-import Util from util.Auxilary;
 
 class CollectionFormatter {
     var stack: Stack;
