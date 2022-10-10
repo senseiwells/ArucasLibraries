@@ -1,55 +1,54 @@
 import Assert from util.Auxilary;
 import AsymmetricBiMap from util.Collections;
-/*
-*   Class Cache - basic Cache object that removes items sequentially
-*/
-class Cache : Map {
-    var map : Map;
+
+/**
+ * Class Cache - basic Cache object that removes items sequentially.
+ */
+class Cache: Map {
+    var map: Map = {};
     var capacity : Number = 16;
-    Cache() : super() {
-        this.map = {};
-    }
-    Cache(capacity : Number) : super() {
+
+    Cache(): super();
+    
+    Cache(capacity: Number): super() {
         Assert.assert(capacity > 0);
-        this.map = {};
         this.capacity = capacity;
     }
+
     fun put(key, value) {
-        if (!this.containsKey(key)) {
-            super.put(key, value);
+        had = this.containsKey(key);
+        super.put(key, value);
+        if (!had) {
             this.checkCapacity();
         }
-        else {
-            super.put(key, value);
-        }
     }
+
     fun checkCapacity() {
-        if (len(this) <= this.capacity) return;
+        if (len(this) <= this.capacity) {
+            return;
+        }
         keySet = this.getKeys();
         while (len(this) > this.capacity) {
             this.remove(keySet.get(0));
             keySet.remove(0);
         }
     }
+
     fun clear() {
         this.map.clear();
         this.clear();
     }
 }
+
 /**
-*   LFU(Least Frequently Used) Cache : counts references for objects, clears by count.
-*/
-class LFUCache : Cache {
-    static fun countRef(k, presentValue) {
-        return presentValue + 1;
-    }
-    var references : AsymmetricBiMap;
-    LFUCache() : super() {
-        this.references = AsymmetricBiMap.create();
-    }
-    LFUCache(capacity : Number) : super(capacity) {
-        this.references = AsymmetricBiMap.create();
-    }
+ * LFU (Least Frequently Used) Cache - counts references for objects, clears by count.
+ */
+class LFUCache: Cache {
+    var references: AsymmetricBiMap = AsymmetricBiMap.create();
+
+    LFUCache(): super();
+
+    LFUCache(capacity : Number): super(capacity);
 
     fun put(key, value) {
         this.references.computeIfPresent(key, 1, LFUCache.countRef);
@@ -71,5 +70,9 @@ class LFUCache : Cache {
     fun clear() {
         this.references.clear();
         this.clear();
+    }
+
+    static fun countRef(k, presentValue) {
+        return presentValue + 1;
     }
 }

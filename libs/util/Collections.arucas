@@ -9,6 +9,8 @@ fun unsupported(message: String) {
 newNode = null;
 newNodeIterator = null;
 
+NULL_PROVIDER = fun() null;
+
 /* private */ {
     class Node {
         var value;
@@ -632,230 +634,167 @@ class DefaultedMap: Map {
 *   offers inverse() method to get view of inverted BiMap
 *   throws IllegalArgumentError when duplicate key-value pair is inputed
 **/
-class BiMap : Map {
-    var original : Map;
-    var backend : Map;
-        BiMap() : super() {
-            this.original = {};
-            this.backend = {};
+class BiMap: Map {
+    var inverse: BiMap | Null;
+
+    var front: Map;
+    var back: Map;
+
+    BiMap(): super() {
+        this.front = {};
+        this.backend = {};
+    }
+
+    BiMap(inverse: BiMap): super() {
+        this.front = inverse.back;
+        this.back = inverse.front;
+        this.inverse = inverse;
+    }
+
+    // Override
+    fun clear() {
+        this.front.clear();
+        this.backend.clear();
+    }
+
+    // Override
+    fun containsKey(key: Object): Boolean {
+        return this.front.containsKey(key)
+    }
+
+    // Override
+    fun get(key: Object): Object {
+        return this.front.get(key);
+    }
+
+    // Override
+    operator [] (key) {
+        return this.get(key);
+    }
+
+    // Override
+    fun getKeys(): Collection {
+        return this.front.getKey();
+    }
+
+    // Override
+    fun getValues(): Collection {
+        return this.back.getKeys();
+    }
+
+    // Override
+    fun map(mapper: Function): Map {
+        return this.front.map(mapper);
+    }
+
+    // Override
+    fun put(key: Object, value: Object): Null {
+        if (this.containsKey(key) && value != this.get(key)) {
+            throw new IllegalArgumentError("Cannot input duplcate key " + key + " for value : "+ value + ", use BiMap.forcePut(key, value) to replace!");
         }
-        BiMap(arg1, arg2) : super() {
-            this.original = arg1;
-            this.backend = arg2;
+        if (this.containsValue(value) && key != this.getKey(value)) {
+            throw new IllegalArgumentError("Cannot input duplcate value " + value + " for key : "+ key + ", use BiMap.forcePut(key, value) to replace!");    
         }
-    /**
-    * create new BiMap
-    **/
-    static fun create() {
-        return new BiMap();
+        this.front.put(key, value);
+        this.back.put(value, key);
     }
 
-    /**
-    * create new BiMap that references reverse view of dictionary. Change is reflected in original BiMap too.
-    **/
-    fun inverse() {
-        return new BiMap(this.backend, this.original);
+    // Override
+    operator [] (key, value) {
+        return this.put(key, value);
     }
 
-    /**
-    * replace existing entries and assign new key:value pair
-    **/
-    fun forcePut(key, value) {
-        this.original.remove(key);
-        this.backend.remove(value);
-        this.put(key, value);
-    }
-
-    /**
-    * overrides Iterable.iterator() method.
-    **/
-    fun iterator() {
-        return this.original.iterator();
-    }
-
-    /**
-    * overrides Map.put() method, BiMap only allows unique connection between key <-> value.
-    **/
-    fun put(key, value) {
-        if (this.original.containsKey(key)) {
-            if (value != this.original.get(key)) {
-                throw new IllegalArgumentError("Cannot input duplcate key " + key + " for value : "+ value + ", use BiMap.forcePut(key, value) to replace!");
-            }
+    // Override
+    fun putAll(other: Map) {
+        foreach (key : other) {
+            this[key] = other[key];
         }
-        if (this.backend.containsKey(value)) {
-            if (key != this.backend.get(value)) {
-                throw new IllegalArgumentError("Cannot input duplcate value " + value + " for key : "+ key + ", use BiMap.forcePut(key, value) to replace!");
-            }
-        }
-        this.original.put(key, value);
-        this.backend.put(value, key);
     }
 
-    /**
-    * overrides Map.putIfAbsent() method.
-    **/
-    fun putIfAbsent(key, value) {
-        if (this.original.containsKey(key)) {
+    // Override
+    fun putIfAbsent(key: Object, value: Object): Boolean {
+        if (this.containsKey(key) || this.containsValue(value)) {
             return false;
         }
-        if (this.backend.containsKey(value)) {
-            return false;
-        }
-        this.put(key, value);
+        this[key] = value;
         return true;
     }
+
+    // Override
+    fun remove(key: Object): Object {
+        if (this.containsKey(key)) {
+            value = this.front.remove(key);
+            this.back.remove(value);
+            return value;
+        }
+        return null;
+    }
+
     /**
-    * BiMap.computeIfPresent(k, v, mappingFunction(k, v)) -> if (k,ev) is present, compute mappedValue from mappingFunction(k, ev), then replaces (k,ev) with (k, mappedValue).
-    * returns mappedValue assigned to k.
-    **/
-    fun computeIfPresent(key, defaultValue, mappingFunction) {
-        if (this.original.containsKey(key)) {
-            mv = mappingFunction(key, this.original.get(key));
+     * BiMap.computeIfPresent(k, v, mappingFunction(k, v)) -> if (k,ev) is present, compute mappedValue 
+     * from mappingFunction(k, ev), then replaces (k,ev) with (k, mappedValue).
+     * returns mappedValue assigned to k.
+     */
+    fun computeIfPresent(key: Object, defaultValue: Object, mappingFunction: Function) {
+        if (this.containsKey(key)) {
+            mv = mappingFunction(key, this[key]);
             this.remove(key);
             this.put(key, mv);
             return mv;
-        }
-        else {
+        } else {
             this.put(key, defaultValue);
         }
         return defaultValue;
     }
+
     /**
-    * offers forcePutAll(another Map) method, removes all duplicate connections and puts values.
-    **/
-    fun forcePutAll(another : Map) {
-        foreach (key : another.getKeys()) {
-            this.forcePut(key, another.get(key));
+     * Replace existing entries and assign new key : value pair.
+     */
+    fun forcePut(key: Object, value: Object) {
+        this.remove(key);
+        this.put(key, value);
+    }
+
+    /**
+     * Offers forcePutAll(another Map) method, removes all duplicate connections and puts values.
+     */
+    fun forcePutAll(another: Map) {
+        foreach (key : another) {
+            this.forcePut(key, another[key]);
         }
     }
 
     /**
-    * common methods for Map
-    **/
-    fun containsKey(key : Object) {
-        return this.original.containsKey(key);
-    }
-
-    fun containsValue(value : Object) {
-        return this.backend.containsKey(value);
-    }
-
-    fun get(k) {
-        return this.original.get(k);
-    }
-
-    fun getKeys() {
-        return this.original.getKeys();
-    }
-
-    fun getValues() {
-        return this.backend.getValues();
-    }
-
-    fun clear() {
-        this.original.clear();
-        this.backend.clear();
-    }
-
-    fun map(arg) {
-        return this.original.map(arg);
-    }
-
-    fun remove(k) {
-        if (this.original.containsKey(k)){
-            v = this.original.get(k);
-            this.original.remove(k);
-            this.backend.remove(v);
-            return true;
+     * Creates a new BiMap that with a reverse view.
+     */
+    fun inverse(): BiMap {
+        if (this.inverse == null) {
+            this.inverse = new BiMap(this);
         }
-        return false;
+        return this.inverse;
     }
-}
 
-/**
-*   class MultiBiMap : BiMap contains key, value pair as {a : {val1, val2, ...}}, {val1 : {a, b, ...}}
-*   offers inverse() method to get view of inverted BiMap
-**/
-
-class MultiBiMap : BiMap {
-    static var DEFAULT = fun (){return null;}; //create lambda function for unique object that does not overlap other.
-    MultiBiMap() : super() {}
-    MultiBiMap(arg1, arg2) : super(arg1, arg2) {}
-
+    /**
+     * Creates a new BiMap
+     */
     static fun create() {
-        return new MultiBiMap();
-    }
-
-    /**
-    * overrides put(key, value) in BiMap, mapped results are now assigned as Set.
-    * put(k, v, ?r) replaces existing value.
-    **/
-    fun put(args...) {
-        if (len(args) < 2) throw new AssertionError("Argument length for MultiBiMap.put() should be at least 2!");
-        key = args.get(0);
-        value = args.get(1);
-        replace = MultiBiMap.DEFAULT;
-        if (len(args) >= 3) replace = args.get(2);
-        if (replace != MultiBiMap.DEFAULT) {
-            this.remove(key, replace);
-        }
-        if (this.original.containsKey(key)) {
-            this.original.get(key).add(value);
-        }
-        else {
-            this.original.put(key, Set.of(value));
-        }
-        if (this.backend.containsKey(value)) {
-            this.backend.get(value).add(key);
-        }
-        else {
-            this.backend.put(value, Set.of(key));
-        }
-    }
-
-    /**
-    * MultiBiMap does not support removing from remove(k), instead call remove(k, v)
-    **/
-    fun remove(k) unsupported("method remove(k) is ambiguous; call remove(k,v) for MultiBiMap!");
-    fun remove(key, value) {
-        keySet = this.original.get(key);
-        if (keySet != null) keySet.remove(value);
-        if (keySet.isEmpty()) this.original.remove(key);
-        valueSet = this.backend.get(value);
-        if (valueSet != null) valueSet.remove(key);
-        if (valueSet.isEmpty()) this.backend.remove(value);
-        return !keySet.isEmpty() && !valueSet.isEmpty();
-    }
-    /**
-    * forcePut(k, v) and forcePutAll(another Map) is unsupported : multiBiMap has multiple entries at default. for replacing existing values, use put(k, v, ?r)
-    **/
-    fun forcePut(key, value) unsupported("method forcePut is not available for MultiBiMap!");
-    fun forcePutAll(arg) unsupported("method forcePutAll is not available for MultiBiMap!");
-
-    /**
-    * MultiBiMap.containsPair(k,v) returns true if correct pair of k,v exists.
-    **/
-    fun containsPair(k, v) {
-        keySet = this.original.get(k);
-        return keySet != null && keySet.contains(v);
-    }
-
-    fun inverse() {
-        return new MultiBiMap(this.backend, this.original);
+        return new BiMap();
     }
 }
-/**
-*   class AsymmetricBiMap : BiMap which allows (k1, k2, k3...) -> v1, but not (v1, v2, v3...) -> k1.
-*   offers inverse() method, but put() method will not work anymore.
-**/
 
+
+/**
+ * Class AsymmetricBiMap : BiMap which allows (k1, k2, k3...) -> v1, but not (v1, v2, v3...) -> k1.
+ * Offers inverse() method, but put() method will not work anymore.
+ */
 class AsymmetricBiMap : BiMap {
-    static var DEFAULT = fun (){return null;}; //create lambda function for unique object that does not overlap other.
     var inverted = false;
-        AsymmetricBiMap() : super() {}
-        AsymmetricBiMap(arg1, arg2, inverse) : super(arg1, arg2) {
-            this.inverted = inverse;
-        }
+
+    AsymmetricBiMap() : super();
+
+    AsymmetricBiMap(inverse: AsymmetricBiMap) : super(inverse) {
+        this.inverted = true;
+    }
 
     static fun create() {
         return new AsymmetricBiMap();
@@ -867,17 +806,15 @@ class AsymmetricBiMap : BiMap {
     **/
     fun put(key, value) {
         if (this.inverted) unsupported("Cannot invoke method put(k,v) for inverted AsymmetricBiMap");
-        if (this.original.containsKey(key)) {
+        if (this.containsKey(key)) {
             throw new IllegalArgumentError("Cannot input duplcate key " + key + " for value : "+ value + ", use BiMap.forcePut(key, value) to replace!");
+        } else {
+            this.front.put(key, value);
         }
-        else {
-            this.original.put(key, value);
-        }
-        if (this.backend.containsKey(value)) {
-            this.backend.get(value).add(key);
-        }
-        else {
-            this.backend.put(value, Set.of(key));
+        if (this.containsValue(value)) {
+            this.getKey(value).add(key);
+        } else {
+            this.back.put(value, Set.of(key));
         }
     }
 
@@ -887,7 +824,7 @@ class AsymmetricBiMap : BiMap {
     **/
     fun forcePut(key, value) {
         if (this.inverted) unsupported("Cannot invoke method put(k,v) for inverted AsymmetricBiMap");
-        if (this.original.containsKey(key)) {
+        if (this.containsKey(key)) {
             this.remove(key);
         }
         this.put(key, value);
@@ -898,12 +835,12 @@ class AsymmetricBiMap : BiMap {
     **/
     fun remove(k) {
         if (this.inverted) unsupported("Cannot invoke method remove(k) for inverted AsymmetricBiMap");
-        if (this.original.containsKey(k)) {
-            v = this.original.get(k);
-            this.original.remove(k);
-            valueSet = this.backend.get(v);
+        if (this.containsKey(k)) {
+            v = this.get(k);
+            this.front.remove(k);
+            valueSet = this.back.get(v);
             valueSet.remove(k);
-            if (valueSet.isEmpty()) this.backend.remove(v);
+            if (valueSet.isEmpty()) this.back.remove(v);
             return true;
         }
         return false;
@@ -914,7 +851,7 @@ class AsymmetricBiMap : BiMap {
     **/
     fun containsPair(k, v) {
         if (this.inverted) unsupported("Cannot invoke method containsPair(k,v) for inverted AsymmetricBiMap");
-        return this.original.containsKey(k) && v == this.original.get(k);
+        return this.containsKey(k) && v == this.get(k);
     }
 
     /**
@@ -927,6 +864,9 @@ class AsymmetricBiMap : BiMap {
     }
 
     fun inverse() {
-        return new AsymmetricBiMap(this.backend, this.original, !this.inverted);
+        if (this.inverse == null) {
+            this.inverse = new AsymmetricBiMap(this);
+        }
+        return this.inverse;
     }
 }
