@@ -642,7 +642,7 @@ class BiMap: Map {
 
     BiMap(): super() {
         this.front = {};
-        this.backend = {};
+        this.back = {};
     }
 
     BiMap(inverse: BiMap): super() {
@@ -654,12 +654,12 @@ class BiMap: Map {
     // Override
     fun clear() {
         this.front.clear();
-        this.backend.clear();
+        this.back.clear();
     }
 
     // Override
     fun containsKey(key: Object): Boolean {
-        return this.front.containsKey(key)
+        return this.front.containsKey(key);
     }
 
     // Override
@@ -674,7 +674,7 @@ class BiMap: Map {
 
     // Override
     fun getKeys(): Collection {
-        return this.front.getKey();
+        return this.front.getKeys();
     }
 
     // Override
@@ -692,8 +692,8 @@ class BiMap: Map {
         if (this.containsKey(key) && value != this.get(key)) {
             throw new IllegalArgumentError("Cannot input duplcate key " + key + " for value : "+ value + ", use BiMap.forcePut(key, value) to replace!");
         }
-        if (this.containsValue(value) && key != this.getKey(value)) {
-            throw new IllegalArgumentError("Cannot input duplcate value " + value + " for key : "+ key + ", use BiMap.forcePut(key, value) to replace!");    
+        if (this.containsValue(value) && key != this.getKeys(value)) {
+            throw new IllegalArgumentError("Cannot input duplcate value " + value + " for key : "+ key + ", use BiMap.forcePut(key, value) to replace!");
         }
         this.front.put(key, value);
         this.back.put(value, key);
@@ -731,7 +731,7 @@ class BiMap: Map {
     }
 
     /**
-     * BiMap.computeIfPresent(k, v, mappingFunction(k, v)) -> if (k,ev) is present, compute mappedValue 
+     * BiMap.computeIfPresent(k, v, mappingFunction(k, v)) -> if (k,ev) is present, compute mappedValue
      * from mappingFunction(k, ev), then replaces (k,ev) with (k, mappedValue).
      * returns mappedValue assigned to k.
      */
@@ -812,7 +812,7 @@ class AsymmetricBiMap : BiMap {
             this.front.put(key, value);
         }
         if (this.containsValue(value)) {
-            this.getKey(value).add(key);
+            this.getKeys(value).add(key);
         } else {
             this.back.put(value, Set.of(key));
         }
