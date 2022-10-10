@@ -1,12 +1,12 @@
-import IllegalAccessError, AssertionError from util.Errors;
-
+import IllegalAccessError, AssertionError, IndexError, TypeError from util.Errors;
+import ImmutableList from util.Collections;
 /**
- * Miscilaneous methods that dont fit into other categories.
+ * Miscilaneous methods that do not fit into other categories.
  */
 
-class References {
-    References() {
-        throw IllegalAccessError("Cannot construct References object!");
+class Reference {
+    Reference() {
+        throw IllegalAccessError("Cannot construct Reference object!");
     }
 
     /**
@@ -70,8 +70,7 @@ class Assert {
         throw new AssertionError("No error was thrown");
     }
 }
-import IndexError, TypeError from util.Errors;
-import ImmutableList from util.Collections;
+
 /**
 *   class VarArgs : wraps variable arguments, offers .get(idx, type?), .getOrDefault(idx, defaultValue, type?), .getOrElse(idx, type, supplier), .is(idx, type)
 */
@@ -104,10 +103,10 @@ class VarArgs {
         value = defaultValue;
         try {
             value = this.get(index);
+            return value;
         }
         catch (error) {
-            if (error.instanceOf(IndexError.type)) return value;
-            throw error;
+            return defaultValue;
         }
         return value;
     }

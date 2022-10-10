@@ -5,28 +5,28 @@ import AsymmetricBiMap from util.Collections;
 */
 class Cache : Map {
     var map : Map;
-    var MAX_SIZE : Number = 16;
+    var capacity : Number = 16;
     Cache() : super() {
         this.map = {};
     }
-    Cache(MAX_SIZE : Number) : super() {
-        Assert.assert(MAX_SIZE > 0);
+    Cache(capacity : Number) : super() {
+        Assert.assert(capacity > 0);
         this.map = {};
-        this.MAX_SIZE = MAX_SIZE;
+        this.capacity = capacity;
     }
     fun put(key, value) {
         if (!this.containsKey(key)) {
             super.put(key, value);
-            this.checkMAX_SIZE();
+            this.checkCapacity();
         }
         else {
             super.put(key, value);
         }
     }
-    fun checkMAX_SIZE() {
-        if (len(this) <= this.MAX_SIZE) return;
+    fun checkCapacity() {
+        if (len(this) <= this.capacity) return;
         keySet = this.getKeys();
-        while (len(this) > this.MAX_SIZE) {
+        while (len(this) > this.capacity) {
             this.remove(keySet.get(0));
             keySet.remove(0);
         }
@@ -47,7 +47,7 @@ class LFUCache : Cache {
     LFUCache() : super() {
         this.references = AsymmetricBiMap.create();
     }
-    LFUCache(MAX_SIZE : Number) : super(MAX_SIZE) {
+    LFUCache(capacity : Number) : super(capacity) {
         this.references = AsymmetricBiMap.create();
     }
 
@@ -55,15 +55,15 @@ class LFUCache : Cache {
         this.references.computeIfPresent(key, 1, LFUCache.countRef);
         super.put(key, value);
     }
-    fun checkMAX_SIZE() {
-        if (len(this) <= this.MAX_SIZE) return;
+    fun checkCapacity() {
+        if (len(this) <= this.capacity) return;
         refs = this.references.inverse();
         keySet = refs.getKeys().sort();
-        while (len(this) > this.MAX_SIZE) {
+        while (len(this) > this.capacity) {
             foreach (refKeys : keySet) {
                 foreach (vals : refs.get(refKeys)) {
                     this.remove(vals);
-                    if (len(this) <= this.MAX_SIZE) return;
+                    if (len(this) <= this.capacity) return;
                 }
             }
         }
