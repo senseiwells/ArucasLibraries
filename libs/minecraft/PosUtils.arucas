@@ -1,19 +1,55 @@
+import * from Minecraft;
+import ImmutableList from util.Collections;
+
+DIRECTION_ALL = null;
+DIRECTION_HORIZONTAL = null;
+DIRECTION_VERTICAL = null;
+DIRECTION_X = null;
+DIRECTION_Y = null;
+DIRECTION_Z = null;
+DIRECTION_NONE = null;
+
+
+enum Axis {
+    X,
+    Y,
+    Z,
+    NONE;
+    static fun directionsOf(axis : String | Axis){
+        if (axis.instanceOf(Axis.type)) {
+            axis = axis.getName();
+        }
+        switch (axis.lowercase()) {
+            case "x" -> return DIRECTION_X;
+            case "y" -> return DIRECTION_Y;
+            case "z" -> return DIRECTION_Z;
+        }
+        return DIRECTION_NONE;
+    }
+    static fun of(direction : String | Direction) {
+        if (direction.instanceOf(Direction.type)) {
+            return direction.axis;
+        }
+        return Direction.fromString(direction).axis;
+    }
+}
+
 enum Direction {
-    NORTH(0, 0, -1),
-    EAST(1, 0, 0),
-    SOUTH(0, 0, 1),
-    WEST(-1, 0, 0),
-    UP(0, 1, 0),
-    DOWN(0, -1, 0),
-    NONE(0, 0, 0);
-
+    DOWN(0, -1, 0, Axis.Y),
+    UP(0, 1, 0, Axis.Y),
+    NORTH(0, 0, -1, Axis.Z),
+    SOUTH(0, 0, 1, Axis.Z),
+    WEST(-1, 0, 0, Axis.X),
+    EAST(1, 0, 0, Axis.X),
+    NONE(0, 0, 0, Axis.NONE); //Actual ordinals of minecraft directions.
     var vector;
-
-    Direction(x, y, z) {
+    var axis;
+    Direction(x, y, z, axis) {
         this.vector = new Pos(x, y, z);
+        this.axis = axis;
     }
 
-    fun opposite() {
+    fun getOpposite() {
         switch (this) {
             case Direction.NORTH -> return Direction.SOUTH;
             case Direction.SOUTH -> return Direction.NORTH;
@@ -45,24 +81,44 @@ enum Direction {
         return Direction.NONE;
     }
 
-    fun vec() {
+    fun rotateYClockwise() {
+        return this.right();
+    }
+
+    fun rotateYCounterclockwise() {
+        return this.left();
+    }
+
+    fun getAxis(){
+        return this.axis;
+    }
+
+    fun asVector() {
         return this.vector.copy();
     }
 
-    fun x() {
+    fun getX() {
         return this.vector.getX();
     }
 
-    fun y() {
+    fun getY() {
         return this.vector.getY();
     }
 
-    fun z() {
+    fun getZ() {
         return this.vector.getZ();
     }
 
     fun toString() {
         return this.getName().lowercase();
+    }
+
+    fun isValid(){
+        return this != Direction.NONE;
+    }
+
+    fun multiply(value){
+        return this.vector.multiply(value);
     }
 
     static fun getEntityFacingFirst(entity) {
@@ -114,13 +170,48 @@ enum Direction {
                 return Direction.listClosest(z, x, y);
             }
             return Direction.listClosest(z, y, x);
-            
+
         }
         return [];
     }
 
     static fun listClosest(first, second, third) {
-        return [first, second, third, third.opposite(), second.opposite(), first.opposite()];
+        return [first, second, third, third.getOpposite(), second.getOpposite(), first.getOpposite()];
+    }
+    /**
+    *   Determines Direction from Pos object. If Pos(vec3d) can be converted as 2+ directions Pos(0, 0.5, 0.5) or Pos(0, 0, 0), throws Error.
+    */
+    static fun of(vec3d : Pos) {
+        norm = vec3d.normalize();
+        x, y, z = norm.toList();
+        xSize, ySize, zSize = [Math.abs(x), Math.abs(y), Math.abs(z)];
+        if (xSize > ySize || zSize > ySize) {
+            if (zSize > xSize) {
+                if (z < 0) {
+                    return Direction.NORTH;
+                }
+                else {
+                    return Direction.SOUTH;
+                }
+            }
+            else {
+                if (x < 0) {
+                    return Direction.WEST;
+                }
+                else {
+                    return Direction.EAST;
+                }
+            }
+        }
+        else {
+            if (y < 0) {
+                return Direction.DOWN;
+            }
+            else {
+                return Direction.UP;
+            }
+        }
+        throw new Error("Cannot determine Direction of "+ vec3d);
     }
 
     static fun fromString(string) {
@@ -136,4 +227,26 @@ enum Direction {
         }
         return Direction.NONE;
     }
+    static fun getAllDirections(){
+        return DIRECTION_ALL;
+    }
+
+    static fun getHorizontalDirections(){
+        return DIRECTION_HORIZONTAL;
+    }
+
+    static fun getVerticalDirections(){
+        return DIRECTION_VERTICAL;
+    }
+}
+
+{
+    DIRECTION_ALL = ImmutableList.of(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
+    DIRECTION_HORIZONTAL = ImmutableList.of(Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
+    DIRECTION_VERTICAL = ImmutableList.of(Direction.UP, Direction.DOWN);
+
+    DIRECTION_X = ImmutableList.of(Direction.EAST, Direction.WEST);
+    DIRECTION_Y = ImmutableList.of(Direction.UP, Direction.DOWN);
+    DIRECTION_Z = ImmutableList.of(Direction.SOUTH, Direction.NORTH);
+    DIRECTION_NONE = ImmutableList.of(Direction.NONE);
 }
