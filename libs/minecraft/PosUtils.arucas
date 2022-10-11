@@ -26,7 +26,7 @@ enum Axis {
         }
         return DIRECTION_NONE;
     }
-    static fun of(direction){ //this should be String | Direction
+    static fun of(direction : String | Direction) {
         if (direction.instanceOf(Direction.type)) {
             return direction.axis;
         }
@@ -97,10 +97,6 @@ enum Direction {
         return this.vector.copy();
     }
 
-    fun unitVec(){
-        return this.asVector();
-    }
-
     fun getX() {
         return this.vector.getX();
     }
@@ -121,12 +117,8 @@ enum Direction {
         return this != Direction.NONE;
     }
 
-    fun mult(value){
-        return this.vector.multiply(value);
-    }
-
     fun multiply(value){
-        return this.mult(value);
+        return this.vector.multiply(value);
     }
 
     static fun getEntityFacingFirst(entity) {
@@ -186,6 +178,41 @@ enum Direction {
     static fun listClosest(first, second, third) {
         return [first, second, third, third.getOpposite(), second.getOpposite(), first.getOpposite()];
     }
+    /**
+    *   Determines Direction from Pos object. If Pos(vec3d) can be converted as 2+ directions Pos(0, 0.5, 0.5) or Pos(0, 0, 0), throws Error.
+    */
+    static fun of(vec3d : Pos) {
+        norm = vec3d.normalize();
+        x, y, z = norm.toList();
+        xSize, ySize, zSize = [Math.abs(x), Math.abs(y), Math.abs(z)];
+        if (xSize > ySize || zSize > ySize) {
+            if (zSize > xSize) {
+                if (z < 0) {
+                    return Direction.NORTH;
+                }
+                else {
+                    return Direction.SOUTH;
+                }
+            }
+            else {
+                if (x < 0) {
+                    return Direction.WEST;
+                }
+                else {
+                    return Direction.EAST;
+                }
+            }
+        }
+        else {
+            if (y < 0) {
+                return Direction.DOWN;
+            }
+            else {
+                return Direction.UP;
+            }
+        }
+        throw new Error("Cannot determine Direction of "+ vec3d);
+    }
 
     static fun fromString(string) {
         if (Type.of(string) == String.type) {
@@ -205,11 +232,11 @@ enum Direction {
     }
 
     static fun getHorizontalDirections(){
-        return Direction_HORIZONTAL;
+        return DIRECTION_HORIZONTAL;
     }
 
     static fun getVerticalDirections(){
-        return Direction_VERTICAL;
+        return DIRECTION_VERTICAL;
     }
 }
 
