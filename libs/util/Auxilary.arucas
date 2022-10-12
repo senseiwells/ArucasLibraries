@@ -6,7 +6,7 @@ import ImmutableList from util.Collections;
 
 class Reference {
     Reference() {
-        throw IllegalAccessError("Cannot construct Reference object!");
+        throw new IllegalAccessError("Cannot construct Reference object!");
     }
 
     /**
@@ -23,7 +23,7 @@ class Reference {
 
 class Assert {
     Assert() {
-        throw IllegalAccessError("Cannot construct Assert object!");
+        throw new IllegalAccessError("Cannot construct Assert object!");
     }
 
     /**
@@ -100,15 +100,10 @@ class VarArgs {
     }
 
     fun getOrDefault(index: Number, defaultValue: Object): Object {
-        value = defaultValue;
-        try {
-            value = this.get(index);
-            return value;
+        if (index >= this.size) {
+            return default;
         }
-        catch (error) {
-            return defaultValue;
-        }
-        return value;
+        return this.get(index);;
     }
 
     fun getOrDefault(index: Number, defaultValue: Object, type: Type): Object {

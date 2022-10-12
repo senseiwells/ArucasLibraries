@@ -126,7 +126,7 @@ class Box {
     }
 
     fun toString() {
-        return "Box[" + this.pos1 + " : " + this.pos2 + "]"";
+        return "Box[" + this.pos1 + " : " + this.pos2 + "]";
     }
 }
 
