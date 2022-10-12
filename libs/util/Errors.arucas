@@ -54,7 +54,7 @@ class TypeError: Error {
 
     TypeError(message: String): super(message);
 
-    TypeError(arg1 : Type, arg2 : Type) : super("Expected type " + arg1.getName() + " does not match Given type "+ arg2.getName());
+    TypeError(expected: Type, given: Type) : super("Expected type " + expected.getName() + " does not match given type "+ given.getName());
 }
 
 /**
@@ -63,7 +63,7 @@ class TypeError: Error {
 class IndexError: Error {
     IndexError(): super();
 
-    IndexError(idx : Number) : super("Index " + idx + " is out of bounds!");
+    IndexError(idx: Number) : super("Index " + idx + " is out of bounds!");
 
-    IndexError(idx : Number, bounds : Number) : super("Index " + idx + " is out of bounds "+ bounds + "!");
+    IndexError(idx: Number, bounds: Number) : super("Index " + idx + " is out of bounds, max bound is: " + bounds + "!");
 }

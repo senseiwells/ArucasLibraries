@@ -381,7 +381,7 @@ class BezierCurve /* T */: Transformation {
 }
 
 class Ellipse /* T */: Transformation {
-    var centre: List = [0,0,0];
+    var centre: List = [0, 0, 0];
     var length: Number = 0;
     var width: Number = 0;
     var startingAngle: Number = 0;
