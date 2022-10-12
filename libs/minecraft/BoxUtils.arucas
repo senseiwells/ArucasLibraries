@@ -1,145 +1,132 @@
 import * from Minecraft;
+import IllegalArgumentError from util.Errors;
 
 fun assertNonNegative(args...){
     foreach(arg : args){
-        if(arg <= 0){
-            throw new Error("Argument was 0 or negative number");
+        if (arg <= 0){
+            throw new IllegalArgumentError("Argument was 0 or negative number");
         }
     }
 }
 
 fun getMinPos(startPos : Pos, otherPos : Pos) {
-    return new Pos(Math.min(startPos.getX(), otherPos.getX()),Math.min(startPos.getY(), otherPos.getY()),Math.min(startPos.getZ(), otherPos.getZ()) );
+    return new Pos(Math.min(startPos.getX(), otherPos.getX()), Math.min(startPos.getY(), otherPos.getY()), Math.min(startPos.getZ(), otherPos.getZ()));
 }
 fun getMaxPos(startPos : Pos, otherPos : Pos) {
-    return new Pos(Math.max(startPos.getX(), otherPos.getX()),Math.max(startPos.getY(), otherPos.getY()),Math.max(startPos.getZ(), otherPos.getZ()) );
+    return new Pos(Math.max(startPos.getX(), otherPos.getX()), Math.max(startPos.getY(), otherPos.getY()), Math.max(startPos.getZ(), otherPos.getZ()));
 }
 
-class Box{
+class Box {
     // Box object, always has sorted position 1 to position 2
-    var pos1 : Pos;
-    var pos2 : Pos;
+    var pos1: Pos;
+    var pos2: Pos;
 
-    Box(x : Number, y : Number, z : Number, ex : Number, ey : Number, ez : Number){
-        this.pos1 = new Pos(x,y,z);
-        this.pos2 = new Pos(ex,ey,ez);
+    Box(x1: Number, y1: Number, z1: Number, x2: Number, y2: Number, z2: Number){
+        this.pos1 = new Pos(x1, y1, z1);
+        this.pos2 = new Pos(x2, y2, z2);
         minPos = getMinPos(this.pos1, this.pos2);
         maxPos = getMaxPos(this.pos1, this.pos2);
         this.pos1 = minPos;
         this.pos2 = maxPos;
     }
-    Box(p1, p2){
-        this.pos1 = new Pos(p1);
-        this.pos2 = new Pos(p2);
+
+    Box(vec1: List, vec2: List){
+        this.pos1 = new Pos(vec1);
+        this.pos2 = new Pos(vec2);
         minPos = getMinPos(this.pos1, this.pos2);
         maxPos = getMaxPos(this.pos1, this.pos2);
         this.pos1 = minPos;
         this.pos2 = maxPos;
     }
+
     fun adjustPos(pos){
         this.pos1 = this.pos1.add(pos);
         this.pos2 = this.pos2.add(pos);
     }
-    fun getSize(){
+
+    fun getSize() {
         res = this.pos2.subtract(this.pos1);
-        return (res.getX()+1)* (res.getY()+1)* (res.getZ()+1);
+        return (res.getX() + 1) * (res.getY() + 1) * (res.getZ() + 1);
     }
-    fun getLengthArr(){
+
+    fun getLengthArr() {
         res = this.pos2.subtract(this.pos1);
-        return res.add(1,1,1);
+        return res.add(1, 1, 1);
     }
-    fun divideBlock(blockX : Number, blockY: Number, blockZ: Number){
-        //divides by block X,Y,Z
+
+    fun divideBlock(blockX : Number, blockY: Number, blockZ: Number) {
         assertNonNegative(blockX, blockY, blockZ);
         res = this.pos2.subtract(this.pos1);
-        arr = [];
+        values = [];
         xRange = Math.ceil(res.getX() / blockX);
         yRange = Math.ceil(res.getY() / blockY);
         zRange = Math.ceil(res.getZ() / blockZ);
         foreach (xCount : range(xRange)){
             foreach (yCount : range(yRange)){
                 foreach (zCount : range(zRange)){
-                    area = new DivideArea(xCount * blockX, yCount * blockY , zCount * blockZ, Math.min((xCount+1) * blockX - 1, res.getX()),Math.min((yCount+1) * blockY - 1, res.getY()),Math.min((zCount+1) * blockZ - 1, res.getZ()));
+                    area = new DivideArea(
+                        xCount * blockX, 
+                        yCount * blockY, 
+                        zCount * blockZ, 
+                        Math.min((xCount + 1) * blockX - 1, res.getX()),
+                        Math.min((yCount + 1) * blockY - 1, res.getY()),
+                        Math.min((zCount + 1) * blockZ - 1, res.getZ())
+                    );
                     area.adjustPos(this.pos1);
-                    arr.append(area);
+                    values.append(area);
                 }
             }
         }
-        return arr;
+        return values;
     }
-    fun divideBy(xCount : Number, yCount : Number, zCount : Number){
-        //divides by number
+
+    fun divideBy(xCount: Number, yCount: Number, zCount: Number) {
         res = this.pos2.subtract(this.pos1);
         blockX = Math.ceil(res.getX() / xCount);
         blockY = Math.ceil(res.getY() / yCount);
         blockZ = Math.ceil(res.getZ() / zCount);
         return this.divideBlock(blockX, blockY, blockZ);
     }
-    fun divide8(){
+
+    fun divide8() {
         res = this.pos2.subtract(this.pos1);
-        if(res.getX() < 3 || res.getY() < 3 || res.getZ() < 3){
+        if (res.getX() < 3 || res.getY() < 3 || res.getZ() < 3){
             return [this];
         }
+
         midpoint = this.pos1.add(this.pos2).multiply(0.5).toBlockPos();
-        ret = [];
-        sx = 0;
-        sy = 0;
-        sz = 0;
-        ex = 0;
-        ey = 0;
-        ez = 0;
-        foreach (lambdaSetXlocs :
-            [
-                fun(){
-                        sx = this.pos1.getX();
-                        ex = midpoint.getX();
-                }
-            ,
-                fun(){
-                        sx = midpoint.getX()+1;
-                        ex = this.pos2.getX();
-                }
-            ]) {
-            foreach (lambdaSetYlocs :
-                [
-                    fun(){
-                        sy = this.pos1.getY();
-                        ey = midpoint.getY();
-                    }
-                ,
-                    fun(){
-                        sy = midpoint.getY()+1;
-                        ey = this.pos2.getY();
-                    }
-                ]) {
-                foreach (lambdaSetZlocs :
-                    [
-                        fun(){
-                            sz = this.pos1.getZ();
-                            ez = midpoint.getZ();
-                        }
-                    ,
-                        fun(){
-                            sz = midpoint.getZ()+1;
-                            ez = this.pos2.getZ();
-                        }
-                    ]) {
-                    lambdaSetXlocs();
-                    lambdaSetYlocs();
-                    lambdaSetZlocs();
-                    arr = new DivideArea(sx, sy, sz, ex, ey, ez);
-                    ret.append(arr);
+        values = [];
+
+        xIter = [
+            [this.pos1.getX(), midpoint.getX()],
+            [midpoint.getX() + 1, this.pos2.getX()]
+        ];
+        yIter = [
+            [this.pos1.getY(), midpoint.getY()],
+            [midpoint.getY() + 1, this.pos2.getY()]
+        ];
+        zIter = [
+            [this.pos1.getZ(), midpoint.getZ()],
+            [midpoint.getZ()+1, this.pos2.getZ()]
+        ]
+
+        foreach (x : xIter) {
+            foreach (y : yIter) {
+                foreach (z : zIter) {
+                    values.append(new DivideArea(x[0], y[0], z[0], x[1], y[1], z[1]));
                 }
             }
         }
-        return ret;
+        return values;
     }
-    fun getBlockCount(){
+
+    fun getBlockCount() {
         ref = this.pos2.subtract(this.pos1);
         return (ref.getX() + 1) * (ref.getY() + 1) * (ref.getZ() + 1);
     }
+
     fun toString() {
-        return 'Box['+this.pos1 + ' : '+ this.pos2+']';
+        return "Box[" + this.pos1 + " : " + this.pos2 + "]"";
     }
 }
 
