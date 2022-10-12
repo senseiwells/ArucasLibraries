@@ -1,5 +1,5 @@
 import Stack, LinkedStack from util.Collections;
-import Util from util.Auxilary;
+import Reference from util.Auxilary;
 
 /**
  * Builder class for strings, allowing for
@@ -165,7 +165,7 @@ class CollectionFormatter {
 
     fun checkInStack(collection: Collection): Boolean {
         foreach (element : this.stack) {
-            if (Util.referenceEquality(element, collection)) {
+            if (Reference.equals(element, collection)) {
                 return true;
             }
         }
