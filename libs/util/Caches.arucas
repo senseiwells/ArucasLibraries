@@ -24,7 +24,8 @@ class Cache: Map {
         }
         super.put(key, value);
     }
-    // assert at least 1 space is empty. This function should be called when new item is waiting
+
+    // Assert at least 1 space is empty. This function should be called when new item is waiting
     fun checkCapacity() {
         if (len(this) < this.capacity) {
             return;
