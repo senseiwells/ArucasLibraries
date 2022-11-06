@@ -1,0 +1,82 @@
+import Assert from util.Auxilary;
+import AsymmetricBiMap from util.Collections;
+
+/**
+ * Class Cache - basic Cache object that removes items sequentially.
+ */
+class Cache: Map {
+    var map: Map = {};
+    var capacity : Number = 16;
+
+    Cache(): super();
+    
+    Cache(capacity: Number): super() {
+        Assert.assert(capacity > 0);
+        this.capacity = capacity;
+    }
+
+    fun internalPut(k, v) super.put(k,v);
+
+    fun put(key, value) {
+        had = this.containsKey(key);
+        if (!had) {
+            this.checkCapacity();
+        }
+        super.put(key, value);
+    }
+
+    // Assert at least 1 space is empty. This function should be called when new item is waiting
+    fun checkCapacity() {
+        if (len(this) < this.capacity) {
+            return;
+        }
+        keySet = this.getKeys();
+        while (len(this) >= this.capacity) {
+            this.remove(keySet.get(0));
+            keySet.remove(0);
+        }
+    }
+
+    fun clear() {
+        this.map.clear();
+        this.clear();
+    }
+}
+
+/**
+ * LFU (Least Frequently Used) Cache - counts references for objects, clears by count.
+ */
+class LFUCache: Cache {
+    var references: AsymmetricBiMap = AsymmetricBiMap.create();
+
+    LFUCache(): super();
+
+    LFUCache(capacity : Number): super(capacity);
+
+    fun put(key, value) {
+        this.checkCapacity();
+        this.references.computeIfPresent(key, 1, LFUCache.countRef);
+        this.internalPut(key, value);
+    }
+    fun checkCapacity() {
+        if (len(this) < this.capacity) return;
+        refs = this.references.inverse();
+        keySet = refs.getKeys().sort();
+        while (len(this) >= this.capacity) {
+            foreach (refKeys : keySet) {
+                foreach (vals : refs.get(refKeys)) {
+                    this.remove(vals);
+                    if (len(this) < this.capacity) return;
+                }
+            }
+        }
+    }
+    fun clear() {
+        this.references.clear();
+        this.clear();
+    }
+
+    static fun countRef(k, presentValue) {
+        return presentValue + 1;
+    }
+}
