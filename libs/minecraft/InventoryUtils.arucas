@@ -62,7 +62,7 @@ class InventoryUtil {
             Player.get().message(string);
         }
     }
-    static fun swapToItem(itemString : String) {
+    static fun swapToItem(itemString : String | ItemStack | Material) {
         if (InventoryUtil.isCachedItem(itemString)) {
             InventoryUtil.sendDebugMessage("Already had item " + itemString +" in current slot " + InventoryUtil.optionalSelectedSlot());
             return true;
@@ -106,7 +106,7 @@ class InventoryUtil {
         return null;
     }
 
-    static fun setSelectedSlot(slotNum : String) {
+    static fun setSelectedSlot(slotNum : Number) {
         Assert.assert (slotNum >= 0 && slotNum < 9, 'Selected slot number should be between 0 and 8');
         InventoryUtil.selectedSlot = slotNum;
         Player.get().setSelectedSlot(slotNum);
