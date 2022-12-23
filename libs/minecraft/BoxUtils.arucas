@@ -30,9 +30,19 @@ class Box {
         this.pos2 = maxPos;
     }
 
-    Box(vec1: List, vec2: List){
-        this.pos1 = new Pos(vec1);
-        this.pos2 = new Pos(vec2);
+    Box(vec1: List|Pos, vec2: List|Pos){
+        if (Type.of(vec1) != Pos.type){
+            this.pos1 = new Pos(vec1);
+        }
+        else {
+            this.pos1 = vec1;
+        }
+        if (Type.of(vec2) != Pos.type){
+            this.pos2 = new Pos(vec2);
+        }
+        else {
+            this.pos2 = vec2;
+        }
         minPos = getMinPos(this.pos1, this.pos2);
         maxPos = getMaxPos(this.pos1, this.pos2);
         this.pos1 = minPos;
@@ -64,7 +74,7 @@ class Box {
         foreach (xCount : range(xRange)){
             foreach (yCount : range(yRange)){
                 foreach (zCount : range(zRange)){
-                    area = new DivideArea(
+                    area = new Box(
                         xCount * blockX, 
                         yCount * blockY, 
                         zCount * blockZ, 
@@ -108,12 +118,12 @@ class Box {
         zIter = [
             [this.pos1.getZ(), midpoint.getZ()],
             [midpoint.getZ()+1, this.pos2.getZ()]
-        ]
+        ];
 
         foreach (x : xIter) {
             foreach (y : yIter) {
                 foreach (z : zIter) {
-                    values.append(new DivideArea(x[0], y[0], z[0], x[1], y[1], z[1]));
+                    values.append(new Box(x[0], y[0], z[0], x[1], y[1], z[1]));
                 }
             }
         }
