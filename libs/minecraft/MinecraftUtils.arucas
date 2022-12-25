@@ -36,13 +36,3 @@ class MaterialUtils {
     
     static fun getShulkerBoxes() return SHULKERS;
 }
-
-class ItemUtils {
-    static fun getItemAsNbtString(item) {
-        switch (Type.of(item)) {
-            case ItemStack.type -> return item.getFullId() + item.getNbtAsString();
-            case Material.type -> return item.getFullId();
-        }
-        throw new Error("'%s' was not an item".format(item));
-    }
-}

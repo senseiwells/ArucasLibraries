@@ -1,0 +1,46 @@
+import * from Minecraft;
+import IllegalArgumentError from util.Errors;
+
+class NBTUtils {
+    static fun getItemAsNbtString(item): String {
+        switch (Type.of(item)) {
+            case ItemStack.type -> return item.getFullId() + item.getNbtAsString();
+            case Material.type -> return item.getFullId();
+        }
+        throw new Error("'%s' was not an item".format(item));
+    }
+}
+
+class ItemUtils {
+    static fun isShulkerBox(shulker: ItemStack): Boolean {
+        return shulker.getId().contains("shulker_box");
+    }
+
+    static fun getItemsInBlockItem(item: ItemStack): List /* of ItemStack */ {
+        local nbt = item.getNbt();
+        local blockEntityTag = nbt["BlockEntityTag"];
+        if (blockEntityTag == null) {
+            return [];
+        }
+        local items = blockEntityTag["Items"];
+        if (items == null) {
+            return [];
+        }
+        return items.map(fun(itemData) {
+            local stack = ItemStack.of(itemData["id"]);
+            stack.setStackSize(itemData["Count"]);
+            return stack;
+        }); 
+    }
+
+    static fun amountOfInBlockItem(blockItem: ItemStack, wantedItem: Material): Number {
+        local items = ItemUtils.getItemsInBlockItem(blockItem);
+        return items.filter(fun(item) {
+            return item.getMaterial() == wantedItem;
+        }).map(fun(item) {
+            return item.getCount();
+        }).reduce(fun(a, b) {
+            return a + b;
+        });
+    }
+}
