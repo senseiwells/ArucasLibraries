@@ -1,0 +1,23 @@
+import ItemUtils from minecraft.ItemUtils;
+
+class InventoryUtils {
+    static fun getAllSlotsForShulker(): List /* of Number */ {
+        local player = Player.get();
+        local total = player.getTotalSlots();
+        local shulkerSlots = [];
+        for (local slot = 0; slot < total; slot++) {
+            local stack = player.getItemForSlot(slot);
+            if (ItemUtils.isShulkerBox(stack)) {
+                shulkerSlots.append(slot);
+            }
+        }
+        return shulkerSlots;
+    }
+
+    static fun getAllShulkers(): List /* of ItemStack */ {
+        local player = Player.get();
+        return getAllSlotsForShulker().map(fun(slot) {
+            return player.getItemForSlot(slot);
+        });
+    }
+}
