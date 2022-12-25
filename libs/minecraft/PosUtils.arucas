@@ -27,7 +27,7 @@ enum Axis {
         return DIRECTION_NONE;
     }
 
-    static fun of(direction : String | Direction) {
+    static fun of(direction : String) {
         if (direction.instanceOf(Direction.type)) {
             return direction.axis;
         }
