@@ -35,12 +35,14 @@ class ItemUtils {
 
     static fun amountOfInBlockItem(blockItem: ItemStack, wantedItem: Material): Number {
         local items = ItemUtils.getItemsInBlockItem(blockItem);
-        return items.filter(fun(item) {
+        items = items.filter(fun(item) {
             return item.getMaterial() == wantedItem;
         }).map(fun(item) {
             return item.getCount();
-        }).reduce(fun(a, b) {
-            return a + b;
         });
+        if (items.isEmpty()) {
+            return 0;
+        }
+        return items.reduce(fun(a, b) a + b);
     }
 }
