@@ -1,3 +1,7 @@
+import Stack, LinkedStack from util.Collections;
+import Reference from util.Auxilary;
+import IllegalArgumentError from util.Errors;
+
 /**
  * Builder class for strings, allowing for
  * mutable strings that can be appended to
@@ -74,5 +78,180 @@ class StringBuilder {
      */
     fun toString() {
         return this.string;
+    }
+}
+
+class CollectionFormatter {
+    var stack: Stack;
+    var indent: String;
+
+    CollectionFormatter(indent: String) {
+        this.stack = new LinkedStack();
+        this.indent = indent;
+    }
+
+    fun getIndent() {
+        return StringUtil.repeat(this.indent, this.stack.size());
+    }
+
+    fun pretty(object: Object): String {
+        if (object.instanceOf(Map.type)) {
+            return this.prettyMap(object);
+        } else if (object.instanceOf(List.type)) {
+            return this.prettyCollection(object, "[", "]");
+        } else if(object.instanceOf(Set.type)) {
+            return this.prettyCollection(object, "<", ">");
+        } else if (object.instanceOf(Collection.type)) {
+            return this.prettyCollection(object, Type.of(object).getName() + "{", "}");
+        } else {
+            return object.toString();
+        }
+    }
+
+    fun prettyCollection(collection: Collection, prefix: String, suffix: String): String {
+        if (this.checkInStack(collection)) {
+            return prefix + "..." + suffix;
+        }
+
+        if (collection.isEmpty()) {
+            return prefix + suffix;
+        }
+
+        builder = new StringBuilder(prefix + "\n");
+        this.stack.push(collection);
+        innerIndent = this.getIndent();
+
+        iter = collection.iterator();
+        while (iter.hasNext()) {
+            builder + innerIndent + this.pretty(iter.next());
+            if (iter.hasNext()) {
+                builder + ",";
+            }
+            builder + "\n";
+        }
+        this.stack.pop();
+
+        builder + this.getIndent() + suffix;
+        return builder.toString();
+    }
+
+    fun prettyMap(map: Map): String {
+        if (this.checkInStack(map)) {
+            return "{...}";
+        }
+
+        if (map.isEmpty()) {
+            return "{}";
+        }
+
+        builder = new StringBuilder("{\n");
+        this.stack.push(map);
+        innerIndent = this.getIndent();
+
+        iter = map.iterator();
+        while (iter.hasNext()) {
+            key = iter.next();
+            value = map[key];
+            builder + innerIndent + this.pretty(key) + ": " + this.pretty(value);
+            if (iter.hasNext()) {
+                builder + ",";
+            }
+            builder + "\n";
+        }
+        this.stack.pop();
+
+        builder + this.getIndent() + "}";
+        return builder.toString();
+    }
+
+    fun checkInStack(collection: Collection): Boolean {
+        foreach (element : this.stack) {
+            if (Reference.equals(element, collection)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+class StringUtil {
+    static fun repeat(string: String, count: Number): String {
+        builder = new StringBuilder();
+        while (count > 0) {
+            builder.append(string);
+            count--;
+        }
+        return builder.toString();
+    }
+
+    static fun pretty(object: Object): String {
+        return StringUtil.pretty(object, "    ");
+    }
+
+    static fun pretty(object: Object, indentation: String): String {
+        return new CollectionFormatter(indentation).pretty(object);
+    }
+}
+
+
+JavaBase64 = Java.classOf("java.util.Base64");
+JavaString = Java.classOf("java.lang.String");
+
+/**
+ * Utility class for encoding and decoding Base64.
+ *
+ * Thanks to ShiroDev#1821
+ */
+class Base64 {
+    /**
+     * Encodes a list of numbers (bytes) or a string to Base64
+     * and returns a list of numbers (bytes).
+     */
+    static fun encodeToBytes(object: Object): List /* of Number */ {
+        local bytes = Base64.convertToJavaBytes(object);
+        return bytes.toArucas();
+    }
+
+    /**
+     * Encodes a list of numbers (bytes) or a string to Base64
+     * and returns a string.
+     */
+    static fun encodeToString(object: Object): String {
+        local bytes = Base64.convertToJavaBytes(object);
+        return JavaString(JavaBase64.getEncoder().encode(bytes)).toArucas();
+    }
+
+    /**
+     * Decodes a list of numbers (bytes) or a string from Base64
+     * and returns a list of numbers (bytes).
+     */
+    static fun decodeToBytes(object: Object): List /* of Number */ {
+        local bytes = Base64.convertToJavaBytes(object);
+        return JavaBase64.getDecoder().decode(bytes).toArucas();
+    }
+
+    /**
+     * Decodes a list of numbers (bytes) or a string from Base64
+     * and returns a string.
+     */
+    static fun decodeToString(object: Object): String {
+        local bytes = Base64.convertToJavaBytes(object);
+        return JavaString(JavaBase64.getDecoder().decode(bytes)).toArucas();
+    }
+
+    static fun convertToJavaBytes(object: Object): Java {
+        local bytes = null;
+        if (object.instanceOf(String.type)) {
+            bytes = Java.valueOf(object).getBytes();
+        } else if (object.instanceOf(List.type)) {
+            local count = len(object);
+            bytes = Java.byteArray(count);
+            for (local i = 0; i < count; i++) {
+                bytes[i] = Java.byteOf(object[i]);
+            }
+        } else {
+            throw new IllegalArgumentError("Expected String or List of Numbers to encode");
+        }
+        return bytes;
     }
 }

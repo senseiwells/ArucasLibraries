@@ -1,0 +1,128 @@
+import IllegalAccessError, AssertionError, IndexError, TypeError from util.Errors;
+import ImmutableList from util.Collections;
+/**
+ * Miscilaneous methods that do not fit into other categories.
+ */
+
+class Reference {
+    Reference() {
+        throw new IllegalAccessError("Cannot construct Reference object!");
+    }
+
+    /**
+     * Checks whether two objects are the same object.
+     */
+    static fun equals(first: Object, second: Object): Boolean {
+        return first.uniqueHash() == second.uniqueHash();
+    }
+}
+
+/**
+*   class Assert offers static methods .assert(cond, message?), .assertEquals(obj, obj, message?), .assertThrows(errorType, testFunction)
+*/
+
+class Assert {
+    Assert() {
+        throw new IllegalAccessError("Cannot construct Assert object!");
+    }
+
+    /**
+     * Checks if condition is true.
+     */
+    static fun assert(condition: Boolean) {
+        Assert.assert(condition, "Condition was false");
+    }
+
+    static fun assert(condition: Boolean, message: String) {
+        if (!condition) {
+            throw new AssertionError(message);
+        }
+    }
+
+    /**
+     * Checks if argument A is equal to B.
+     */
+    static fun assertEquals(first: Object, second: Object): Boolean {
+        Auxilary.assertEquals(first, second, first.toString() + " was not equal to " + second);
+    }
+
+    static fun assertEquals(first: Object, second: Object, message: String) {
+        if (first != second) {
+            throw new AssertionError(message);
+        }
+    }
+
+    /**
+     * Checks if function B throws error A.
+     */
+    static fun assertThrows(type: Type, block: Function) {
+        if (!type.inheritsFrom(Error.type)) {
+            throw new Error(type.toString() + " does not inherit type Error");
+        }
+        try {
+            block();
+        } catch (error) {
+            if (error.instanceOf(type)) {
+                return;
+            }
+            throw new AssertionError("An incorrect error was thrown: " + error);
+        }
+        throw new AssertionError("No error was thrown");
+    }
+}
+
+/**
+*   class VarArgs : wraps variable arguments, offers .get(idx, type?), .getOrDefault(idx, defaultValue, type?), .getOrElse(idx, type, supplier), .is(idx, type)
+*/
+
+class VarArgs {
+    var arguments: ImmutableList;
+    var size: Number;
+
+    VarArgs(args: Iterable) {
+        this.arguments = new ImmutableList(args);
+        this.size = this.arguments.size();
+    }
+
+    fun get(index: Number): Object {
+        if (index >= this.size) {
+            throw new IndexError(index, this.size);
+        }
+        return this.arguments.get(i);
+    }
+
+    fun get(index: Number, type: Type): Object {
+        value = this.get(index);
+        if (!value.instanceOf(type)) {
+            throw new TypeError(type, Type.of(value));
+        }
+        return value;
+    }
+
+    fun getOrDefault(index: Number, defaultValue: Object): Object {
+        if (index >= this.size) {
+            return default;
+        }
+        return this.get(index);;
+    }
+
+    fun getOrDefault(index: Number, defaultValue: Object, type: Type): Object {
+        value = this.getOrDefault(index, defaultValue);
+        if (!value.instanceOf(type)) {
+            throw new TypeError(type, Type.of(value));
+        }
+        return value;
+    }
+
+    fun getOrElse(index: Number, type: Type, supplier: Function): Object {
+        value = this.get(index);
+        if (value.instanceOf(type)) {
+            return value;
+        }
+        return supplier();
+    }
+
+    fun is(index: Number, type: Type): Boolean {
+        return this.get(index).instanceOf(type);
+    }
+}

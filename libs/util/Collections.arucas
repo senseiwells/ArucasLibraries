@@ -1,13 +1,21 @@
+import UnsupportedError from util.Errors;
 import StringBuilder from util.StringUtils;
 
-// Function that creates a new node
-// cannot be accessed outside this file
+fun unsupported(message: String) {
+    throw new UnsupportedError(message);
+}
+
+// Functions that cannot be accessed outside of this class
 newNode = null;
+newNodeIterator = null;
+
+NULL_PROVIDER = fun() null;
+
 /* private */ {
     class Node {
         var value;
         var next;
-    
+
         Node(value) {
             this.value = value;
             this.next = null;
@@ -21,27 +29,88 @@ newNode = null;
     newNode = fun(value) {
         return new Node(value);
     };
+
+    class NodeIterator: Iterator {
+        var current;
+        NodeIterator(node): super() {
+            this.current = node;
+        }
+
+        fun hasNext() {
+            return this.current != null;
+        }
+
+        fun next() {
+            current = this.current;
+            this.current = current.next;
+            return current;
+        }
+    }
+
+    newNodeIterator = fun(node) {
+        return new NodeIterator(node);
+    };
+}
+
+interface Stack {
+    fun isEmpty();
+
+    fun push(value);
+
+    fun pop();
+
+    fun peek();
+
+    fun contains(object);
+}
+
+interface Queue {
+    fun isEmpty();
+
+    fun enqueue(value);
+
+    fun dequeue();
+
+    fun front();
+
+    fun end();
+
+    fun contains(object);
 }
 
 /**
  * Stack data strucutre using linked nodes
  * FIFO with basic methods
  */
-class LinkedStack {
+class LinkedStack: Collection, Stack {
+    /**
+     * Size of the stack
+     */
+    var size: Number = 0;
+    /**
+     * Current node of the stack
+     */
     var current;
 
     /**
      * Constructs a new LinkedStack
      */
-    LinkedStack() {
+    LinkedStack(): super() {
         this.current = null;
+    }
+
+    /**
+     * Returns the current size of the collection
+     */
+    fun size(): Number {
+        return this.size;
     }
 
     /**
      * Checks if the stack is empty
      * Returns - Boolean: whether the stack is empty
      */
-    fun isEmpty() {
+    fun isEmpty(): Boolean {
         return this.current == null;
     }
 
@@ -53,6 +122,7 @@ class LinkedStack {
         nextNode = newNode(value);
         nextNode.next = this.current;
         this.current = nextNode;
+        this.size++;
     }
 
     /**
@@ -60,12 +130,13 @@ class LinkedStack {
      * Returns - Value: the value that was at the top
      * Throws - Error: Stack is empty
      */
-    fun pop() {
+    fun pop(): Object {
         if (this.isEmpty()) {
             throw new Error("Stack is empty");
         }
         currentNode = this.current;
         this.current = this.current.next;
+        this.size--;
         return currentNode.value;
     }
 
@@ -74,11 +145,24 @@ class LinkedStack {
      * Returns - Value: the value at the top of stack
      * Throws - Error: Stack is empty
      */
-    fun peek() {
+    fun peek(): Object {
         if (this.isEmpty()) {
             throw new Error("Stack is empty");
         }
         return this.current.value;
+    }
+
+    fun iterator(): Iterator {
+        return newNodeIterator(this.current);
+    }
+
+    fun contains(object): Boolean {
+        foreach (element : this) {
+            if (element == object) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -86,7 +170,7 @@ class LinkedStack {
      * with the top of the stack being first
      * Returns - List: the stack as a list
      */
-    fun toList() {
+    fun toList(): List {
         list = [];
         current = this.current;
         while (current != null) {
@@ -101,7 +185,7 @@ class LinkedStack {
      * of the stack
      * Returns - String: the string representation
      */
-    fun toString() {
+    fun toString(): String {
         builder = new StringBuilder("Stack{");
         current = this.current;
         while (current != null) {
@@ -119,7 +203,11 @@ class LinkedStack {
  * Queue data strucutre using linked nodes
  * FILO with basic methods
  */
-class LinkedQueue {
+class LinkedQueue: Collection, Queue {
+    /**
+     * Size of the queue
+     */
+    var size: Number = 0;
     /**
      * The node that is at the
      * front of the queue
@@ -134,15 +222,22 @@ class LinkedQueue {
     /**
      * Constructs a new LinkedQueue
      */
-    LinkedQueue() {
+    LinkedQueue(): super() {
         this.head = this.tail = null;
+    }
+
+    /**
+     * Returns the current size of the collection
+     */
+    fun size(): Number {
+        return this.size;
     }
 
     /**
      * Checks whether the queue is empty
      * Returns - Boolean: whether the queue is empty
      */
-    fun isEmpty() {
+    fun isEmpty(): Boolean {
         return this.head == null;
     }
 
@@ -157,6 +252,7 @@ class LinkedQueue {
         } else {
             this.tail = this.tail.next = nextNode;
         }
+        this.size++;
     }
 
     /**
@@ -164,12 +260,13 @@ class LinkedQueue {
      * Returns - Value: the value at the start of the queue
      * Throws - Error: Queue is empty
      */
-    fun dequeue() {
+    fun dequeue(): Object {
         if (this.isEmpty()) {
             throw new Error("Queue is empty");
         }
         head = this.head;
         this.head = this.head.next;
+        this.size--;
         return head.value;
     }
 
@@ -178,7 +275,7 @@ class LinkedQueue {
      * Returns - Value: the value at the front of the queue
      * Throws - Error: Queue is empty
      */
-    fun front() {
+    fun front(): Object {
         if (this.isEmpty()) {
             throw new Error("Queue is empty");
         }
@@ -190,11 +287,24 @@ class LinkedQueue {
      * Returns - Value: the value at the end of the queue
      * Throws - Error: Queue is empty
      */
-    fun end() {
+    fun end(): Object {
         if (this.isEmpty()) {
             throw new Error("Queue is empty");
         }
         return this.tail.value;
+    }
+
+    fun iterator(): Iterator {
+        return newNodeIterator(this.head);
+    }
+
+    fun contains(object): Boolean {
+        foreach (element : this) {
+            if (element == object) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -202,7 +312,7 @@ class LinkedQueue {
      * with the start of the queue being first
      * Returns - List: the queue as a list
      */
-    fun toList() {
+    fun toList(): List {
         list = [];
         head = this.head;
         while (head != null) {
@@ -217,7 +327,7 @@ class LinkedQueue {
      * of the queue
      * Returns - String: the string representation
      */
-    fun toString() {
+    fun toString(): String {
         builder = new StringBuilder("Queue{");
         head = this.head;
         while (head != null) {
@@ -228,5 +338,548 @@ class LinkedQueue {
             }
         }
         return (builder + "}").toString();
+    }
+}
+
+/**
+ * Deque class that acts as both a Stack and a Queue.
+ * It can be iterated over in both directions.
+ */
+class Deque: Collection, Stack, Queue {
+    var list = [];
+
+    Deque(): super();
+
+    /**
+     * Returns the size of the deque
+     */
+    fun size(): Number {
+        return len(this.list);
+    }
+
+    /**
+     * Returns whether the deque is empty
+     */
+    fun isEmpty(): Boolean {
+        return this.size() == 0;
+    }
+
+    /**
+     * Pushes a value to the end of the deque (top of the stack)
+     */
+    fun push(value: Object) {
+        this.list.append(value);
+    }
+
+    /**
+     * Pops a value off the end of the deque (top of the stack)
+     */
+    fun pop(): Object {
+        this.throwIfEmpty("Cannot pop an empty stack");
+        return this.list.remove(this.size() - 1);
+    }
+
+    /**
+     * Peeks at the end of the deque (top of the stack)
+     */
+    fun peek(): Object {
+        this.throwIfEmpty("Cannot peek an empty stack");
+        return this.list[this.size() - 1];
+    }
+
+    /**
+     * Enqueues a value to the end of the deque (end of the queue)
+     */
+    fun enqueue(value: Object) {
+        this.push(value);
+    }
+
+    /**
+     * Dequeues a value from the front of the deque (front of the queue)
+     */
+    fun dequeue(): Object {
+        this.throwIfEmpty("Cannot dequeue an empty queue");
+        return this.list.remove(0);
+    }
+
+    /**
+     * Peeks at the front of the deque (front of the queue)
+     */
+    fun front(): Object {
+        this.throwIfEmpty("Cannot peek an empty queue");
+        return this.list[0];
+    }
+
+    /**
+     * Peeks at the end of the deque (end of the queue)
+     */
+    fun end(): Object {
+        this.throwIfEmpty("Cannot peek an empty queue");
+        return this.peek();
+    }
+
+    /**
+     * Gets the iterator for the deque, in the order of a queue.
+     * First item will be at the start of the deque.
+     */
+    fun iterator(): Iterator {
+        return this.list.iterator();
+    }
+
+    /**
+     * Gets the iterator for the deque, in the order of a stack.
+     */
+    fun reverseIterator(): Iterator {
+        return this.list.copy().reverse().iterator();
+    }
+
+    fun contains(object): Boolean {
+        return this.list.contains(object);
+    }
+
+    fun throwIfEmpty(message: String) {
+        if (this.isEmpty()) {
+            throw new Error(message);
+        }
+    }
+
+    fun toString(): String {
+        builder = new StringBuilder("Deque{");
+        iter = this.iterator();
+        while (iter.hasNext()) {
+            next = iter.next();
+            builder.append(next.toString());
+            if (iter.hasNext()) {
+                builder.append(", ");
+            }
+        }
+        return (builder + "}").toString();
+    }
+
+    operator [] (index: Number) {
+        return this.list[index];
+    }
+}
+
+/**
+ * Immutable List implementation.
+ * List that cannot be modified.
+ */
+class ImmutableList: List {
+    static var EMPTY = ImmutableList.of();
+
+    ImmutableList(values: Iterable): super() {
+        foreach (value : values) {
+            super.append(value);
+        }
+    }
+
+    fun set(object: Object, index: Number) unsupported("Cannot set in an immutable list");
+
+    fun remove(index: Number) unsupported("Cannot remove from an immutable list");
+
+    fun append(object: Object) unsupported("Cannot append to an immutable list");
+
+    fun prepend(object: Object) unsupported("Cannot prepend to an immutable list");
+
+    fun insert(object: Object, index: Number) unsupported("Cannot insert to an immutable list");
+
+    fun addAll(collection: Collection) unsupported("Cannot add all to an immutable list");
+
+    fun removeAll(collection: Collection) unsupported("Cannot remove all from an immutable list");
+
+    fun retainAll(collection: Collection) unsupported("Cannot retain all from an immutable list");
+
+    fun clear() unsupported("Cannot clear an immutable list");
+
+    fun sort() unsupported("Cannot sort an immutable list");
+
+    fun sort(comparator: Function) unsupported("Cannot sort an immutable list");
+
+    fun reverse() unsupported("Cannot reverse an immutable list");
+
+    fun shuffle() unsupported("Cannot shuffle an immutable list");
+
+    fun copy() {
+        return this;
+    }
+
+    fun copyMutable() {
+        return [].addAll(this);
+    }
+
+    operator [] (index, value) {
+        return this.set(value, index);
+    }
+
+    static fun of(values...): ImmutableList {
+        return new ImmutableList(values);
+    }
+}
+
+class ImmutableSet: Set {
+    static var EMPTY = ImmutableSet.of();
+
+    ImmutableSet(values: Iterable): super() {
+        foreach (value : values) {
+            super.add(value);
+        }
+    }
+
+    fun add(value: Object) unsupported("Cannot add to an immutable set");
+
+    fun addAll(collection: Collection) unsupported("Cannot add to an immutable set");
+
+    fun remove(value: Object) unsupported("Cannot remove from an immutable set");
+
+    fun removeAll(collection: Collection) unsupported("Cannot remove from an immutable set");
+
+    fun clear() unsupported("Cannot clear an immutable set");
+
+    static fun of(values...): ImmutableSet {
+        return new ImmutableSet(values);
+    }
+}
+
+class ImmutableMap: Map {
+    static var EMPTY = ImmutableMap.of();
+
+    ImmutableMap(map: Map): super() {
+        super.putAll(map);
+    }
+
+    fun clear() unsupported("Cannot clear an immutable map");
+
+    fun put(key, value) unsupported("Cannot put into an immutable map");
+
+    fun putAll(map) unsupported("Cannot put into an immutable map");
+
+    fun putIfAbsent(key, value) unsupported("Cannot put into an immutable map");
+
+    fun remove(key) unsupported("Cannot remove from an immutable map");
+
+    operator [] (index, value) {
+        return this.put(index, value);
+    }
+
+    static fun of(args...): ImmutableMap {
+        size = len(args);
+        if (Math.mod(size, 2) != 0) {
+            throw new Error("Expected even amount of arguments; (key, value) pairs");
+        }
+        map = {};
+        for (local i = 0; i < size; i++) {
+            map[args[i]] = args[i++];
+        }
+        return new ImmutableMap(map);
+    }
+}
+
+class DefaultedMap: Map {
+    var defaultValue = null;
+
+    DefaultedMap(): super();
+
+    DefaultedMap(defaultValue): super() {
+        this.defaultValue = defaultValue;
+    }
+
+    DefaultedMap(items, defaultValue) : super() {
+        this.defaultValue = defaultValue;
+        foreach (item : items) {
+            this.put(item, this.defaultValue);
+        }
+    }
+
+    static fun createFrom(iterable : Iterable, defaultValue) {
+        map = new DefaultedMap(defaultValue);
+        map.addAll(iterable);
+        return map;
+    }
+
+    fun addAll(values : Iterable) {
+        foreach (item : values) {
+            this.put(item, this.defaultValue);
+        }
+    }
+    fun addAll(values : Iterable, specificValue : Object) {
+        foreach (item : values) {
+            this.put(item, specificValue);
+        }
+    }
+    
+    fun put(key) {
+        return this.put(key, this.defaultValue);
+    }
+
+    fun poll() {
+        if (!this.isEmpty()) {
+            return this.getKeys().get(0);
+        }
+        return null;
+    }
+
+    fun get(key) {
+        value = super.get(key);
+        if (value == null) {
+            return this.defaultValue;
+        }
+        return value;
+    }
+}
+
+
+/**
+ * Class BiMap : BiMap contains key, value pair as {a : val1, ...}, {val1 : a}
+ * offers inverse() method to get view of inverted BiMap
+ * throws IllegalArgumentError when duplicate key-value pair is inputed
+ */
+class BiMap: Map {
+    var inverse: BiMap | Null;
+
+    var front: Map;
+    var back: Map;
+
+    BiMap(): super() {
+        this.front = {};
+        this.back = {};
+    }
+
+    BiMap(inverse: BiMap): super() {
+        this.front = inverse.back;
+        this.back = inverse.front;
+        this.inverse = inverse;
+    }
+
+    // Override
+    fun clear() {
+        this.front.clear();
+        this.back.clear();
+    }
+
+    // Override
+    fun containsKey(key: Object): Boolean {
+        return this.front.containsKey(key);
+    }
+
+    // Override
+    fun get(key: Object): Object {
+        return this.front.get(key);
+    }
+
+    // Override
+    operator [] (key) {
+        return this.get(key);
+    }
+
+    // Override
+    fun getKeys(): Collection {
+        return this.front.getKeys();
+    }
+
+    // Override
+    fun getValues(): Collection {
+        return this.back.getKeys();
+    }
+
+    // Override
+    fun map(mapper: Function): Map {
+        return this.front.map(mapper);
+    }
+
+    // Override
+    fun put(key: Object, value: Object): Null {
+        if (this.containsKey(key) && value != this.get(key)) {
+            throw new IllegalArgumentError("Cannot input duplcate key " + key + " for value : "+ value + ", use BiMap.forcePut(key, value) to replace!");
+        }
+        if (this.containsValue(value) && key != this.getKey(value)) {
+            throw new IllegalArgumentError("Cannot input duplcate value " + value + " for key : "+ key + ", use BiMap.forcePut(key, value) to replace!");
+        }
+        this.front.put(key, value);
+        this.back.put(value, key);
+    }
+
+    // Override
+    operator [] (key, value) {
+        return this.put(key, value);
+    }
+
+    // Override
+    fun putAll(other: Map) {
+        foreach (key : other) {
+            this[key] = other[key];
+        }
+    }
+
+    // Override
+    fun putIfAbsent(key: Object, value: Object): Boolean {
+        if (this.containsKey(key) || this.containsValue(value)) {
+            return false;
+        }
+        this[key] = value;
+        return true;
+    }
+
+    // Override
+    fun remove(key: Object): Object {
+        if (this.containsKey(key)) {
+            value = this.front.remove(key);
+            this.back.remove(value);
+            return value;
+        }
+        return null;
+    }
+
+    fun getKey(value: Object) {
+        return this.back.get(value);
+    }
+
+    /**
+     * BiMap.computeIfPresent(k, v, mappingFunction(k, v)) -> if (k,ev) is present, compute mappedValue
+     * from mappingFunction(k, ev), then replaces (k,ev) with (k, mappedValue).
+     * returns mappedValue assigned to k.
+     */
+    fun computeIfPresent(key: Object, defaultValue: Object, mappingFunction: Function) {
+        if (this.containsKey(key)) {
+            mv = mappingFunction(key, this[key]);
+            this.remove(key);
+            this.put(key, mv);
+            return mv;
+        } else {
+            this.put(key, defaultValue);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Replace existing entries and assign new key : value pair.
+     */
+    fun forcePut(key: Object, value: Object) {
+        this.remove(key);
+        this.put(key, value);
+    }
+
+    /**
+     * Offers forcePutAll(another Map) method, removes all duplicate connections and puts values.
+     */
+    fun forcePutAll(another: Map) {
+        foreach (key : another) {
+            this.forcePut(key, another[key]);
+        }
+    }
+
+    /**
+     * Creates a new BiMap that with a reverse view.
+     */
+    fun inverse(): BiMap {
+        if (this.inverse == null) {
+            this.inverse = new BiMap(this);
+        }
+        return this.inverse;
+    }
+
+    /**
+     * Creates a new BiMap
+     */
+    static fun create() {
+        return new BiMap();
+    }
+}
+
+
+/**
+ * Class AsymmetricBiMap : BiMap which allows (k1, k2, k3...) -> v1, but not (v1, v2, v3...) -> k1.
+ * Offers inverse() method, but put() method will not work anymore.
+ */
+class AsymmetricBiMap : BiMap {
+    var inverted: Boolean = false;
+
+    AsymmetricBiMap() : super();
+
+    AsymmetricBiMap(inverse: AsymmetricBiMap): super(inverse) {
+        this.inverted = true;
+    }
+
+    /**
+    * overrides put(key, value) in BiMap, mapped results are now assigned as Set.
+    * put(k, v, ?r) replaces existing value.
+    **/
+    fun put(key, value) {
+        if (this.inverted) {
+            unsupported("Cannot invoke method put(k,v) for inverted AsymmetricBiMap");
+        }
+        if (this.containsKey(key)) {
+            throw new IllegalArgumentError("Cannot input duplcate key " + key + " for value : "+ value + ", use BiMap.forcePut(key, value) to replace!");
+        } else {
+            this.front.put(key, value);
+        }
+        if (this.containsValue(value)) {
+            this.getKey(value).add(key);
+        } else {
+            this.back.put(value, Set.of(key));
+        }
+    }
+
+    /**
+     * Overrides put(key, value) in BiMap, mapped results are now assigned as Set.
+     * put(k, v, ?r) replaces existing value.
+     */
+    fun forcePut(key, value) {
+        if (this.inverted) {
+            unsupported("Cannot invoke method put(k,v) for inverted AsymmetricBiMap");
+        }
+        if (this.containsKey(key)) {
+            this.remove(key);
+        }
+        this.put(key, value);
+    }
+
+    /**
+     * Removes key -> value connection from AsymmetricBiMap
+     */
+    fun remove(k) {
+        if (this.inverted) unsupported("Cannot invoke method remove(k) for inverted AsymmetricBiMap");
+        if (this.containsKey(k)) {
+            v = this.get(k);
+            this.front.remove(k);
+            valueSet = this.back.get(v);
+            valueSet.remove(k);
+            if (valueSet.isEmpty()) this.back.remove(v);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * AsymmetricBiMap.containsPair(k,v) returns true if correct pair of k,v exists.
+     */
+    fun containsPair(k, v) {
+        if (this.inverted) {
+            unsupported("Cannot invoke method containsPair(k,v) for inverted AsymmetricBiMap");
+        }
+        return this.containsKey(k) && v == this.get(k);
+    }
+
+    /**
+     * AsymmetricBiMap.computeIfPresent(k, v, mappingFunction(k, v)) -> if (k,?ev) is present.
+     * Compute mappedValue from mappingFunction(k, ev), then replaces (k,ev) with (k, mappedValue). else, put (k,v).
+     * returns mappedValue assigned to k.
+     */
+    fun computeIfPresent(key, defaultValue, mappingFunction) {
+        if (this.inverted) {
+            unsupported("Cannot invoke method compute(k,v,f) for inverted AsymmetricBiMap");
+        }
+        return super.computeIfPresent(key, defaultValue, mappingFunction);
+    }
+
+    fun inverse() {
+        if (this.inverse == null) {
+            this.inverse = new AsymmetricBiMap(this);
+        }
+        return this.inverse;
+    }
+
+    static fun create() {
+        return new AsymmetricBiMap();
     }
 }

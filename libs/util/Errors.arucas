@@ -1,0 +1,69 @@
+/**
+ * This error is generally for methods that
+ * have been inherited by a child but are
+ * not supported by it.
+ */
+class UnsupportedError: Error {
+    UnsupportedError(): super();
+
+    UnsupportedError(message: String): super(message);
+}
+
+/**
+ * This error should be thrown when
+ * null is found when not expected.
+ */
+class NullError: Error {
+    NullError(): super();
+
+    NullError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when condition check returned false.
+ */
+class AssertionError: Error {
+    AssertionError(): super();
+
+    AssertionError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when argument was invalid.
+ */
+class IllegalArgumentError: Error {
+    IllegalArgumentError(): super();
+
+    IllegalArgumentError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when illegal access happens.
+ */
+class IllegalAccessError: Error {
+    IllegalAccessError(): super();
+
+    IllegalAccessError(message: String): super(message);
+}
+
+/**
+ * This error is thrown when Type Error happens.
+ */
+class TypeError: Error {
+    TypeError(): super();
+
+    TypeError(message: String): super(message);
+
+    TypeError(expected: Type, given: Type) : super("Expected type " + expected.getName() + " does not match given type "+ given.getName());
+}
+
+/**
+ * This error is thrown when Index Error happens.
+ */
+class IndexError: Error {
+    IndexError(): super();
+
+    IndexError(idx: Number) : super("Index " + idx + " is out of bounds!");
+
+    IndexError(idx: Number, bounds: Number) : super("Index " + idx + " is out of bounds, max bound is: " + bounds + "!");
+}
