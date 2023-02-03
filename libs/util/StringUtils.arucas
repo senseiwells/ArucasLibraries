@@ -1,5 +1,6 @@
 import Stack, LinkedStack from util.Collections;
 import Reference from util.Auxilary;
+import IllegalArgumentError from util.Errors;
 
 /**
  * Builder class for strings, allowing for
@@ -189,5 +190,68 @@ class StringUtil {
 
     static fun pretty(object: Object, indentation: String): String {
         return new CollectionFormatter(indentation).pretty(object);
+    }
+}
+
+
+JavaBase64 = Java.classOf("java.util.Base64");
+JavaString = Java.classOf("java.lang.String");
+
+/**
+ * Utility class for encoding and decoding Base64.
+ *
+ * Thanks to ShiroDev#1821
+ */
+class Base64 {
+    /**
+     * Encodes a list of numbers (bytes) or a string to Base64
+     * and returns a list of numbers (bytes).
+     */
+    static fun encodeToBytes(object: Object): List /* of Number */ {
+        local bytes = Base64.convertToJavaBytes(object);
+        return bytes.toArucas();
+    }
+
+    /**
+     * Encodes a list of numbers (bytes) or a string to Base64
+     * and returns a string.
+     */
+    static fun encodeToString(object: Object): String {
+        local bytes = Base64.convertToJavaBytes(object);
+        return JavaString(JavaBase64.getEncoder().encode(bytes)).toArucas();
+    }
+
+    /**
+     * Decodes a list of numbers (bytes) or a string from Base64
+     * and returns a list of numbers (bytes).
+     */
+    static fun decodeToBytes(object: Object): List /* of Number */ {
+        local bytes = Base64.convertToJavaBytes(object);
+        return JavaBase64.getDecoder().decode(bytes).toArucas();
+    }
+
+    /**
+     * Decodes a list of numbers (bytes) or a string from Base64
+     * and returns a string.
+     */
+    static fun decodeToString(object: Object): String {
+        local bytes = Base64.convertToJavaBytes(object);
+        return JavaString(JavaBase64.getDecoder().decode(bytes)).toArucas();
+    }
+
+    static fun convertToJavaBytes(object: Object): Java {
+        local bytes = null;
+        if (object.instanceOf(String.type)) {
+            bytes = Java.valueOf(object).getBytes();
+        } else if (object.instanceOf(List.type)) {
+            local count = len(object);
+            bytes = Java.byteArray(count);
+            for (local i = 0; i < count; i++) {
+                bytes[i] = Java.byteOf(object[i]);
+            }
+        } else {
+            throw new IllegalArgumentError("Expected String or List of Numbers to encode");
+        }
+        return bytes;
     }
 }
