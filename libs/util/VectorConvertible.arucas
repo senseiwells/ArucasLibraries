@@ -1,0 +1,18 @@
+import Vec3d from util.Vectors;
+
+DEFAULT_DISMANTLER = fun(a) a.toList();
+DEFAULT_FACTORY = fun(x, y, z) new Vec3d(x, y, z);
+
+class VectorConvertible /* T */ {
+    // Takes in type T and returns a triple
+    var dismantler: Function = DEFAULT_DISMANTLER;
+    // Takes in x, y, z and returns type T
+    var factory: Function = DEFAULT_FACTORY;
+
+    VectorConvertible(); // Defaults
+
+    VectorConvertible(dismantler: Function, factory: Function) {
+        this.dismantler = dismantler;
+        this.factory = factory;
+    }
+}

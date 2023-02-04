@@ -1,0 +1,111 @@
+import VectorConvertible from VectorConvertible;
+
+class PerlinNoise /* T */: VectorConvertible { 
+    var vectorGrid = {};
+    var vector2dGrid = {};
+
+    PerlinNoise(): super();
+
+    PerlinNoise(dismantler: Function): this() {
+        this.dismantler = dismantler;
+    }
+
+    fun calculatePerlinValue(pos /* T */): Number {
+        posX, posY, posZ = this.dismantler(pos);
+        fPosX = Math.floor(posX);
+        fPosY = Math.floor(posY);
+        fPosZ = Math.floor(posZ);
+        diffPosX = posX - fPosX;
+        diffPosY = posY - fPosY;
+        diffPosZ = posZ - fPosZ;
+
+        vectorList = [];
+        for (i = 0; i < 2; i++) {
+            x = fPosX + i;
+            if (!this.vectorGrid.containsKey(x)) {
+                this.vectorGrid[x] = {};
+            }
+            for (j = 0; j < 2; j++) {
+                y = fPosY + j;
+                if (!this.vectorGrid[x].containsKey(y)) {
+                    this.vectorGrid[x][y] = {};
+                }
+                for (k = 0; k < 2; k++) {
+                    z = fPosZ + k;
+                    if (!this.vectorGrid[x][y].containsKey(z)) {
+                        angle1 = Math.toRadians(random(360));
+                        angle2 = Math.toRadians(random(360));
+                        this.vectorGrid[x][y][z] = [Math.cos(angle1), Math.sin(angle1), Math.sin(angle2)];
+                        //this.vectorGrid[x][y][z] = [random(3)-1, random(3)-1, random(3)-1)];
+                    }
+                    vectorList.append([x, y, z]);
+                }
+            }
+        }
+
+        dotProductList = [];
+        for (i = 0; i < 2; i++) {
+            for (j = 0; j < 2; j++) {
+                for (k = 0; k < 2; k++) {
+                    x = fPosX + i;
+                    y = fPosY + j;
+                    z = fPosZ + k;
+                    cX, cY, cZ = this.vectorGrid[x][y][z];
+                    dotProductList.append(cX * (diffPosX - i) + cY * (diffPosY - j) + cZ * (diffPosZ - k));
+                }
+            }
+        }
+
+        interpolationLevel1 = [];
+        for (i = 0; i < 8; i = i + 2) {
+            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], diffPosZ));
+        }
+        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], diffPosY);
+        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], diffPosY);
+        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
+    }
+
+    // 2d Noise
+    fun calculatePerlinValue(inputX: Number, inputZ: Number): Number {
+        fPosX = Math.floor(inputX);
+        fPosZ = Math.floor(inputZ);
+        diffPosX = inputX - fPosX;
+        diffPosZ = inputZ - fPosZ;
+
+        vectorList = [];
+        for (i = 0; i < 2; i++){
+            x = fPosX + i;
+            if (!this.vector2dGrid.containsKey(x)) {
+                this.vector2dGrid[x] = {};
+            }
+            for (k = 0; k < 2; k++){
+                z = fPosZ + k;
+                if(!this.vector2dGrid[x].containsKey(z)) {
+                    this.vector2dGrid[x][z] = [random(3) - 1, 0, random(3) - 1];
+                }
+            }
+        }
+
+        dotProductList = [];
+        for (i = 0; i < 2; i++) {
+            for (k = 0; k < 2; k++) {
+                x = fPosX + i; y = 0; z = fPosZ + k;
+                cornerVector = this.vector2dGrid[x][z];
+                dotProduct = cornerVector[0]* (diffPosX - i) + cornerVector[2]* (diffPosZ - k);
+                dotProductList.append(dotProduct);
+            }
+        }
+        
+        interpolatedNumber1 = this.interpolate(dotProductList[0], dotProductList[1], diffPosZ);
+        interpolatedNumber2 = this.interpolate(dotProductList[2], dotProductList[3], diffPosZ);
+        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
+    }
+
+    fun interpolate(number1: Number, number2: Number, weight: Number): Number {
+        return number1 + this.fadeFunction(weight) * (number2 - number1);
+    }
+
+    fun fadeFunction(number: Number): Number {
+        return (6 * number ^ 5) - (15 * number ^ 4) + (10 * number ^ 3);
+    }
+}
