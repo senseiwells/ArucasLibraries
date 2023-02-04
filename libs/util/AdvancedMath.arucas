@@ -193,7 +193,7 @@ class Transformation /* T */: VectorConvertible {
             }
         }
 
-        polarCoordinate = PolarCoordinates.toPolarCoordinates(coordinate2D[0], coordinate2D[1]);
+        polarCoordinate = PolarCoordinates.toPolarCoordinates2d(coordinate2D[0], coordinate2D[1]);
         polarCoordinate[0] = polarCoordinate[0] - amount;
         rotated2DCoordinate = PolarCoordinates.toCartesianCoordinates(polarCoordinate[0], polarCoordinate[1]);
 
@@ -449,8 +449,61 @@ class Ellipse /* T */: Transformation {
     }
 }
 
-class PolarCoordinates {
-    static fun toPolarCoordinates(x, y): List {
+class PolarCoordinates3d {
+    var angleZ: Number = 0;
+    var angleXY: Number = 0;
+    var r: Number = 0;
+
+    PolarCoordinates3d(Vec3d: Vec3d){
+        angleZ = Math.arctan(Math.sqrt(Vec3d.x ^ 2 + Vec3d.y ^ 2) / Vec3d.z);
+        angleXY = Math.arcsin(Vec3d.y / Vec3d.x);
+        r = Math.sqrt(Vec3d.x ^ 2 + Vec3d.y ^ 2 + Vec3d.z ^ 2);
+        return new PolarCoordinates3d(angleZ,angleXY,r);
+    } 
+
+    PolarCoordinates3d(angleZ: Number, angleXY: Number, r: Number){
+        this.angleZ = angleZ;
+        this.angleXY = angleXY;
+        this.r = r;
+    }
+    PolarCoordinates3d(): this(0,0,0){        
+    }
+
+    fun getAngleZ(): Number {
+        return this.angleZ;
+    }
+    fun getAngleXY(): Number {
+        return this.angleXY;
+    }
+    fun getRadius(): Number {
+        return this.r;
+    }
+
+    fun setAngleZ(): Number {
+        return new PolarCoordinates3d(angleZ, this.angleXY, this.r);
+    }
+    fun setAngleXY(): Number {
+        return new PolarCoordinates3d(this.angleZ, angleXY, this.r);
+    }
+    fun setRadius(): Number {
+        return new PolarCoordinates3d(this.angleZ, this.angleXY, r);
+    }
+
+    fun toCartesianCoordinates(): Vec3d {
+        x = this.r * Math.sin(this.angleZ)*Math.cos(this.angleXY);
+        y = this.r * Math.sin(this.angleZ)*Math.sin(this.angleXY);
+        z = this.r * Math.cos(this.angleZ);
+        return new Vec3d(x, y, z);
+    }
+
+}
+
+class PolarCoordinates2d {
+    var angleZ: Number = 0;
+    var angleXY: Number = 0;
+    var r: Number = 0;
+
+    static fun fromVec2d(Vec3d: Vec3d){
         angle = Math.arctan(y / x);
         if (x < 0){
             angle = angle + Math.pi;
@@ -459,28 +512,47 @@ class PolarCoordinates {
             angle = 0;
         }
         r = Math.sqrt(x ^ 2 + y ^ 2);
-        return [angle, r]; 
+        return new PolarCoordinates2d(angle,r);
+    } 
+
+    PolarCoordinates2d(Vec2d: Vec2d){
+        angle = Math.arctan(y / x);
+        if (x < 0){
+            angle = angle + Math.pi;
+        }
+        if (angle.isNaN()) {
+            angle = 0;
+        }
+        this.angle = angle;
+        this.r = Math.sqrt(x ^ 2 + y ^ 2);
     }
 
-    static fun toPolarCoordinates(pos): List {
-        x, y, z = pos;
-        return PolarCoordinates.toPolarCoordinates(x, y, z);
+    PolarCoordinates2d(angle: Number, r: Number){
+        this.angle = angle;
+        this.r = r;
+    }
+    PolarCoordinates2d(): this(0,0){        
     }
 
-    static fun toPolarCoordinates(x, y, z): List {
-        angle1 = Math.arctan(Math.sqrt(x ^ 2 + y ^ 2) / z);
-        angle2 = Math.arcsin(y / x);
-        r = Math.sqrt(x ^ 2 + y ^ 2 + z ^ 2);
-        return [angle1, angle2, r];
+    fun getAngle(): Number {
+        return this.angle;
+    }
+    fun getRadius(): Number {
+        return this.r;
     }
 
-    static fun toCartesianCoordinates(angle, r): List {
+    fun setAngle(angle: Number): PolarCoordinates2d {
+        return new PolarCoordinates2d(angle, this.r);
+    }
+    fun setRadius(): PolarCoordinates2d {
+        return new PolarCoordinates2d(this.angle, r);
+    }
+    fun toCartesianCoordinates(): Vec3d {
         x = r * Math.cos(angle);
         y = r * Math.sin(angle);
-        return [x, y];
+        return new Vec2d(x, y);
     }
 }
-
 /* TODO
 class Graph{
     static fun evaluate(function, fnDomain, resolution) { // TODO: multiple parameters for domain/range and inclusive/exculsive specification
@@ -498,7 +570,18 @@ class Vec2d {
     var x: Number = 0;
     var y: Number = 0;
     
-    Vec2d();
+    static fun zeroVector(): Vec2d {
+        return Vec2d.fromScalar(0);
+    }
+
+    static fun fromScalar(s: Number): Vec2d {
+        return new Vec2d(s, s);
+    }
+
+    static fun fromString(string: String): Vec2d {
+        list = string.replaceAll('\\[', "").replaceAll('\\]', "").split(', ');
+        return new Vec2d(list[0].toNumber(), list[1].toNumber());
+    }
 
     Vec2d(x, y) {
         this.x = x;
@@ -509,33 +592,115 @@ class Vec2d {
         this.x, this.y = list;
     }
 
-    // I would avoid using the following:
-    // mutating objects like this may be undesirable
-
-    fun set(v: Vec2d): Vec2d {
-        this.x = v.x;
-        this.y = v.y;
-        return this;
-    }
 
     fun setX(x: Number): Vec2d {
-        this.x = x;
-        return this;
+        return new Vec2d(x, this.y);
     }
 
     fun setY(y: Number): Vec2d {
-        this.y = y;
-        return this;
+        return new Vec2d(this.x, y);
     }
+    //******OPERATORS********   
 
-    // End
+        fun add(v: Vec2d): Vec2d {
+            x = this.x + v.x;
+            y = this.y + v.y;
+            return new Vec2d(x, y);
+        } 
 
-    fun add(v): Vec2d {
-        x = this.x + v.x;
-        y = this.y + v.y;
-        return new Vec2d(x, y);
-    }
+        operator + (v: Vec2d){
+            return this.add(s);
+        }
 
+        fun add(s: number): Vec2d {
+            x = this.x + s;
+            y = this.y + s;
+            return new Vec2d(x, y);
+        }
+
+        operator + (s: number){
+            return this.add(s);
+        }
+
+        fun sub(v: Vec2d): Vec2d {
+            x = this.x - v.x;
+            y = this.y - v.y;
+            return new Vec2d(x, y);
+        }
+            
+        operator - (v: Vec2d){
+            return this.sub(v);
+        }
+
+        fun sub(s: number): Vec2d {
+            x = this.x - s;
+            y = this.y - s;
+            return new Vec2d(x, y);
+        }
+            
+        operator - (s: number){
+            return this.sub(s);
+        }
+
+        fun multiply(v: Vec2d): Vec2d {
+            x = this.x * v.x;
+            y = this.y * v.y;
+            return new Vec2d(x, y);
+        }
+        
+        operator * (v: Vec2d){
+            return this.multiply(v);
+        }
+
+        fun multiply(s: Number): Vec2d {
+            x = this.x * s;
+            y = this.y * s;
+            return new Vec2d(x, y);
+        }
+        
+        operator * (s: number){
+            return this.multiply(s);
+        }
+
+        fun divide(v: Vec2d): Vec2d {
+            if (v.x == 0 || v.y == 0) {
+                return this;
+            }
+            return new Vec2d(this.x / v.x, this.y / v.y);
+        }
+
+        operator / (v: Vec2d){
+            return this.divide(v);
+        }
+
+        fun divide(s: Number): Vec2d {
+            if (s == 0) {
+                return this;
+            }
+            return this.multiply(1 / s);
+        }
+
+        operator / (s: number){
+            return this.divide(s);
+        }
+
+        fun equals(v): Boolean {
+            return v.instanceOf(Vec2d.type) && (v.x == this.x) && (v.y == this.y);
+        }
+        operator == (other): Boolean {
+            return this.equals(other);
+        }
+
+        operator [] (index: Number): Number {
+            if (index == 0) {
+                return this.x;
+            } else if (index == 1) {
+                return this.y;
+            } else {
+                throw new Error("Index "+index +" out of bounds for Vec2d");
+            }
+        }
+    //***********************
     /**
      * Angle in radians to positive x-axis between -pi and pi
      */
@@ -557,20 +722,6 @@ class Vec2d {
         return dx * dx + dy * dy;
     }
 
-    fun divide(v): Vec2d {
-        if (v.x == 0 || v.y == 0) {
-            return this;
-        }
-
-        return new Vec2d(this.x / v.x, this.y / v.y);
-    }
-
-    fun divideScalar(s): Vec2d {
-        if (s == 0) {
-            return this;
-        }
-        return this.multiplyScalar(1 / s);
-    }
 
     fun dot(v): Number {
         return this.x * v.x + this.y * v.y;
@@ -584,20 +735,9 @@ class Vec2d {
         return this.x * this.x + this.y * this.y;
     }
 
-    fun multiply(v): Vec2d {
-        x = this.x * v.x;
-        y = this.y * v.y;
-        return new Vec2d(x, y);
-    }
-
-    fun multiplyScalar(s): Vec2d {
-        x = this.x * s;
-        y = this.y * s;
-        return new Vec2d(x, y);
-    }
-
+    
     fun negate(): Vec2d {
-        return this.multiplyScalar(-1);
+        return this.multiply(-1);
     }
 
     fun normalize(): Vec2d {
@@ -612,41 +752,27 @@ class Vec2d {
     /*
      * Angle in radians
      */
-    fun rotateAround(centre, angle): Vec2d {
-        cos = Math.cos(angle);
-        sin = Math.sin(angle);
-
+    fun rotate(angle: Number, centre: Vec2d): Vec2d {
         x = this.x - centre.x;
         y = this.y - centre.y;
-
-        x = x * cos - y * sin + centre.x;
-        y = x * sin + y * cos + centre.y;
-        return new Vec2d(x, y);
+        return new Vec2d(x * Math.cos(angle) - y * Math.sin(angle), x * Math.sin(angle) + y * Math.cos(angle));
+    }
+    fun rotate(angle: Number): Vec2d {
+        return new Vec2d(this.x * Math.cos(angle) - this.y * Math.sin(angle), this.x * Math.sin(angle) + this.y * Math.cos(angle));
     }
 
     /**
      * Returns new Vector
      */
     fun setLength(length: Number): Vec2d {
-        return this.normalize().multiplyScalar(length);
+        return this.normalize().multiply(length);
     }
 
-    fun sub(v: Vec2d): Vec2d {
-        x = this.x - v.x;
-        y = this.y - v.y;
-        return new Vec2d(x, y);
-    }
 
     fun floor(): Vec2d {
         return new Vec2d(Math.floor(this.x), Math.floor(this.y));
     }
-
-    /**
-     * This should not be used, instead use '=='
-     */
-    fun equals(v): Boolean {
-        return v.instanceOf(Vec2d.type) && (v.x == this.x) && (v.y == this.y);
-    }
+    
 
     fun hashCode(): Number {
         return 31 * (31 * this.x + this.y);
@@ -660,32 +786,6 @@ class Vec2d {
         return new Vec2d(this.x, this.y);
     }
     
-    operator [] (index: Number): Number {
-        if (index == 0) {
-            return this.x;
-        } else if (index == 1) {
-            return this.y;
-        } else {
-            throw new Error("Index out of bounds for Vec: " + index);
-        }
-    }
-
-    operator == (other): Boolean {
-        return this.equals(other);
-    }
-
-    static fun zeroVector(): Vec2d {
-        return Vec2d.fromScalar(0);
-    }
-
-    static fun fromScalar(s: Number): Vec2d {
-        return new Vec2d(s, s);
-    }
-
-    static fun fromString(string: String): Vec2d {
-        list = string.replaceAll('\\[', "").replaceAll('\\]', "").split(', ');
-        return new Vec2d(list[0].toNumber(), list[1].toNumber());
-    }
 
     /**
      * -pi to pi
@@ -702,6 +802,468 @@ class Vec2d {
     }
 }
 
+class Vec3d {
+    var x: Number = 0;
+    var y: Number = 0;
+    var z: Number = 0;
+    
+    static fun zeroVector(): Vec3d {
+        return Vec3d.fromScalar(0);
+    }
+
+    static fun fromScalar(s: Number): Vec3d {
+        return new Vec3d(s, s, s);
+    }
+
+    static fun fromString(string: String): Vec3d {
+        list = string.replaceAll('\\[', "").replaceAll('\\]', "").split(', ');
+        return new Vec3d(list[0].toNumber(), list[1].toNumber(), list[2].toNumber());
+    }
+
+    Vec3d(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    Vec3d(list: List) {
+        this.x, this.y this.z = list;
+    }
+
+
+
+    fun setX(x: Number): Vec3d {
+        return new Vec3d(x, this.y, this.z);
+    }
+
+    fun setY(y: Number): Vec3d {
+        return new Vec3d(this.x, y, this.z);
+    }
+    
+    fun setZ(z: Number): Vec3d {
+        return new Vec3d(this.x, this.y, z);
+    }
+
+
+    //******OPERATORS********   
+
+        fun add(v: Vec3d): Vec3d {
+            return new Vec3d(this.x + v.x, this.y + v.y, this.z + v.z);
+        } 
+
+        operator + (v: Vec3d){
+            return this.add(s);
+        }
+
+        fun add(s: number): Vec3d {
+            return new Vec3d(this.x + s, this.y + s, this.z + s);
+        }
+
+        operator + (s: number){
+            return this.add(s);
+        }
+
+        fun sub(v: Vec3d): Vec3d {
+            return new Vec3d(this.x - v.x, this.y - v.y, this.z - v.z);
+        }
+            
+        operator - (v: Vec3d){
+            return this.sub(v);
+        }
+
+        fun sub(s: number): Vec3d {
+            return new Vec3d(this.x - s, this.y - s, this.z + s);
+        }
+            
+        operator - (s: number){
+            return this.sub(s);
+        }
+
+        fun multiply(v: Vec3d): Vec3d {
+            return new Vec3d(this.x * v.x, this.y * v.y, this.z * v.z);
+        }
+        
+        operator * (v: Vec3d){
+            return this.multiply(v);
+        }
+
+        fun multiply(s: Number): Vec3d {
+            return new Vec3d(this.x * s, this.y * s, this.z * s);
+        }
+        
+        operator * (s: number){
+            return this.multiply(s);
+        }
+
+        fun divide(v: Vec3d): Vec3d {
+            if (v.x == 0 || v.y == 0 || v.z ==0) {
+                return this;
+            }
+            return new Vec3d(this.x / v.x, this.y / v.y, this.z / v.z);
+        }
+
+        operator / (v: Vec3d){
+            return this.divide(v);
+        }
+
+        fun divide(s: Number): Vec3d {
+            if (s == 0) {
+                return this;
+            }
+            return new Vec3d(this.x / s, this.y / s, this.z / s);
+        }
+
+        operator / (s: number){
+            return this.divide(s);
+        }
+
+        fun equals(v): Boolean {
+            return v.instanceOf(Vec3d.type) && (v.x == this.x) && (v.y == this.y) && (v.s == this.s);
+        }
+        operator == (other): Boolean {
+            return this.equals(other);
+        }
+
+        operator ^ (s: Number): Vec3d {
+            return new Vec3d(this.x^s, this.y^s, this.z^s);
+        }
+
+        operator [] (index: Number): Number {
+            if (index == 0) {
+                return this.x;
+            } else if (index == 1) {
+                return this.y;
+            } else if (index == 2) {
+                return this.z;
+            } else {
+                throw new Error("Index "+index +" out of bounds for Vec3d");
+            }
+        }
+    //***********************
+    /**
+     * Angle in radians to positive x-axis between -pi and pi
+     */
+    fun angle(): PolarCoordinates3d {
+        return new PolarCoordinates3d.fromVec3d(this);
+    }
+
+    fun cross(v: Vec3d): Number {
+        return this.x * v.y - this.y * v.x;
+    }
+
+    fun distanceTo(v: Vec3d): Number {
+        return Math.sqrt(this.distanceToSquared(v);)
+    }
+
+    fun distanceToSquared(v: Vec3d): Number {
+        dx = this.x - v.x;
+        dy = this.y - v.y;
+        dz = this.z - v.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+
+    fun dot(v): Number {
+        return this.x * v.x + this.y * v.y + this.z * v.z;
+    }
+
+    fun length(): Number {
+        return Math.sqrt(this.lengthSq());
+    }
+
+    fun lengthSq(): Number {
+        return this.x * this.x + this.y * this.y + this.z * this.z;
+    }
+
+
+    fun negate(): Vec3d {
+        return this.multiply(-1);
+    }
+
+    fun normalize(): Vec3d {
+        l = this.length();
+        if (l == 0) {
+            return this;
+        }
+        
+        return this.divide(this.length());
+    }
+
+    /*
+     * Angle in radians
+    */ 
+ 
+    fun rotate(angle: Number, axis: Vec3d): Vec3d {
+        axis = axis.normalize();
+
+        return new Vec3d(x, y);
+    }
+    
+    
+    /*
+     * Returns new Vector
+     */
+    fun setLength(length: Number): Vec3d {
+        return this.normalize().multiply(length);
+    }
+
+    fun floor(): Vec3d {
+        return new Vec3d(Math.floor(this.x), Math.floor(this.y), Math.floor(this.z));
+    }
+
+    fun hashCode(): Number {
+        return 31 * (31 * this.x + this.y + this.z);
+    }
+    
+    fun toString(): String {
+        return "[" + this.x + ", " + this.y + ", " + this.z + "]";
+    }
+
+    fun copy(): Vec3d {
+        return new Vec3d(this.x, this.y, this.z);
+    }
+    
+    fun toList(): List{
+        return [this.x, this.y, this.z];
+    }
+
+    /**
+     * -pi to pi
+     */
+    static fun angleBetween(v1: Vec3d, v2: Vec3d): PolarCoordinates3d {
+        // -2pi to 2pi
+        between = v1.angle() - v2.angle();
+        if (between > Math.pi) {
+            between = between - 2 * Math.pi;
+        } else if (between <= -Math.pi) {
+            between = between + 2 * Math.pi;
+        }
+        return between;
+    }
+}
+
+class Matrix2d{
+
+    var rows: Number;
+    var columns: Number;
+    var data: List;
+
+    static fun of(list: List): Matrix2d{
+        columns = list[0].length();
+        foreach(rowList : list){
+            if (rowList.length()!=columns)
+                return false;
+        }
+        return new Matrix2d(list);
+    }
+
+    static fun fromScalar(s: Number, rows: Number, columns: Number): Matrix2d{
+        data = [];
+        for(i = 0; i<rows; i++){
+            data.append([]);
+            for(j; j<columns; j++){
+                data[i].append(s);
+            }
+        }
+        return new Matrix2d(data);
+    }
+    static fun zero(rows: Number, columns: Number): Matrix2d{
+        data = [];
+        for(i = 0; i<rows; i++){
+            data.append([]);
+            for(j; j<columns; j++){
+                data[i].append(0);
+            }
+        }
+        return new Matrix2d(data);
+    }
+
+    static fun identity(s: Number): Matrix2d{
+        data = [];
+        for(i = 0; i<s; i++){
+            data.append([]);
+            for(j; j<s; j++){
+                if(i==j)
+                    data[i].append(1);
+                else    
+                    data[i].append(0);
+            }
+        }
+        return new Matrix2d(data);
+    }
+
+    static fun rotation(angle: Number, direction: Vec3d): Matrix2d{
+        return [
+            [Math.cos(θ) + ux^2(1 - Math.cos(θ)), ux * uy * (1 - Math.cos(θ)) - uz * Math.sin(θ), ux * uz * (1 - Math.cos(θ)) + uy * Math.sin(θ)],
+            [uy * ux * (1 - Math.cos(θ)) + uz * Math.sin(θ), Math.cos(θ) + uy^2 * (1 - Math.cos(θ)), uy * uz * (1 - Math.cos(θ)) - ux * Math.sin(θ)],
+            [uz * ux * (1 - Math.cos(θ)) - uy * Math.sin(θ), uz * uy * (1 - Math.cos(θ)) + ux * Math.sin(θ), Math.cos(θ) + uz^2 * (1 - Math.cos(θ))]
+            ];
+    }
+    Matrix2d(list: List){
+        this.rows = list.length();
+        this.columns = list[0].length();
+        this.data = list;
+    }
+
+    fun setValue(i: Number, j: Number, v: Number): Boolean{
+        if(i>rows && j > columns){
+            return false;
+        }
+        this.data[i][j] = v;
+        return true;
+    }
+
+    fun getValue(i: Number, j: Number): Number{
+        if(i>rows && j > columns){
+            return null;
+        }
+        return this.data[i][j]
+    }
+
+    fun getRows(): Number{
+        return this.rows;
+    }
+
+    fun getColumns(): Number{
+        return this.columns;
+    }
+
+    fun getRow(i: Number): List{
+        if(i<this.rows)
+            return this.data[i];
+        return null;
+    }
+    
+    fun getColumn(j: Number): list{
+        if(j<this.columns){
+            column = [];
+            for(i = 0; i< this.columns; i++){
+                column.append(this.data[i][j]);
+            }
+            return column;
+        }
+        return null;
+    }
+
+    fun add(m: Matrix2d): Matrix2d{
+        data = [];
+        if(this.rows == m.rows && this.columns == m.columns){
+            for(i = 0; i< this.rows; i++){
+                data.append([]);
+                for(j = 0; j< this.columns; j++){
+                    data[i].append(this.data[i][j] + m.data[i][j]);
+                }   
+            }
+        }
+        return new Matrix2d(data);
+    }
+
+    operator + (m: Matrix2d): Matrix2d{
+        return this.add(m);
+    }
+
+    fun add(s: Number): Matrix2d{
+        data = [];
+        for(i = 0; i< this.rows; i++){
+            data.append([]);
+            for(j = 0; j< this.columns; j++){
+                data[i].append(this.data[i][j] + s);
+            }   
+        }
+        return new Matrix2d(data);
+    }
+    
+    operator + (s: Number): Matrix2d{
+        return this.add(s);
+    }
+
+    fun sub(m: Matrix2d): Matrix2d{
+        data = [];
+        if(this.rows == m.rows && this.columns == m.columns){
+            for(i = 0; i< this.rows; i++){
+                data.append([]);
+                for(j = 0; j< this.columns; j++){
+                    data[i].append(this.data[i][j] - m.data[i][j]);
+                }   
+            }
+        }
+        return new Matrix2d(data);
+    }
+
+    operator - (m: Matrix2d): Matrix2d{
+        return this.sub(m);
+    }
+
+    fun sub(s: Number): Matrix2d{
+        data = [];
+        for(i = 0; i< this.rows; i++){
+            data.append([]);
+            for(j = 0; j< this.columns; j++){
+                data[i].append(this.data[i][j] - s);
+            }   
+        }
+        return new Matrix2d(data);
+    }
+    
+    operator - (s: Number): Matrix2d{
+        return this.sub(s);
+    }
+
+    fun multiply(m: Matrix2d): Matrix2d{
+        if(this.columns == m.rows){
+            data = [];
+            for(i = 0; i< this.rows; i++){
+                data.append([]);
+                for(j = 0; j< this.columns; j++){
+                    data[i].append(Vector.dotProduct(this.getRow(i),m.getColumn(j)));
+                }   
+            }
+            return new Matrix2d(data);
+        }
+        return null;
+        
+    }
+
+    operator * (m: Matrix2d): Matrix2d{
+        return this.multiply(m);
+    }
+
+    fun multiply(s: Number): Matrix2d{
+        data = [];
+        for(i = 0; i< this.rows; i++){
+            data.append([]);
+            for(j = 0; j< this.columns; j++){
+                data[i].append(this.data[i][j] * s);
+            }   
+        }
+        return new Matrix2d(data);
+    }
+    
+    operator * (s: Number): Matrix2d{
+        return this.multiply(s);
+    }
+
+    fun determinanat(): Matrix2d{
+        //TODO
+    }
+
+    fun inverse(): Matrix2d{
+        //TODO
+    }
+} 
+
+
+class Vector{
+    static fun dotProduct(listA: List, listB: List){
+        dotProduct = 0;
+        if(listA.length()==listB.length()){
+            for(i = 0; i<listA.length();i++){
+                dotProduct = dotProduct + listA[i] * listB[i];
+            }
+        }
+        return dotProduct;
+    }
+}
 class ComplexNumber {
     var real;
     var imaginary;
