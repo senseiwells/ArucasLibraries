@@ -1,5 +1,5 @@
-DEFAULT_DISMANTLER = fun(a) a;
-DEFAULT_FACTORY = fun(x, y, z) [x, y, z];
+DEFAULT_DISMANTLER = fun(a) a.toList();
+DEFAULT_FACTORY = fun(x, y, z) new Vec3d(x, y, z);
 
 class VectorConvertible /* T */ {
     // Takes in type T and returns a triple
@@ -996,7 +996,7 @@ class Vec3d {
     fun rotate(angle: Number, axis: Vec3d): Vec3d {
         axis = axis.normalize();
         rotationMatrix = Matrix2d.roation(angle, axis);
-        return new Vec3d(rotationMatrix.multiply(Matrix2d.columnVector(axis)).getColumn(0));
+        return new Vec3d(rotationMatrix.multiply(Matrix2d.columnVector(axis).getColumn(0)));
     }
     
     /*
@@ -1145,7 +1145,7 @@ class Matrix2d{
         if(j<this.columns){
             column = [];
             for(i = 0; i< this.columns; i++){
-                column.append(this.data[i][j]);
+                column.append(this.getValue(i, j));
             }
             return column;
         }
@@ -1158,7 +1158,7 @@ class Matrix2d{
             for(i = 0; i< this.rows; i++){
                 data.append([]);
                 for(j = 0; j< this.columns; j++){
-                    data[i].append(this.data[i][j] + m.data[i][j]);
+                    data[i].append(this.getValue(i, j) + m.getValue(i, j));
                 }   
             }
         }
@@ -1174,7 +1174,7 @@ class Matrix2d{
         for(i = 0; i< this.rows; i++){
             data.append([]);
             for(j = 0; j< this.columns; j++){
-                data[i].append(this.data[i][j] + s);
+                data[i].append(this.getValue(i, j) + s);
             }   
         }
         return new Matrix2d(data);
@@ -1190,7 +1190,7 @@ class Matrix2d{
             for(i = 0; i< this.rows; i++){
                 data.append([]);
                 for(j = 0; j< this.columns; j++){
-                    data[i].append(this.data[i][j] - m.data[i][j]);
+                    data[i].append(this.getValue(i, j) - m.getValue(i, j));
                 }   
             }
         }
@@ -1206,7 +1206,7 @@ class Matrix2d{
         for(i = 0; i< this.rows; i++){
             data.append([]);
             for(j = 0; j< this.columns; j++){
-                data[i].append(this.data[i][j] - s);
+                data[i].append(this.getValue(i, j) - s);
             }   
         }
         return new Matrix2d(data);
@@ -1240,7 +1240,7 @@ class Matrix2d{
         for(i = 0; i< this.rows; i++){
             data.append([]);
             for(j = 0; j< this.columns; j++){
-                data[i].append(this.data[i][j] * s);
+                data[i].append(this.getValue(i, j) * s);
             }   
         }
         return new Matrix2d(data);
@@ -1250,13 +1250,32 @@ class Matrix2d{
         return this.multiply(s);
     }
 
-    fun determinanat(): Matrix2d{
+    fun determinant(): Number{
         if(this.rows == this.columns){
             if(this.rows ==2){
-                return this.data[0][0]*this.data[1][1]-this.data[0][1]*this.data[1][0];
+                return this.getValue(0, 0)*this.getValue(1, 1)-this.getValue(0, 1)*this.getValue(1, 0);
             }
             else{
-                foreach(number)
+                result = 0
+                minus = true;
+                i = 0;
+                foreach(matrix : Matrix2d.determinantSubMatrices(this)){
+                    if(i = 0){
+                        result = this.getValue(i,0)*matrix.determinant()
+                        i++;
+                    }
+                    else{
+                        if(minus){
+                            result = result - this.getValue(i,0)*matrix.determinant()
+                            minus = false;
+                        }
+                        else{
+                            result = result + this.getValue(i,0)*matrix.determinant()
+                            minus = true;
+                        }
+                    }
+                }
+                return result;
             }
         }
     }
@@ -1276,7 +1295,9 @@ class Matrix2d{
                     n++;
                 }   
             }
+            list.append(new Matrix2d(data));
         }
+        return list
     }
 
     fun inverse(): Matrix2d{
@@ -1327,7 +1348,7 @@ class Matrix2d{
             for(i = is; i < ie; i++){
                 data.append([]);
                 for(j = js; j < je; j++){
-                    data[i-is].append(this.data[i][j]);
+                    data[i-is].append(this.getValue(i, j));
                 }   
             }
             return new Matrix2d(data);
