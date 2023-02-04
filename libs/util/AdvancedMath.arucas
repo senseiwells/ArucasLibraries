@@ -995,10 +995,9 @@ class Vec3d {
  
     fun rotate(angle: Number, axis: Vec3d): Vec3d {
         axis = axis.normalize();
-
-        return new Vec3d(x, y);
+        rotationMatrix = Matrix2d.roation(angle, axis);
+        return new Vec3d(rotationMatrix.multiply(Matrix2d.columnVector(axis)).getColumn(0));
     }
-    
     
     /*
      * Returns new Vector
@@ -1092,7 +1091,15 @@ class Matrix2d{
         return new Matrix2d(data);
     }
 
+    static fun columnVector(list: List): Matrix2d{
+        data = [];
+        for(i = 0; i<list.length(); i++){
+            data[i] = [list[i]];
+        }
+        return data;
+    }
     static fun rotation(angle: Number, direction: Vec3d): Matrix2d{
+        ux, uy, uz = direction.toList();
         return [
             [Math.cos(θ) + ux^2(1 - Math.cos(θ)), ux * uy * (1 - Math.cos(θ)) - uz * Math.sin(θ), ux * uz * (1 - Math.cos(θ)) + uy * Math.sin(θ)],
             [uy * ux * (1 - Math.cos(θ)) + uz * Math.sin(θ), Math.cos(θ) + uy^2 * (1 - Math.cos(θ)), uy * uz * (1 - Math.cos(θ)) - ux * Math.sin(θ)],
@@ -1100,8 +1107,8 @@ class Matrix2d{
             ];
     }
     Matrix2d(list: List){
-        this.rows = list.length();
-        this.columns = list[0].length();
+        this.columns = list.length();
+        this.rows = list[0].length();
         this.data = list;
     }
 
@@ -1244,11 +1251,88 @@ class Matrix2d{
     }
 
     fun determinanat(): Matrix2d{
-        //TODO
+        if(this.rows == this.columns){
+            if(this.rows ==2){
+                return this.data[0][0]*this.data[1][1]-this.data[0][1]*this.data[1][0];
+            }
+            else{
+                foreach(number)
+            }
+        }
+    }
+    static fun determinantSubMatrices(m: Matrix2d): List{
+        list = [];
+        for(a = 0; a<m.columns; a++){
+            data = [];
+            n = 0;
+            for(i = 0; i<m.columns; i++){
+                if(i!=a){
+                    data.append([]);
+                    for(j = 0; j<m.rows; j++){
+                        if(j!=a){
+                            data[n].append(m.getValue(i, j))
+                        }
+                    }
+                    n++;
+                }   
+            }
+        }
     }
 
     fun inverse(): Matrix2d{
-        //TODO
+        if(this.rows==this.columns){
+            b = Matrix2d.identity(this.rows);
+            for (int i = 0; i < this.rows; i++) {
+                max = i;
+                for (int j = i + 1; j < n; j++) {
+                    if (Math.abs(a[j][i]) > Math.abs(a[max][i])) {
+                        max = j;
+                    }
+                }
+
+                temp[] = this.data[i];
+                this.data[i] = this.data[max];
+                this.data[max] = temp;
+
+                temp = b.data[i];
+                b.data[i] = b.data[max];
+                b.data[max] = temp;
+
+                div = this.data[i][i];
+                if(div == 0){
+                    return null;
+                }
+                for (int j = 0; j < n; j++) {
+                    this.getValue(i, j) = this.getValue(i, j) / div;
+                    b.getValue(i, j) = b.getValue(i, j) / div; 
+                }
+
+                for (int j = 0; j < n; j++) {
+                    if (j != i) {
+                        sub = a[j][i];
+                        for (int k = 0; k < n; k++) {
+                            this.getValue(j, k) = this.getValue(j, k) - this.getValue(i, k) * sub;
+                            b.getValue(j, k) = b.getValue(j, k) - b.getValue(i, k) * sub;
+                        }
+                    }
+                }
+            }
+            return b;
+        }
+        return null;
+    }
+    fun subMatrix(is: Number, js: Number, ie: Number, je: Number): Matrix2d{
+        data = [];
+        if(is<=ie && ie<this.rows && js<=je && je < this.columns){
+            for(i = is; i < ie; i++){
+                data.append([]);
+                for(j = js; j < je; j++){
+                    data[i-is].append(this.data[i][j]);
+                }   
+            }
+            return new Matrix2d(data);
+        }
+        return null
     }
 } 
 
