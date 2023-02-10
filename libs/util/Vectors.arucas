@@ -1,10 +1,9 @@
 import * from util.Errors;
-
 class Vec2d {
     var x: Number = 0;
     var y: Number = 0;
 
-    static fun zeroVector(): Vec2d {
+    static fun zero(): Vec2d {
         return Vec2d.fromScalar(0);
     }
 
@@ -99,7 +98,7 @@ class Vec2d {
             if (s == 0) {
                 return this;
             }
-            return this.multiply(1 / s);
+            return this.multiplyScalar(1 / s);
         }
 
         fun equals(v): Boolean {
@@ -130,11 +129,11 @@ class Vec2d {
         return this.x * v.y - this.y * v.x;
     }
 
-    fun distanceTo(v): Number {
+    fun distanceTo(v: Vec2d): Number {
         return Math.sqrt(this.distanceToSquared(v));
     }
 
-    fun distanceToSquared(v): Number {
+    fun distanceToSquared(v: Vec2d): Number {
         dx = this.x - v.x;
         dy = this.y - v.y;
         return dx * dx + dy * dy;
@@ -229,7 +228,7 @@ class Vec3d {
     var y: Number = 0;
     var z: Number = 0;
 
-    static fun zeroVector(): Vec3d {
+    static fun zero(): Vec3d {
         return Vec3d.fromScalar(0);
     }
 
@@ -325,7 +324,7 @@ class Vec3d {
         }
 
         fun equals(v): Boolean {
-            return v.instanceOf(Vec3d.type) && (v.x == this.x) && (v.y == this.y) && (v.s == this.s);
+            return v.instanceOf(Vec3d.type) && (v.x == this.x) && (v.y == this.y) && (v.z == this.z);
         }
         operator == (other): Boolean {
             return this.equals(other);
@@ -406,14 +405,11 @@ class Vec3d {
     fun rotate(angle: Number, axis: Vec3d): Vec3d {
         axis = axis.normalize();
         rotationMatrix = Matrix2d.roation(angle, axis);
-        return new Vec3d(rotationMatrix.multiply(Matrix2d.columnVector(axis).getColumn(0)));
+        return new Vec3d(rotationMatrix.multiply(Matrix2d.columnVector(Vector.fromVector(axis)).getColumn(0)));
     }
 
-    /*
-     * Returns new Vector
-     */
     fun setLength(length: Number): Vec3d {
-        return this.normalize().multiply(length);
+        return this.normalize().multiply(length).copy();
     }
 
     fun floor(): Vec3d {
@@ -457,6 +453,9 @@ class Matrix2d{
     var columns: Number;
     var data: List;
 
+    static fun zero(rows: Number, columns: Number): Matrix2d{
+        return new Matrix2d.fromScalar(0);
+    }
 
     static fun fromScalar(s: Number, rows: Number, columns: Number): Matrix2d{
         data = [];
@@ -464,17 +463,6 @@ class Matrix2d{
             data.append([]);
             for(j; j<columns; j++){
                 data[i].append(s);
-            }
-        }
-        return new Matrix2d(data);
-    }
-
-    static fun zero(rows: Number, columns: Number): Matrix2d{
-        data = [];
-        for(i = 0; i<rows; i++){
-            data.append([]);
-            for(j; j<columns; j++){
-                data[i].append(0);
             }
         }
         return new Matrix2d(data);
@@ -494,10 +482,10 @@ class Matrix2d{
         return new Matrix2d(data);
     }
 
-    static fun columnVector(list: List): Matrix2d{
+    static fun columnVector(vec): Matrix2d{
         data = [];
-        for(i = 0; i<list.length(); i++){
-            data[i] = [list[i]];
+        for(i = 0; i<vec.length; i++){
+            data[i] = [vec[i]];
         }
         return data;
     }
@@ -518,8 +506,8 @@ class Matrix2d{
                     throw new UnsupportedError("All arguments must be numbers to construct a vector");
             }
         }
-        this.rows = list.length();
-        this.columns = list[0].length();
+        this.rows = len(list);
+        this.columns = len(list[0]);
         this.data = list;
     }
 
@@ -760,12 +748,13 @@ class Matrix2d{
     }
 }
 
+
 class Vector{
 
     static fun dotProduct(listA: List, listB: List){
         dotProduct = 0;
-        if(listA.length()==listB.length()){
-            for(i = 0; i<listA.length();i++){
+        if(len(listA)==listBlength()){
+            for(i = 0; i<len(listA);i++){
                 dotProduct = dotProduct + listA[i] * listB[i];
             }
         }
@@ -775,7 +764,7 @@ class Vector{
     var length: Number;
     var data: List;
 
-    static fun zeroVector(length: Number): Vector {
+    static fun zero(length: Number): Vector {
         return Vector.fromScalar(0);
     }
 
@@ -790,10 +779,15 @@ class Vector{
     static fun fromString(string: String): Vector {
         list = string.replaceAll('\\[', "").replaceAll('\\]', "").split(', ');
         data = [];
-        for(i = 0; i < length; i++){
+        for(i = 0; i < len(list); i++){
             data.append(list[i].toNumber());
         }
         return new Vector(data);
+    }
+
+    static fun fromVector(vec): Vector {
+        this.data = vec.data;
+        this.length = this.len(data);
     }
 
     Vector(args...) {
@@ -1002,7 +996,11 @@ class Vector{
     }
 
     fun floor(): Vector {
-        return new Vector(Math.floor(this.x), Math.floor(this.y), Math.floor(this.z));
+        data = [];
+            for(i = 0; i<this.length; i++){
+                data.append = Math.floor(this[i]);
+            }
+        return new Vector(data);
     }
 
     fun hashCode(): Number {

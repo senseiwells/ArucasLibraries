@@ -1,104 +1,161 @@
-import VectorConvertible from VectorConvertible;
+import Vec3d from util.Vectors;
+import Vec2d from util.Vectors;
+import * from util.Errors;
+import * from util.Grid;
 
-class PerlinNoise /* T */: VectorConvertible { 
-    var vectorGrid = {};
-    var vector2dGrid = {};
+class Voronoi{
 
-    PerlinNoise(): super();
+	/// Default grid cell size
+	static var DEFAULT_GRID_SIZE = Vec3d.fromScalar(5);
 
-    PerlinNoise(dismantler: Function): this() {
-        this.dismantler = dismantler;
+	/// Default how many points per cell
+	static var DEFAULT_VORONOI_FREQUENCY = 1.0;
+
+
+	/// Frequency of the seed points.
+	var frequency = Voronoi.DEFAULT_VORONOI_FREQUENCY;
+
+	/// the amount of blocks in each of the axis for each cell
+	var gridSize = Voronoi.DEFAULT_GRID_SIZE;
+
+    var grid;
+
+	Voronoi() {
+	    this.grid = new Grid(this.gridSize);
+	}
+	Voronoi(gridSize: Vec3d){
+	    this.gridSize = gridSize;
+	    this.grid = new Grid(this.gridSize);
+	}
+
+    Voronoi(gridSize: Vec3d, frequency: Number){
+	    this.gridSize = gridSize;
+        this.grid = new Grid(this.gridSize);
+	    this.frequency = frequency;
+	}
+
+
+	fun isEnableDistance() {
+		return this.enableDistance;
+	}
+
+	fun setEnableDistance(enableDistance: Boolean) {
+		this.enableDistance = enableDistance;
+		return this;
+	}
+
+	fun getFrequency() {
+		return this.frequency;
+	}
+
+	fun setFrequency(frequency) {
+		this.frequency = frequency;
+		return this;
+	}
+
+    fun getValue(x: Number, y: Number, z: Number) {
+        return this.getValue(new Vec3d(x,y,z));
+
+    }
+    fun getValue(vec: Vec3d) {
+        centreCell = this.grid.getCellForPoint(vec, true);
+        neighbours = centreCell.getNeighbours();
+        //print("VALUE received neighbours " + neighbours);
+        cells = neighbours.append(centreCell);
+        minDistanceCell = 1/0;
+        minPointDistance = 1/0;
+        foreach(cell:cells){
+            //print("VALUE" + cell.coordinates);
+            if(cell.getNumberOfPoints()!=this.frequency){
+                cell.clearPoints();
+                cell.addRandomPoints(this.frequency);
+                //print("points done");
+            }
+            foreach(point : cell.getPoints()){
+                distance = point.distanceToSquared(vec);
+                //print("Distance: " + distance + " From: " + vec + " To: " + point);
+                if(distance < minPointDistance){
+                    //print("New min distance: " + distance + " Old min distance: " + minPointDistance);
+                    minDistanceCell = cell.getId();
+                    minPointDistance = distance;
+                }
+            }
+        }
+        return new Vec2d(Math.sqrt(minPointDistance), minDistanceCell);
     }
 
-    fun calculatePerlinValue(pos /* T */): Number {
-        posX, posY, posZ = this.dismantler(pos);
-        fPosX = Math.floor(posX);
-        fPosY = Math.floor(posY);
-        fPosZ = Math.floor(posZ);
-        diffPosX = posX - fPosX;
-        diffPosY = posY - fPosY;
-        diffPosZ = posZ - fPosZ;
+}
 
-        vectorList = [];
+
+class Perlin {
+	/// Default frequency for the noise::module::Perlin noise module.
+	static var DEFAULT_PERLIN_FREQUENCY = 10;
+    static var RANGE = new Vec2d(-0.5, 0.5);
+    static fun map(n, bMin, bMax){
+        return bMin + (n - Perlin.RANGE.x) * (bMax - bMin) / (Perlin.RANGE.y - Perlin.RANGE.x);
+    }
+	/// Frequency of the first octave.
+	var frequency = Perlin.DEFAULT_PERLIN_FREQUENCY;
+
+    var vectorGrid = {};
+
+    Perlin() {
+	}
+
+    Perlin(frequency) {
+        this.frequency = frequency;
+	}
+	fun getFrequency() {
+		return this.frequency;
+	}
+
+	fun setFrequency(frequency: Number) {
+		this.frequency = frequency;
+		return this;
+	}
+
+    fun getValue(vec: Vec3d) {
+        vec = vec.divideScalar(this.frequency);
+        fPos = vec.floor();
+        dPos = vec-fPos;
+
+        dotProductList = [];
+
         for (i = 0; i < 2; i++) {
-            x = fPosX + i;
+            x = fPos.x + i;
             if (!this.vectorGrid.containsKey(x)) {
                 this.vectorGrid[x] = {};
             }
             for (j = 0; j < 2; j++) {
-                y = fPosY + j;
+                y = fPos.y + j;
                 if (!this.vectorGrid[x].containsKey(y)) {
                     this.vectorGrid[x][y] = {};
                 }
                 for (k = 0; k < 2; k++) {
-                    z = fPosZ + k;
+                    z = fPos.z + k;
                     if (!this.vectorGrid[x][y].containsKey(z)) {
                         angle1 = Math.toRadians(random(360));
                         angle2 = Math.toRadians(random(360));
-                        this.vectorGrid[x][y][z] = [Math.cos(angle1), Math.sin(angle1), Math.sin(angle2)];
-                        //this.vectorGrid[x][y][z] = [random(3)-1, random(3)-1, random(3)-1)];
+                        this.vectorGrid[x][y][z] = new Vec3d(Math.cos(angle1), Math.sin(angle1), Math.sin(angle2));
+                        //this.vectorGrid[x][y][z] = new Vec3d(random(3)-1, random(3)-1, random(3)-1));
                     }
-                    vectorList.append([x, y, z]);
-                }
-            }
-        }
-
-        dotProductList = [];
-        for (i = 0; i < 2; i++) {
-            for (j = 0; j < 2; j++) {
-                for (k = 0; k < 2; k++) {
-                    x = fPosX + i;
-                    y = fPosY + j;
-                    z = fPosZ + k;
-                    cX, cY, cZ = this.vectorGrid[x][y][z];
-                    dotProductList.append(cX * (diffPosX - i) + cY * (diffPosY - j) + cZ * (diffPosZ - k));
+                    dotProductList.append(this.vectorGrid[x][y][z].dot(dPos-new Vec3d(i,j,k)));
                 }
             }
         }
 
         interpolationLevel1 = [];
         for (i = 0; i < 8; i = i + 2) {
-            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], diffPosZ));
+            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], dPos.z));
         }
-        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], diffPosY);
-        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], diffPosY);
-        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
+        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], dPos.y);
+        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], dPos.y);
+        return Math.clamp(this.interpolate(interpolatedNumber1, interpolatedNumber2, dPos.x),-0.5, 0.5);
     }
 
-    // 2d Noise
-    fun calculatePerlinValue(inputX: Number, inputZ: Number): Number {
-        fPosX = Math.floor(inputX);
-        fPosZ = Math.floor(inputZ);
-        diffPosX = inputX - fPosX;
-        diffPosZ = inputZ - fPosZ;
+    fun getValue(x: Number, y: Number, z: Number) {
+       return this.getValue(new Vec3d(x,y,z));
 
-        vectorList = [];
-        for (i = 0; i < 2; i++){
-            x = fPosX + i;
-            if (!this.vector2dGrid.containsKey(x)) {
-                this.vector2dGrid[x] = {};
-            }
-            for (k = 0; k < 2; k++){
-                z = fPosZ + k;
-                if(!this.vector2dGrid[x].containsKey(z)) {
-                    this.vector2dGrid[x][z] = [random(3) - 1, 0, random(3) - 1];
-                }
-            }
-        }
-
-        dotProductList = [];
-        for (i = 0; i < 2; i++) {
-            for (k = 0; k < 2; k++) {
-                x = fPosX + i; y = 0; z = fPosZ + k;
-                cornerVector = this.vector2dGrid[x][z];
-                dotProduct = cornerVector[0]* (diffPosX - i) + cornerVector[2]* (diffPosZ - k);
-                dotProductList.append(dotProduct);
-            }
-        }
-        
-        interpolatedNumber1 = this.interpolate(dotProductList[0], dotProductList[1], diffPosZ);
-        interpolatedNumber2 = this.interpolate(dotProductList[2], dotProductList[3], diffPosZ);
-        return this.interpolate(interpolatedNumber1, interpolatedNumber2, diffPosX);
     }
 
     fun interpolate(number1: Number, number2: Number, weight: Number): Number {
@@ -109,3 +166,85 @@ class PerlinNoise /* T */: VectorConvertible {
         return (6 * number ^ 5) - (15 * number ^ 4) + (10 * number ^ 3);
     }
 }
+
+class RidgedMulti {
+	/// Default frequency for the noise
+	static var DEFAULT_PERLIN_FREQUENCY = 10;
+    static var RANGE = new Vec2d(0, 1);
+
+    static fun map(n, bMin, bMax){
+        return bMin + (n - RidgedMulti.RANGE.x) * (bMax - bMin) / (RidgedMulti.RANGE.y - RidgedMulti.RANGE.x);
+    }
+
+	var frequency = Perlin.DEFAULT_PERLIN_FREQUENCY;
+    var vectorGrid = {};
+
+    RidgedMulti() {
+	}
+
+    RidgedMulti(frequency) {
+        this.frequency = frequency;
+	}
+
+	fun getFrequency() {
+		return this.frequency;
+	}
+
+	fun setFrequency(frequency: Number) {
+		this.frequency = frequency;
+		return this;
+	}
+
+    fun getValue(vec: Vec3d) {
+        vec = vec.divideScalar(this.frequency);
+        fPos = vec.floor();
+        dPos = vec-fPos;
+
+        dotProductList = [];
+
+        for (i = 0; i < 2; i++) {
+            x = fPos.x + i;
+            if (!this.vectorGrid.containsKey(x)) {
+                this.vectorGrid[x] = {};
+            }
+            for (j = 0; j < 2; j++) {
+                y = fPos.y + j;
+                if (!this.vectorGrid[x].containsKey(y)) {
+                    this.vectorGrid[x][y] = {};
+                }
+                for (k = 0; k < 2; k++) {
+                    z = fPos.z + k;
+                    if (!this.vectorGrid[x][y].containsKey(z)) {
+                        angle1 = Math.toRadians(random(360));
+                        angle2 = Math.toRadians(random(360));
+                        this.vectorGrid[x][y][z] = new Vec3d(Math.cos(angle1), Math.sin(angle1), Math.sin(angle2));
+                        //this.vectorGrid[x][y][z] = new Vec3d(random(3)-1, random(3)-1, random(3)-1));
+                    }
+                    dotProductList.append(this.vectorGrid[x][y][z].dot(dPos-new Vec3d(i,j,k)));
+                }
+            }
+        }
+
+        interpolationLevel1 = [];
+        for (i = 0; i < 8; i = i + 2) {
+            interpolationLevel1.append(this.interpolate(dotProductList[i], dotProductList[i + 1], dPos.z));
+        }
+        interpolatedNumber1 = this.interpolate(interpolationLevel1[0], interpolationLevel1[1], dPos.y);
+        interpolatedNumber2 = this.interpolate(interpolationLevel1[2], interpolationLevel1[3], dPos.y);
+        return Math.abs(Math.clamp(this.interpolate(interpolatedNumber1, interpolatedNumber2, dPos.x),-0.5, 0.5))*2;
+    }
+
+    fun getValue(x: Number, y: Number, z: Number) {
+       return this.getValue(new Vec3d(x,y,z));
+
+    }
+
+    fun interpolate(number1: Number, number2: Number, weight: Number): Number {
+        return number1 + this.fadeFunction(weight) * (number2 - number1);
+    }
+
+    fun fadeFunction(number: Number): Number {
+        return (6 * number ^ 5) - (15 * number ^ 4) + (10 * number ^ 3);
+    }
+}
+

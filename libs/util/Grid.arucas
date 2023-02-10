@@ -1,0 +1,120 @@
+import Vec3d from util.Vectors;
+
+class Grid{
+    var cellSize = Vec3d.fromScalar(5);
+    var cells ={};
+    var numberOfCells = 0;
+
+    Grid(cellSize: Vec3d){
+        this.cellSize = cellSize;
+    }
+    /*
+    input is a point within the cell, returns the cell cointaining the point
+    */
+    fun getCellForPoint(vec: Vec3d){
+        cellCoordinates = vec.divide(this.cellSize).floor();
+        return this.getCell(cellCoordinates);
+    }
+    fun getCellForPoint(vec: Vec3d, ensureExists: Boolean){
+        cellCoordinates = vec.divide(this.cellSize).floor();
+        if(this.cells.containsKey(cellCoordinates)){
+            //print("old");
+            return this.getCell(cellCoordinates);
+        }
+        else if(ensureExists){
+            return this.addCell(cellCoordinates);
+        }
+    }
+
+    /*
+    input is cell coordinates
+    */
+    fun getCell(vec: Vec3d){
+        key = vec.floor();
+        return this.cells[key];
+    }
+
+
+    fun addCell(vec: Vec3d){
+        key = vec.floor();
+        if(this.cells.containsKey(key))
+            return this.cells[key];
+        else{
+            this.numberOfCells++;
+            //print("GRID adding cell number: " + this.numberOfCells + " Coords: " + key);
+            cell = new Cell(key, this, this.cellSize, this.numberOfCells);
+            this.cells[key] = cell;
+            return cell;
+        }
+    }
+}
+
+class Cell{
+    var points = [];
+    var neighbours = {};
+    var coordinates: Vec3d;
+    var grid;
+    var size: Vec3d;
+    var id;
+
+    Cell(coordinates: Vec3d, grid, size: Vec3d, id: Number){
+        this.grid = grid;
+        this.coordinates = coordinates;
+        this.size = size;
+        this.id = id;
+    }
+
+    fun getNeighbours(){
+        //print("CELL sharing neighbour adresses");
+        this.initializeNeighbours();
+        return this.neighbours.getValues();
+    }
+
+    fun initializeNeighbours(){
+        options = [-1, 0, 1];
+        foreach(x : options){
+            foreach(y : options){
+                foreach(z : options){
+                    if(x==0&&y==0&&z==0)
+                        continue;
+                    neighbourCoords = new Vec3d(x, y, z);
+                    neighbour = this.neighbours[neighbourCoords];
+                    if(neighbour == null)
+                        neighbour = this.grid.getCell(neighbourCoords+this.coordinates);
+                    if (neighbour == null)
+                        neighbour = this.grid.addCell(neighbourCoords+this.coordinates);
+                    this.neighbours[neighbourCoords] = neighbour;
+                }
+            }
+        }
+        //print("CELL neighbours done");
+    }
+    fun addRandomPoints(n: Number){
+        for(i = 0; i < n; i++){
+            point = new Vec3d(random(this.size.x), random(this.size.y), random(this.size.z)).add(this.coordinates*this.size);
+            max = this.coordinates*this.size + this.size;
+            //print("CELL Added point: " + point + " Min: " + this.coordinates * this.size + " Max: " + max);
+            this.points.append(point);
+        }
+    }
+
+    fun getNumberOfPoints(){
+        return len(this.points);
+    }
+
+    fun addValue(o){
+        this.points.append(o);
+    }
+
+    fun clearPoints(){
+        this.points.clear();
+    }
+
+    fun getPoints(){
+        return this.points;
+    }
+
+    fun getId(){
+        return this.id;
+    }
+}
