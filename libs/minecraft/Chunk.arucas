@@ -1,0 +1,130 @@
+import * from Minecraft;
+
+class SubChunkIterator : Iterator {
+    //world-free iterator class. 
+    var chunkPos : Pos;
+    var basePos : Pos;
+    var idx = -1;
+    //xzy order
+    SubChunkIterator(chunkPos : Pos) : super() {
+        this.chunkPos = chunkPos;
+        this.basePos = chunkPos.multiply(16, 16, 16);
+    }
+
+    fun hasNext(){
+        return this.idx < 4096;
+    }
+
+    fun next(){
+        this.idx++;
+        return this.basePos.add(this.getPos());
+    }
+    fun reset(){
+        this.idx = 0;
+    }
+    fun getPos(){
+        z = Math.mod(this.idx, 16);
+        a = (this.idx - z) / 16;
+        y = Math.mod(a, 16);
+        x = (this.idx - y) / 256;
+        return new Pos(x,y,z);
+    }
+    fun getChunkPos(){
+        return this.chunkPos;
+    }
+}
+class Chunk : Iterable {
+    var x : Number;
+    var y : Number;
+    var z : Number;
+    var world = null;
+    Chunk(x, y, z) : super() {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+    Chunk(pos : Pos): super()  {
+        //chunk pos is given not block pos
+        this.x = pos.getX();
+        this.y = pos.getY();
+        this.z = pos.getZ();
+    }
+    Chunk(x, y, z, bindedWorld) : super() {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.world = bindedWorld;
+    }
+
+    static fun fromPos(pos : Pos){
+        // divide by 16 then floor everything
+        x, y, z = pos.toList();
+        x = Math.floor(x/ 16);
+        y = Math.floor(y/ 16);
+        z = Math.floor(z/ 16);
+        return new Chunk(x, y, z);
+    }
+
+    static fun fromPos(x : Number, y : Number, z : Number){
+        // divide by 16 then floor everything
+        x = Math.floor(x/ 16);
+        y = Math.floor(y/ 16);
+        z = Math.floor(z/ 16);
+        return new Chunk(x, y, z);
+    }
+
+    static fun fromPos(x : Number, y : Number, z : Number, world){
+        // divide by 16 then floor everything
+        x = Math.floor(x/ 16);
+        y = Math.floor(y/ 16);
+        z = Math.floor(z/ 16);
+        return new Chunk(x, y, z, world);
+    }
+
+    //blockPos
+    fun getStartPos(){
+        return new Pos(x,y,z).multiply(16, 16, 16);
+    }
+    fun getEndPos(){
+        return new Pos(x,y,z).add(1,1,1).multiply(16, 16, 16).subtract(1,1,1);
+    }
+    fun iterator(){
+        return new SubChunkIterator(this.getChunkPos());
+    }
+    fun getChunkPos(){
+        return new Pos(this.x, this.y, this.z);
+    }
+    static fun getChunkPos(x, y, z){
+        x = Math.floor(x/ 16);
+        y = Math.floor(y/ 16);
+        z = Math.floor(z/ 16);
+        return new Pos(x,y,z);
+    }
+    fun bindWorld(world) {
+        this.world = world;
+        return this;
+    }
+    fun getPositions(){
+        return this.iterator();
+    }
+    //examples
+    fun getBlockAt(pos: Pos){
+        if (this.bindedWorld != null) {
+            return this.bindedWorld.getBlockAt(pos);
+        }
+        throw new Error("No binded world exists for this chunk!");
+    }
+    fun isAir(pos: Pos){
+        if (this.bindedWorld != null) {
+            return this.bindedWorld.isAir(pos);
+        }
+        throw new Error("No binded world exists for this chunk!");
+    }
+    fun isLoaded(pos: Pos){
+        if (this.bindedWorld != null) {
+            return this.bindedWorld.isLoaded(pos);
+        }
+        throw new Error("No binded world exists for this chunk!");
+    }
+
+}
