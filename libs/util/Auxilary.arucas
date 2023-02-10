@@ -101,7 +101,7 @@ class VarArgs {
 
     fun getOrDefault(index: Number, defaultValue: Object): Object {
         if (index >= this.size) {
-            return default;
+            return defaultValue;
         }
         return this.get(index);;
     }
