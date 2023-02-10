@@ -805,7 +805,7 @@ class Vector{
                 throw new UnsupportedError("All list elements must be numbers to construct a vector");
         }
         this.data = list;
-        this.length = list.length;
+        this.length = len(list);
     }
 
     fun set(s: Number, index: Number): Vector {
@@ -822,7 +822,7 @@ class Vector{
             if(this.length==v.length){
                 data = [];
                 for(i = 0; i<this.length; i++){
-                    data.append = this[i] + v[i];
+                    data.append(this[i] + v[i]);
                 }
                 return new Vector(data);
             }
@@ -836,7 +836,7 @@ class Vector{
         fun addScalar(s: Number): Vector {
             data = [];
             for(i = 0; i<this.length; i++){
-                data.append = this[i] + s;
+                data.append(this[i] + s);
             }
             return new Vector(data);
         }
@@ -846,7 +846,7 @@ class Vector{
             if(this.length==v.length){
                 data = [];
                 for(i = 0; i<this.length; i++){
-                    data.append = this[i] - v[i];
+                    data.append(this[i] - v[i]);
                 }
                 return new Vector(data);
             }
@@ -860,7 +860,7 @@ class Vector{
         fun subScalar(s: Number): Vector {
             data = [];
             for(i = 0; i<this.length; i++){
-                data.append = this[i] - s;
+                data.append(this[i] - s);
             }
             return new Vector(data);
         }
@@ -869,7 +869,7 @@ class Vector{
             if(this.length==v.length){
                 data = [];
                 for(i = 0; i<this.length; i++){
-                    data.append = this[i] * v[i];
+                    data.append(this[i] * v[i]);
                 }
                 return new Vector(data);
             }
@@ -883,7 +883,7 @@ class Vector{
         fun multiplyScalar(s: Number): Vector {
             data = [];
             for(i = 0; i<this.length; i++){
-                data.append = this[i] * s;
+                data.append(this[i] * s);
             }
             return new Vector(data);
         }
@@ -892,7 +892,7 @@ class Vector{
             if(this.length==v.length){
                 data = [];
                 for(i = 0; i<this.length; i++){
-                    data.append = this[i] / v[i];
+                    data.append(this[i] / v[i]);
                 }
                 return new Vector(data);
             }
@@ -906,7 +906,7 @@ class Vector{
         fun divideScalar(s: Number): Vector {
             data = [];
             for(i = 0; i<this.length; i++){
-                data.append = this[i] / s;
+                data.append(this[i] / s);
             }
             return new Vector(data);
         }
@@ -921,7 +921,7 @@ class Vector{
         operator ^ (s: Number): Vector {
             data = [];
             for(i = 0; i<this.length; i++){
-                data.append = this[i] ^ s;
+                data.append(this[i] ^ s);
             }
             return new Vector(data);
         }
