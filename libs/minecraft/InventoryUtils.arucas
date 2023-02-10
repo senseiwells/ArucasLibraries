@@ -37,7 +37,6 @@ class InventoryUtil {
 
     static fun getCachedSlot(itemString : String) {
         //'Get cached slot or allocate new slot.';
-        itemString = itemArgs.get(0);
         foreach (i : InventoryUtil.hotbarSlotCache.getKeys()) {
             if (InventoryUtil.hotbarSlotCache.get(i) == itemString) {
                 return i;
@@ -52,6 +51,11 @@ class InventoryUtil {
         //'Returns if item was in selected slot.';
         selectedSlot = InventoryUtil.optionalSelectedSlot();
         if (InventoryUtil.hotbarSlotCache.get(selectedSlot) == itemString) {
+            //may check if its all used
+            if (Player.get().getItemForSlot(selectedSlot + 36).getCount() == 0) {
+                InventoryUtil.sync();
+                return false;
+            }
             return true;
         }
         return false;
@@ -103,7 +107,7 @@ class InventoryUtil {
                 return true;
             }
         }
-        return null;
+        return false;
     }
 
     static fun setSelectedSlot(slotNum : Number) {
@@ -231,7 +235,7 @@ class InventoryUtil {
     static fun assertItem(itemString : String) {
         //'Throws assertion error when item swap fails'
         InventoryUtil.swapToItem(itemString);
-        Assert.assert(Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString, "Assertion failed : player is not holding pickaxe!");
+        Assert.assert(Player.get().getItemForSlot(InventoryUtil.optionalSelectedSlot() + 36).getId() == itemString, "Assertion failed : player is not holding "+ itemString + "!") ;
         return true;
     }
 
