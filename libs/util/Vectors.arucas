@@ -16,12 +16,16 @@ class Vec2d {
         return new Vec2d(list[0].toNumber(), list[1].toNumber());
     }
 
-    Vec2d(x, y) {
+    Vec2d(x: Number, y: Number) {
         this.x = x;
         this.y = y;
     }
 
     Vec2d(list: List) {
+        foreach(item: list){
+            if(!arg.instanceOf(Number.type))
+                throw new UnsupportedError("All list elements must be numbers to construct a vector");
+        }
         this.x, this.y = list;
     }
 
@@ -114,7 +118,7 @@ class Vec2d {
             } else if (index == 1) {
                 return this.y;
             } else {
-                throw new Error("Index "+index +" out of bounds for Vec2d");
+                throw new IndexError(index, 1);;
             }
         }
     //***********************
@@ -241,13 +245,17 @@ class Vec3d {
         return new Vec3d(list[0].toNumber(), list[1].toNumber(), list[2].toNumber());
     }
 
-    Vec3d(x, y, z) {
+    Vec3d(x: Number, y: Number, z: Number) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
     Vec3d(list: List) {
+        foreach(item: list){
+            if(!arg.instanceOf(Number.type))
+                throw new UnsupportedError("All list elements must be numbers to construct a vector");
+        }
         this.x, this.y, this.z = list;
     }
 
@@ -502,7 +510,7 @@ class Matrix2d{
     Matrix2d(list: List){
         for(i = 0; i<rows; i++){
             for(j; j<columns; j++){
-                if(Type.of(list[i][j]).getName()!="Number")
+                if(!list[i][j].instanceOf(Number.type))
                     throw new UnsupportedError("All arguments must be numbers to construct a vector");
             }
         }
@@ -638,7 +646,9 @@ class Matrix2d{
     }
 
     operator [] (index: Number){
-        return new Vector(this.data[index]);
+        if(index>=this.rows)
+            return new Vector(this.data[index]);
+        throw new IndexError(index, this.rows-1);
     }
 
     fun determinant(): Number{
@@ -792,7 +802,7 @@ class Vector{
 
     Vector(args...) {
         foreach(arg: args){
-            if(Type.of(arg).getName()!="Number")
+            if(!arg.instanceOf(Number.type))
                 throw new UnsupportedError("All arguments must be numbers to construct a vector");
         }
         this.data = args;
@@ -801,7 +811,7 @@ class Vector{
 
     Vector(list: List) {
         foreach(item: list){
-            if(Type.of(item).getName()!="Number")
+            if(!arg.instanceOf(Number.type))
                 throw new UnsupportedError("All list elements must be numbers to construct a vector");
         }
         this.data = list;
