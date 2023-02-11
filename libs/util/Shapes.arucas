@@ -1,0 +1,344 @@
+import Vec3d from util.Vectors;
+
+DEFAULT_DISMANTLER = fun(a) a.toList();
+DEFAULT_FACTORY = fun(x, y, z) new Vec3d(x, y, z);
+
+class VectorConvertible /* T */ {
+    // Takes in type T and returns a triple
+    var dismantler: Function = DEFAULT_DISMANTLER;
+    // Takes in x, y, z and returns type T
+    var factory: Function = DEFAULT_FACTORY;
+
+    VectorConvertible(); // Defaults
+
+    VectorConvertible(dismantler: Function, factory: Function) {
+        this.dismantler = dismantler;
+        this.factory = factory;
+    }
+}
+
+class Transformation /* T */: VectorConvertible {
+    var coordinates: List = [];
+    var averageCoordintate: List = [];
+
+    Transformation(coordinates: List): super() {
+        this.coordinates = coordinates;
+    }
+
+    Transformation(coordinates /* T */, dismantler: Function, factory: Function): super(dismantler, factory) {
+        foreach (coord : coordinates) {
+            this.coordinates.append(this.dismantler(coord));
+        }
+    }
+
+    Transformation(dismantler: Function, factory: Function): super(dismantler, factory);
+
+    fun dismantleList(list: List): List {
+        returnList = [];
+        foreach (item:list) {
+            returnList.append(this.dismantler(item));
+        }
+        return returnList;
+    }
+
+    fun assambleList(list: List): List {
+        returnList = [];
+        foreach (item:list) {
+            returnList.append(this.factory(item));
+        }
+        return returnList;
+    }
+    
+    fun getPoints(): List {
+        return this.assambleList(this.coordinates);
+    }
+
+
+    fun calculateAverageCoordintate() /* T */ {
+        xSum = 0; ySum = 0; zSum = 0;
+        foreach (coordinate : this.coordinates) {
+            xSum = xSum + coordinate[0];
+            ySum = ySum + coordinate[1];
+            zSum = zSum + coordinate[2];
+        }
+        rCoordinateLength = 1 / len(this.coordinates);
+        xMean = xSum * rCoordinateLength;
+        yMean = ySum * rCoordinateLength;
+        zMean = zSum * rCoordinateLength;
+        this.averageCoordintate = [xMean, yMean, zMean];
+        return this.factory([xMean, yMean, zMean]);
+    }
+
+    fun rotate(centre /* T */, amount: Number, axis: String): List /* Of T */ {
+        centre = this.dismantler(centre);
+
+        rotatedCoordinates = [];
+        returnCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            rot = Transformation.rotate(coordinate, centre, amount, axis);
+
+            rotatedCoordinates.append(rot);
+            returnCoordinates.append(this.factory(rot));
+        }
+        
+        this.coordinates = rotatedCoordinates;
+        return returnCoordinates;
+    }
+
+    fun rotate(amount: Number, axis: String): List /* Of T */ {
+        average = this.calculateAverageCoordintate();
+        return this.rotate(average, amount, axis);
+    }
+
+    fun translate(xDistance: Number, yDistance: Number, zDistance: Number): List /* Of T */ {
+        translatedCoordinates = [];
+        returnCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            coords = [
+                coordinate[0] + xDistance,
+                coordinate[1] + yDistance,
+                coordinate[2] + zDistance
+            ];
+            translatedCoordinates.append(coords);
+            returnCoordinates.append(this.factory(coords));
+        }
+        this.coordinates = translatedCoordinates;
+        return returnCoordinates;
+    }
+    
+    // ax + bz + c = 0
+    //TODO: add Line class instead of using three parameters
+    fun reflect(a: Number, b: Number, c: Number): List /* Of T */ { 
+        reflectedCoordinates = [];
+        returnCoordinates = [];
+
+        rA2PlusB2 = 1 / (a^2 + b^2);
+        twoA = 2 * a;
+        twoB = 2 * b;
+        ASMinusB2 = (a^2 - b^2);
+        B2MinusA2 = (b^2 - a^2);
+
+        foreach (coordinate : this.coordinates) {
+            x, y, z = coordinate;
+            coords = [
+                (x * ASMinusB2 - twoB * (a * z + c)) * rA2PlusB2, y,
+                (z * B2MinusA2 - twoA * (b * x + c)) * rA2PlusB2
+            ];
+            reflectedCoordinates.append(coords);
+            returnCoordinates.append(this.factory(coords));
+        }
+        this.coordinates = reflectedCoordinates;
+        return returnCoordinates;
+    }
+
+    /* TODO but i'm lazy
+    fun reflect(plane: String): List {
+        reflectedCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            if (plane.uppercase() == "XY") {
+
+            } else if (plane.uppercase() == "XZ") {
+
+            } else if (plane.uppercase() == "YZ") {
+
+            }
+        }
+        return reflectedCoordinates;
+    }
+    */
+
+    fun dilate(origin /* T */, xScale: Number, yScale: Number, zScale: Number): List /* Of T */ {
+        x, y, z = this.dismantler(origin);
+        dilatedCoordinates = [];
+        returnCoordinates = [];
+        foreach (coordinate : this.coordinates) {
+            coords = [
+                (coordinate[0] - x) * xScale + x,
+                (coordinate[1] - y) * yScale + y,
+                (coordinate[2] - z) * zScale + z
+            ];
+            dilatedCoordinates.append(coords);
+            returnCoordinates.append(this.factory(coords));
+        }
+        this.coordinates = dilatedCoordinates;
+        return returnCoordinates;
+    }
+
+    fun dilate(origin /* T */, scale: Number): List /* Of T */ {
+        return this.dilate(origin, scale, scale, scale);
+    }
+
+    fun dilate(xScale: Number, yScale: Number, zScale: Number): List /* Of T */ {
+        origin = this.calculateAverageCoordintate();
+        return this.dilate(origin, xScale, yScale, zScale);
+    }
+
+    fun dilate(scale: Number): List /* Of T */ {
+        return this.dilate(scale, scale, scale);
+    }
+    
+    static fun rotate(coordinate: List, centre: List, amount: Number, inputAxis: String): List {
+        axis = ["x", "y", "z"].indexOf(inputAxis);
+        if (axis == -1) {
+            throw new Error("Invalid axis: " + inputAxis);
+        }
+
+        coordinate2D = [];
+        staticCoordinate = 0;
+
+        for (i = 0; i < 3; i++) {
+            value = coordinate[i];
+            if (i != axis) {
+                coordinate2D.append(value - centre[i]);
+            } else {
+                staticCoordinate = value - centre[axis];
+            }
+        }
+
+        polarCoordinate = PolarCoordinates.toPolarCoordinates2d(coordinate2D[0], coordinate2D[1]);
+        polarCoordinate[0] = polarCoordinate[0] - amount;
+        rotated2DCoordinate = PolarCoordinates.toCartesianCoordinates(polarCoordinate[0], polarCoordinate[1]);
+
+        outputCoordinate = [0, 0, 0]; // Dummy values
+        for (i, j = [0, 0]; i < 3; i++) {
+            if (i == axis){
+                outputCoordinate[i] = staticCoordinate + centre[i];
+            } else {
+                outputCoordinate[i] = rotated2DCoordinate[j] + centre[i];
+                j++;
+            }
+        }
+        return outputCoordinate;
+    }
+}
+
+class BezierCurve /* T */: Transformation {
+    var p1;
+    var p2;
+    var p3;
+    var p4;
+    var quadratic = true;
+     
+    BezierCurve(posList: List /* Of T */, dismantler: Function, factory: Function): super(dismantler, factory) {
+        this.p1 = this.dismantler(posList[0]);
+        this.p2 = this.dismantler(posList[1]);
+        this.p3 = this.dismantler(posList[2]);
+        if (len(posList) == 4) {
+            this.p4 = posList[3];
+            this.quadratic = false;
+        }
+        // Should this really be done by default? - Sensei
+        this.generatePoints(100);
+    }
+
+    BezierCurve(posList: List /* Of T */): this(posList, DEFAULT_DISMANTLER, DEFAULT_FACTORY);
+
+    fun getPoint(t: Number) {
+        // This is very readable... - Sensei
+        if (this.quadratic) {
+            oneMinusT = 1 - t;
+            oneMinusT_S = oneMinusT ^ 2;
+            oneMinusTTimes2T = oneMinusT * 2 * t;
+            tS = t * t;
+            x = oneMinusT_S * this.p1[0] + oneMinusTTimes2T * this.p2[0] + tS * this.p3[0];
+            y = oneMinusT_S * this.p1[1] + oneMinusTTimes2T * this.p2[1] + tS * this.p3[1];
+            z = oneMinusT_S * this.p1[2] + oneMinusTTimes2T * this.p2[2] + tS * this.p3[2];
+            return this.factory([x, y, z]);
+        } else { // Cubic
+            oneMinusT = 1 - t;
+            oneMinusT_C = oneMinusT * oneMinusT * oneMinusT;
+            oneMinusT_S_Times3T = oneMinusT * oneMinusT * 3 * t;
+            oneMinusTTimes3tS = oneMinusT * 3 * t * t;
+            tC = t * t * t;
+            x = oneMinusT_C * this.p1[0] + oneMinusT_S_Times3T * this.p2[0] + oneMinusTTimes3tS * this.p3[0] + tC * this.p4[0];
+            y = oneMinusT_C * this.p1[1] + oneMinusT_S_Times3T * this.p2[1] + oneMinusTTimes3tS * this.p3[1] + tC * this.p4[1];
+            z = oneMinusT_C * this.p1[2] + oneMinusT_S_Times3T * this.p2[2] + oneMinusTTimes3tS * this.p3[2] + tC * this.p4[2];
+            return this.factory([x, y, z]);
+        }
+    }
+    
+    fun generatePoints(resolution: Number): List {
+        coordinates = [];
+        for (t = 0; t < 1; t = t + (1 / resolution)){
+            coordinates.append(this.getPoint(t));
+        }
+        this.coordinates = this.dismantleList(coordinates);
+        return coordinates;
+    }
+
+
+    static fun generatePoints(posList: List, resolution: Number): BezierCurve {
+        return new BezierCurve(posList).generatePoints(resolution);
+    }
+}
+
+class Ellipse /* T */: Transformation {
+    var centre: List = [0, 0, 0];
+    var length: Number = 0;
+    var width: Number = 0;
+    var startingAngle: Number = 0;
+    var endAngle: Number = 2 * Math.pi;
+
+    // Circle
+    Ellipse(centre, radius): super() { 
+        this.centre = centre;
+        this.length = radius;
+        this.width = radius;
+    }
+
+    // Partial Circle
+    Ellipse(centre, radius, startingAngle, endAngle): this(centre, radius) {
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
+    }
+
+    // Ellipse
+    Ellipse(centre, length, width): super() { 
+        this.centre = centre;
+        this.length = length;
+        this.width = width;
+    }
+
+    // Partial Ellipse
+    Ellipse(centre, length, width, startingAngle, endAngle): this(centre, length, width) {
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
+    }
+
+    Ellipse(
+        centre /* T */, 
+        length: Number, 
+        width: Number, 
+        startingAngle: Number, 
+        endAngle: Number, 
+        dismantler: Function, 
+        factory: Function
+    ): super(dismantler, factory) {
+        this.centre = this.dismantler(centre);
+        this.length = length;
+        this.width = width;
+        this.startingAngle = startingAngle;
+        this.endAngle = endAngle;
+        this.generatePoints(100);     
+    }
+
+    fun generatePoints(res): List /* Of T */ {
+        coordinates = [];
+        x, y, z = this.centre;
+        resolution = Math.abs(this.endAngle - this.startingAngle) / res;
+
+        quarterLengthWidth = 0.25 * this.length * this.width;
+        for (theta = this.startingAngle; theta < this.endAngle; theta = theta + resolution) {
+            sinT = Math.sin(theta);
+            cosT = Math.cos(theta);
+            magicNum = (Math.sqrt((0.5 * this.width * sinT) ^ 2 + (0.5 * this.length * cosT) ^ 2));
+            xOffset = quarterLengthWidth / magicNum * cosT;
+            zOffset = quarterLengthWidth / magicNum * sinT;
+            coordinates.append([x + xOffset, y, z + zOffset]);
+        }
+        this.coordinates = coordinates;
+        return this.assambleList(coordinates);
+    }
+}
+
+
