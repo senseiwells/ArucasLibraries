@@ -1,5 +1,4 @@
-import Vec3d from util.Vectors;
-import Vec2d from util.Vectors;
+import * from util.Vectors;
 import * from util.Errors;
 import * from util.Grid;
 
@@ -58,29 +57,33 @@ class Voronoi{
 
     }
     fun getValue(vec: Vec3d) {
+        times = [];
+        previousTime = getNanoTime();
         centreCell = this.grid.getCellForPoint(vec, true);
+        times.append(getNanoTime()-previousTime);
+        previousTime = getNanoTime();
         neighbours = centreCell.getNeighbours();
-        //print("VALUE received neighbours " + neighbours);
+        times.append(getNanoTime()-previousTime);
+        previousTime = getNanoTime();
         cells = neighbours.append(centreCell);
         minDistanceCell = 1/0;
         minPointDistance = 1/0;
         foreach(cell:cells){
-            //print("VALUE" + cell.coordinates);
-            if(cell.getNumberOfPoints()!=this.frequency){
+            if(cell.getNumberOfPoints() != this.frequency){
                 cell.clearPoints();
                 cell.addRandomPoints(this.frequency);
-                //print("points done");
             }
             foreach(point : cell.getPoints()){
                 distance = point.distanceToSquared(vec);
-                //print("Distance: " + distance + " From: " + vec + " To: " + point);
                 if(distance < minPointDistance){
-                    //print("New min distance: " + distance + " Old min distance: " + minPointDistance);
                     minDistanceCell = cell.getId();
                     minPointDistance = distance;
                 }
             }
         }
+        times.append(getNanoTime()-previousTime);
+        previousTime = getNanoTime();
+        //return new Vector(times);
         return new Vec2d(Math.sqrt(minPointDistance), minDistanceCell);
     }
 
