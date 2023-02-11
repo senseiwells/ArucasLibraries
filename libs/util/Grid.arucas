@@ -57,16 +57,20 @@ class Cell{
     var size: Vec3d;
     var id;
 
+    var initialized: Boolean = false;
+
     Cell(coordinates: Vec3d, grid, size: Vec3d, id: Number){
         this.grid = grid;
         this.coordinates = coordinates;
         this.size = size;
         this.id = id;
+
     }
 
     fun getNeighbours(){
         //print("CELL sharing neighbour adresses");
-        this.initializeNeighbours();
+        if(this.neighbours.isEmpty())
+            this.initializeNeighbours();
         return this.neighbours.getValues();
     }
 
@@ -87,6 +91,7 @@ class Cell{
                 }
             }
         }
+        this.initialized = true;
         //print("CELL neighbours done");
     }
     fun addRandomPoints(n: Number){
