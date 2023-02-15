@@ -1,6 +1,7 @@
 import Stack, LinkedStack from util.Collections;
 import Reference from util.Auxilary;
 import IllegalArgumentError from util.Errors;
+import Java from util.Internal;
 
 /**
  * Builder class for strings, allowing for
