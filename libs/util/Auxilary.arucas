@@ -88,7 +88,7 @@ class VarArgs {
         if (index >= this.size) {
             throw new IndexError(index, this.size);
         }
-        return this.arguments.get(i);
+        return this.arguments.get(index);
     }
 
     fun get(index: Number, type: Type): Object {
