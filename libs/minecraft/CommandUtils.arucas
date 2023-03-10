@@ -172,6 +172,10 @@ class LinearCommand{
         }
     }
 
+    static fun register(arguments, lambda) {
+        new LinearCommand(arguments, lambda).process();
+    }
+
     fun build() {
         // Build as linear form directly.
         if (this.waitingQueue.isEmpty()){
@@ -180,17 +184,24 @@ class LinearCommand{
         current = this.waitingQueue.pop();
         // We got something as List anyway.
         tempCommand = '';
-        size = len(current);
-        if (size == 1){
-            tempCommand = CommandBuilder.literal(current.get(0));
-        } else if (size == 2) {
-            tempCommand = CommandBuilder.argument(current.get(0), current.get(1));
-        } else if (size == 3) { // Suggest args
-            tempCommand = CommandBuilder.argument(current.get(0), current.get(1), current.get(2));
-        } else if (size > 3) { // Won't process in linear build
-            throw new TypeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or List<ArgName>");
+        if (Type.of(current) == String.type) {
+            tempCommand = CommandBuilder.literal(current);
         }
-
+        else if (Type.of(current).inheritsFrom(Iterable.type)) {
+            size = len(current);
+            if (size == 1){
+                tempCommand = CommandBuilder.literal(current.get(0));
+            } else if (size == 2) {
+                tempCommand = CommandBuilder.argument(current.get(0), current.get(1));
+            } else if (size == 3) { // Suggest args
+                tempCommand = CommandBuilder.argument(current.get(0), current.get(1), current.get(2));
+            } else if (size > 3) { // Won't process in linear build
+                throw new TypeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or List<ArgName>");
+            }
+        }
+        else {
+            throw new TypeError("Argument Type was neither String nor Iterable");
+        }
         newInnerScope = null;
         if (this.innerScope != null) {
             newInnerScope = tempCommand.then(this.innerScope);
@@ -210,14 +221,22 @@ class LinearCommand{
         }
         current = this.waitingQueue.pop();
         tempCommand = '';
-        if (len(current) == 1) {
-            tempCommand = 'CommandBuilder.literal(' + current.get(0) + ')';
-        } else if (len(current) == 2) {
-            tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ')';
-        } else if (len(current) > 3) {
-            throw new TypeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
-        } else if (len(current) == 3) {
-            tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ',' + current.get(2) + ')';
+        if (Type.of(current) == String.type) {
+            tempCommand = 'CommandBuilder.literal(' + current + ')';
+        }
+        else if (Type.of(current).inheritsFrom(Iterable.type)) {
+            if (len(current) == 1) {
+                tempCommand = 'CommandBuilder.literal(' + current.get(0) + ')';
+            } else if (len(current) == 2) {
+                tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ')';
+            } else if (len(current) > 3) {
+                throw new TypeError("Argument was not type of List<ArgName, ArgType, Suggestions> or List<ArgName, ArgType> or list<ArgName>");
+            } else if (len(current) == 3) {
+                tempCommand = 'CommandBuilder.argument(' + current.get(0) + ',' +  current.get(1)+ ',' + current.get(2) + ')';
+            }
+        }
+        else {
+            throw new TypeError("Argument Type was neither String nor Iterable");
         }
         newInnerDebug = '';
         if (this.innerDebug != ''){
@@ -246,7 +265,10 @@ class LinearCommand{
         }
         current = this.waitingQueue.dequeue(); //this time we parse sequentially
         tempArg = '';
-        if (len(current) == 1){
+        if (Type.of(current) == String.type) {
+            tempArg = current;
+        }
+        else if (len(current) == 1){
             //literal
             tempArg = current.get(0);
         }
