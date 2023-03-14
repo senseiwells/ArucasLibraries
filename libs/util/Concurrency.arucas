@@ -10,7 +10,7 @@ class Futures {
         foreach (arg : argSet) {
             this.futures.append(new Task().then(fun() {
                 return apply(arg);
-            }).run())
+            }).run());
         }
     }
 
