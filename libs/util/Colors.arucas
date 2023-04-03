@@ -240,6 +240,6 @@ enum Colors : RGBColor {
     }
 
     fun getHexCode() {
-        return this.hexcode;
+        return this.hex;
     }
 }
