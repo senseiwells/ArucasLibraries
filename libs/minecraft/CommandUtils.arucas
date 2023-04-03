@@ -135,7 +135,10 @@ class PropertySuggester {
 /* LinearCommand class
     This class is used to create command that executes lambda.
     Example command that calculates sum of two numbers:
-    LinearCommand.register(['commandName', 'add', ['a', 'Double'], ['b', 'Double']], fun (a, b) {return a + b;});
+    LinearCommand.register(['commandName', 'add', ['a', 'Double'], ['b', 'Double']], fun (a, b) {print(a + b);});
+    This command can be executed by typing /commandName add 1 2
+    Literals can be covered with [] but its not necessary.
+    But, arguments has to be covered with []. Arguments are not necessary, command can be executed without them by lambda with zero arguments.
 */
 class LinearCommand{
     // Recursion limit
@@ -154,6 +157,8 @@ class LinearCommand{
     var innerScope;
     // counts current depth of recursion.
     var recursionCount;
+    // description of command
+    var description = '';
 
     LinearCommand(arguments, lambda) {
         // [<a>, <a,b>, <a,b>,...] -> root a, arguments with type b executes lambda
@@ -188,8 +193,26 @@ class LinearCommand{
     // example : LinearCommand.register([['baseCommandName'],['someUniqueLiterals'], ['argumentName', 'argumentType', 'Suggester(Function) | suggestingValue | list of suggesting values']], lambda);
     // Suggester should return list of strings, and accept list of arguments as parameter.
     // But Integer and Double can use ['argumentName', 'Integer|Double', min, max] as argument
-    static fun register(arguments, lambda) {
-        new LinearCommand(arguments, lambda).process();
+    static fun register(arguments, lambda) : LinearCommand {
+        return new LinearCommand(arguments, lambda).process();
+    }
+
+    // example : /exampleCommand literalA <argumentA> <argumentB> calls functionWith2Args(argumentA, argumentB)
+    // document : "some description"
+    // LinearCommand.register(['exampleCommand','literalA', ['argumentA', ArgumentType, List<String> | Supplier() -> List<String> ], ['argumentB', 'Integer|Double', minValue, maxValue]], functionWith2Args, "some description")
+    static fun register(arguments, lambda, description) : LinearCommand {
+        return new LinearCommand(arguments, lambda).setDescription(description).process();
+    }
+
+    // command = LinearCommand.register(args...).setDescription("some description")
+    // document = command.getDescription()
+    fun setDescription(description: String) : LinearCommand {
+        this.description = description;
+        return this;
+    }
+
+    fun getDescription() : String {
+        return this.description;
     }
 
     fun build() {
@@ -375,6 +398,7 @@ class LinearCommand{
     // process command.
     fun processMapCommand(){
         MinecraftClient.get().addCommand(this.getMap());
+        return this;
     }
     // you can use this to peek what is happening.
     fun getMap(){
@@ -402,8 +426,9 @@ class LinearCommand{
     fun process(){
         if (this.shouldProcessAsMap()){
             this.processMapCommand();
-            return;
+            return this;
         }
         MinecraftClient.get().addCommand(this.build());
+        return this;
     }
 }
